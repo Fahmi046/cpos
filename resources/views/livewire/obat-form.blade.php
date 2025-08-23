@@ -1,5 +1,6 @@
 <div class="p-4 bg-white rounded shadow">
-    <form wire:submit.prevent="store" class="space-y-4">
+    <form wire:submit.prevent="store" class="space-y-4" x-data x-init="$nextTick(() => $refs.nama_obat.focus())"
+        x-on:focus-nama-obat.window="$refs.nama_obat.focus()">
         <div class="grid grid-cols-2 gap-4">
             <div class="mb-4">
                 <label for="kode_obat" class="block text-sm font-medium text-gray-700">Kode Obat</label>
@@ -8,7 +9,8 @@
             </div>
             <div>
                 <label>Nama Obat</label>
-                <input type="text" wire:model="nama_obat" class="w-full border rounded p-2">
+                <input type="text" wire:model="nama_obat" class="w-full border rounded p-2" x-ref="nama_obat"
+                    @keydown.enter.prevent="$refs.kategori.focus()">
                 @error('nama_obat')
                     <span class="text-red-500">{{ $message }}</span>
                 @enderror
@@ -18,52 +20,60 @@
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label>Kategori</label>
-                <input type="text" wire:model="kategori" class="w-full border rounded p-2">
+                <input type="text" wire:model="kategori" class="w-full border rounded p-2" x-ref="kategori"
+                    @keydown.enter.prevent="$refs.bentuk_sediaan.focus()">
             </div>
             <div>
                 <label>Bentuk Sediaan</label>
                 <input type="text" wire:model="bentuk_sediaan" placeholder="Tablet, Kapsul, Sirup..."
-                    class="w-full border rounded p-2">
+                    class="w-full border rounded p-2" x-ref="bentuk_sediaan"
+                    @keydown.enter.prevent="$refs.kandungan.focus()">
             </div>
         </div>
 
         <div>
             <label>Kandungan</label>
-            <textarea wire:model="kandungan" class="w-full border rounded p-2"></textarea>
+            <textarea wire:model="kandungan" class="w-full border rounded p-2" x-ref="kandungan"
+                @keydown.enter.prevent="$refs.stok.focus()"></textarea>
         </div>
 
         <div class="grid grid-cols-3 gap-4">
             <div>
                 <label>Stok</label>
-                <input type="number" wire:model="stok" class="w-full border rounded p-2">
+                <input type="number" wire:model="stok" class="w-full border rounded p-2" x-ref="stok"
+                    @keydown.enter.prevent="$refs.satuan.focus()">
             </div>
             <div>
                 <label>Satuan</label>
                 <input type="text" wire:model="satuan" placeholder="Strip, Botol, Box..."
-                    class="w-full border rounded p-2">
+                    class="w-full border rounded p-2" x-ref="satuan" @keydown.enter.prevent="$refs.pabrik.focus()">
             </div>
             <div>
                 <label>Pabrik</label>
-                <input type="text" wire:model="pabrik" class="w-full border rounded p-2">
+                <input type="text" wire:model="pabrik" class="w-full border rounded p-2" x-ref="pabrik"
+                    @keydown.enter.prevent="$refs.harga_beli.focus()">
             </div>
         </div>
 
         <div class="grid grid-cols-3 gap-4">
             <div>
                 <label>Harga Beli</label>
-                <input type="number" wire:model="harga_beli" step="0.01" class="w-full border rounded p-2">
+                <input type="number" wire:model="harga_beli" step="0.01" class="w-full border rounded p-2"
+                    x-ref="harga_beli" @keydown.enter.prevent="$refs.harga_jual.focus()">
             </div>
             <div>
                 <label>Harga Jual</label>
-                <input type="number" wire:model="harga_jual" step="0.01" class="w-full border rounded p-2">
+                <input type="number" wire:model="harga_jual" step="0.01" class="w-full border rounded p-2"
+                    x-ref="harga_jual" @keydown.enter.prevent="$refs.tgl_expired.focus()">
             </div>
             <div>
                 <label>Tanggal Expired</label>
-                <input type="date" wire:model="tgl_expired" class="w-full border rounded p-2">
+                <input type="date" wire:model="tgl_expired" class="w-full border rounded p-2" x-ref="tgl_expired"
+                    @keydown.enter.prevent="$refs.submit.focus()">
             </div>
         </div>
 
-        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded">
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded" x-ref="submit">
             {{ $obat_id ? 'Update' : 'Simpan' }}
         </button>
     </form>

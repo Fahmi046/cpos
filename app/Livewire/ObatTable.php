@@ -28,6 +28,8 @@ class ObatTable extends Component
         Obat::findOrFail($id)->delete();
         $this->loadObats();
         session()->flash('message', 'Obat berhasil dihapus.');
+        // Corrected: Dispatch event using the new syntax
+        $this->dispatch('refreshKodeObat');
     }
 
     public function render()
