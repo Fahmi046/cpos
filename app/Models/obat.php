@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\SatuanObat;
 use Illuminate\Database\Eloquent\Model;
 
 class Obat extends Model
@@ -20,4 +21,9 @@ class Obat extends Model
         'pabrik',
         'tgl_expired',
     ];
+    // app/Models/Obat.php
+    public function satuan()
+    {
+        return $this->belongsTo(SatuanObat::class, 'satuan_id');
+    }
 }

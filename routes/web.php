@@ -9,3 +9,7 @@ Route::get('/', function () {
 Route::get('/obat', function () {
     return view('pages.obat');
 });
+
+Route::get('/satuan-obat', function () {
+    return view('pages.satuan-obat');
+});
