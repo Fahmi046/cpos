@@ -3,6 +3,7 @@
         <li><a href="/" class="text-gray-700 hover:text-blue-600">Home</a></li>
         <li><a href="/obat" class="text-gray-700 hover:text-blue-600">obat</a></li>
         <li><a href="/satuan-obat" class="text-gray-700 hover:text-blue-600">satuan obat</a></li>
-        <li><a href="/bentuk-sediaan" class="text-gray-700 hover:text-blue-600">satuan obat</a></li>
+        <li><a href="/bentuk-sediaan" class="text-gray-700 hover:text-blue-600">Bentuk Sediaan</a></li>
+        <li><a href="/pabrik" class="text-gray-700 hover:text-blue-600">pabrik</a></li>
     </ul>
 </nav>

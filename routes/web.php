@@ -17,3 +17,7 @@ Route::get('/satuan-obat', function () {
 Route::get('/bentuk-sediaan', function () {
     return view('pages.bentuk-sediaan');
 });
+
+Route::get('/pabrik', function () {
+    return view('pages.pabrik');
+})->name('pabrik.index');

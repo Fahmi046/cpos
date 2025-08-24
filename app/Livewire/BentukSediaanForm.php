@@ -100,6 +100,6 @@ class BentukSediaanForm extends Component
             'aktif'
         ]);
 
-        $this->kode_obat = $this->generateKodeSediaan();
+        $this->kode_sediaan = $this->generateKodeSediaan();
     }
 }
