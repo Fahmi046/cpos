@@ -25,7 +25,7 @@ class SatuanObatForm extends Component
             'aktif'       => 'boolean',
         ];
     }
-    protected $listeners = ['editSatuan' => 'edit', 'resetForm' => 'resetInput'];
+    protected $listeners = ['edit-satuan' => 'edit', 'resetForm' => 'resetInput'];
 
     public function mount()
     {

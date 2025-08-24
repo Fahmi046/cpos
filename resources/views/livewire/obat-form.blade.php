@@ -20,21 +20,30 @@
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label>Kategori</label>
-                <input type="text" wire:model="kategori" class="w-full border rounded p-2" x-ref="kategori"
+                <select wire:model="kategori_id" class="border rounded p-2 w-full" x-ref="kategori"
                     @keydown.enter.prevent="$refs.bentuk_sediaan.focus()">
+                    <option value="">-- Pilih Kategori --</option>
+                    @foreach ($kategoriList as $item)
+                        <option value="{{ $item->id }}">{{ $item->nama_kategori }}</option>
+                    @endforeach
+                </select>
             </div>
             <div>
                 <label>Bentuk Sediaan</label>
-                <input type="text" wire:model="bentuk_sediaan" placeholder="Tablet, Kapsul, Sirup..."
-                    class="w-full border rounded p-2" x-ref="bentuk_sediaan"
+                <select wire:model="sediaan_id" class="border rounded p-2 w-full" x-ref="bentuk_sediaan"
                     @keydown.enter.prevent="$refs.kandungan.focus()">
+                    <option value="">-- Pilih Sediaan --</option>
+                    @foreach ($sediaanList as $item)
+                        <option value="{{ $item->id }}">{{ $item->nama_sediaan }}</option>
+                    @endforeach
+                </select>
             </div>
         </div>
 
         <div>
             <label>Kandungan</label>
-            <textarea wire:model="kandungan" class="w-full border rounded p-2" x-ref="kandungan"
-                @keydown.enter.prevent="$refs.stok.focus()"></textarea>
+            <input type="text" wire:model="kandungan" class="w-full border rounded p-2" x-ref="kandungan"
+                @keydown.enter.prevent="$refs.stok.focus()">
         </div>
 
         <div class="grid grid-cols-3 gap-4">
@@ -45,13 +54,23 @@
             </div>
             <div>
                 <label>Satuan</label>
-                <input type="text" wire:model="satuan" placeholder="Strip, Botol, Box..."
-                    class="w-full border rounded p-2" x-ref="satuan" @keydown.enter.prevent="$refs.pabrik.focus()">
+                <select wire:model="satuan_id" class="border rounded p-2 w-full" x-ref="satuan"
+                    @keydown.enter.prevent="$refs.pabrik.focus()">
+                    <option value="">-- Pilih Satuan --</option>
+                    @foreach ($satuanList as $item)
+                        <option value="{{ $item->id }}">{{ $item->nama_satuan }}</option>
+                    @endforeach
+                </select>
             </div>
             <div>
                 <label>Pabrik</label>
-                <input type="text" wire:model="pabrik" class="w-full border rounded p-2" x-ref="pabrik"
+                <select wire:model="pabrik_id" class="border rounded p-2 w-full" x-ref="pabrik"
                     @keydown.enter.prevent="$refs.harga_beli.focus()">
+                    <option value="">-- Pilih Pabrik --</option>
+                    @foreach ($pabrikList as $item)
+                        <option value="{{ $item->id }}">{{ $item->nama_pabrik }}</option>
+                    @endforeach
+                </select>
             </div>
         </div>
 

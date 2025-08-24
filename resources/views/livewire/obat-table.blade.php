@@ -18,6 +18,7 @@
                     <th class="border p-2">Kandungan</th>
                     <th class="border p-2">Stok</th>
                     <th class="border p-2">Satuan</th>
+                    <th class="border p-2">Pabrik</th>
                     <th class="border p-2">Harga Jual</th>
                     <th class="border p-2">Expired</th>
                     <th class="border p-2">Aksi</th>
@@ -28,11 +29,12 @@
                     <tr>
                         <td class="border p-2">{{ $obat->kode_obat }}</td>
                         <td class="border p-2">{{ $obat->nama_obat }}</td>
-                        <td class="border p-2">{{ $obat->kategori }}</td>
-                        <td class="border p-2">{{ $obat->bentuk_sediaan }}</td>
+                        <td class="border p-2">{{ $obat->kategori->nama_kategori ?? '-' }}</td>
+                        <td class="border p-2">{{ $obat->sediaan->nama_sediaan ?? '-' }}</td>
                         <td class="border p-2">{{ $obat->kandungan }}</td>
                         <td class="border p-2 text-center">{{ $obat->stok }}</td>
-                        <td class="border p-2">{{ $obat->satuan }}</td>
+                        <td class="border p-2">{{ $obat->satuan->nama_satuan ?? '-' }}</td>
+                        <td class="border p-2">{{ $obat->pabrik->nama_pabrik ?? '-' }}</td>
                         <td class="border p-2">{{ number_format($obat->harga_jual, 0, ',', '.') }}</td>
                         <td class="border p-2">
                             {{ $obat->tgl_expired ? \Carbon\Carbon::parse($obat->tgl_expired)->format('d-m-Y') : '-' }}

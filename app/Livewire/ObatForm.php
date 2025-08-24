@@ -4,11 +4,17 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Obat;
+use App\Models\KategoriObat;
+use App\Models\SatuanObat;
+use App\Models\BentukSediaan;
+use App\Models\Pabrik;
+
 
 class ObatForm extends Component
 {
     public $obat_id;
-    public $kode_obat, $nama_obat, $kategori, $bentuk_sediaan, $kandungan;
+    public $kode_obat, $nama_obat, $kandungan;
+    public $kategori_id, $satuan_id, $sediaan_id, $pabrik_id;
     public $harga_beli, $harga_jual, $stok, $satuan, $pabrik, $tgl_expired;
 
     public function mount()
@@ -42,7 +48,12 @@ class ObatForm extends Component
 
     public function render()
     {
-        return view('livewire.obat-form');
+        return view('livewire.obat-form', [
+            'kategoriList' => KategoriObat::all(),
+            'satuanList' => SatuanObat::all(),
+            'sediaanList' => BentukSediaan::all(),
+            'pabrikList' => Pabrik::all(),
+        ]);
     }
 
     public function store()
@@ -50,6 +61,10 @@ class ObatForm extends Component
         $this->validate([
             'nama_obat' => 'required|string|max:150',
             'harga_jual' => 'required|numeric|min:0',
+            'kategori_id' => 'required',
+            'satuan_id' => 'required',
+            'sediaan_id' => 'required',
+            'pabrik_id' => 'required',
         ]);
 
         // ✅ pastikan kode_obat di-generate sebelum simpan
@@ -60,32 +75,32 @@ class ObatForm extends Component
         if ($this->obat_id) {
             $obat = Obat::findOrFail($this->obat_id);
             $obat->update([
-                'kode_obat' => $this->kode_obat,
-                'nama_obat' => $this->nama_obat,
-                'kategori' => $this->kategori,
-                'bentuk_sediaan' => $this->bentuk_sediaan,
-                'kandungan' => $this->kandungan,
-                'harga_beli' => $this->harga_beli,
-                'harga_jual' => $this->harga_jual,
-                'stok' => $this->stok,
-                'satuan' => $this->satuan,
-                'pabrik' => $this->pabrik,
-                'tgl_expired' => $this->tgl_expired,
+                'kode_obat'    => $this->kode_obat,
+                'nama_obat'    => $this->nama_obat,
+                'kategori_id'  => $this->kategori_id,   // ✅ pakai _id
+                'sediaan_id'   => $this->sediaan_id,
+                'kandungan'    => $this->kandungan,
+                'harga_beli'   => $this->harga_beli,
+                'harga_jual'   => $this->harga_jual,
+                'stok'         => $this->stok,
+                'satuan_id'    => $this->satuan_id,
+                'pabrik_id'    => $this->pabrik_id,
+                'tgl_expired'  => $this->tgl_expired,
             ]);
             session()->flash('message', 'Data berhasil diperbarui.');
         } else {
             Obat::create([
-                'kode_obat' => $this->kode_obat,
-                'nama_obat' => $this->nama_obat,
-                'kategori' => $this->kategori,
-                'bentuk_sediaan' => $this->bentuk_sediaan,
-                'kandungan' => $this->kandungan,
-                'harga_beli' => $this->harga_beli,
-                'harga_jual' => $this->harga_jual,
-                'stok' => $this->stok,
-                'satuan' => $this->satuan,
-                'pabrik' => $this->pabrik,
-                'tgl_expired' => $this->tgl_expired,
+                'kode_obat'    => $this->kode_obat,
+                'nama_obat'    => $this->nama_obat,
+                'kategori_id'  => $this->kategori_id,   // ✅ pakai _id
+                'sediaan_id'   => $this->sediaan_id,
+                'kandungan'    => $this->kandungan,
+                'harga_beli'   => $this->harga_beli,
+                'harga_jual'   => $this->harga_jual,
+                'stok'         => $this->stok,
+                'satuan_id'    => $this->satuan_id,
+                'pabrik_id'    => $this->pabrik_id,
+                'tgl_expired'  => $this->tgl_expired,
             ]);
             session()->flash('message', 'Data berhasil ditambahkan.');
         }
@@ -109,14 +124,14 @@ class ObatForm extends Component
         $this->reset([
             'obat_id',
             'nama_obat',
-            'kategori',
-            'bentuk_sediaan',
+            'kategori_id',
+            'sediaan_id',
             'kandungan',
             'harga_beli',
             'harga_jual',
             'stok',
-            'satuan',
-            'pabrik',
+            'satuan_id',
+            'pabrik_id',
             'tgl_expired'
         ]);
 
