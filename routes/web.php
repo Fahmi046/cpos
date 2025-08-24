@@ -21,3 +21,7 @@ Route::get('/bentuk-sediaan', function () {
 Route::get('/pabrik', function () {
     return view('pages.pabrik');
 })->name('pabrik.index');
+
+Route::get('/kategori-obat', function () {
+    return view('pages.kategori-obat');
+});
