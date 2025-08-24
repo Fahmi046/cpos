@@ -33,7 +33,6 @@ class ObatForm extends Component
         $this->kode_obat = '0010' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
 
-    // ❌ jangan dobel deklarasi
     protected $listeners = [
         'edit-obat'   => 'edit',
         'refreshForm' => '$refresh',

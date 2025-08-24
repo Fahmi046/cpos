@@ -13,3 +13,7 @@ Route::get('/obat', function () {
 Route::get('/satuan-obat', function () {
     return view('pages.satuan-obat');
 });
+
+Route::get('/bentuk-sediaan', function () {
+    return view('pages.bentuk-sediaan');
+});
