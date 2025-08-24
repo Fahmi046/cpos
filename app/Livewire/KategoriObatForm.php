@@ -4,18 +4,25 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\KategoriObat;
+use Illuminate\Validation\Rule;
 
 class KategoriObatForm extends Component
 {
     public $kategori_id;
     public $kode_kategori, $nama_kategori, $deskripsi, $aktif = true;
 
-    protected $rules = [
-        'kode_kategori' => 'required|unique:kategori_obat,kode_kategori',
-        'nama_kategori' => 'required|string',
-        'deskripsi' => 'nullable|string',
-        'aktif' => 'boolean',
-    ];
+    protected function rules()
+    {
+        return [
+            'kode_kategori' => [
+                'required',
+                Rule::unique('kategori_obat', 'kode_kategori')->ignore($this->kategori_id),
+            ],
+            'nama_kategori' => 'required|string',
+            'deskripsi' => 'nullable|string',
+            'aktif' => 'boolean',
+        ];
+    }
 
     public function save()
     {
@@ -41,11 +48,8 @@ class KategoriObatForm extends Component
     public function edit($id)
     {
         $kategori = KategoriObat::findOrFail($id);
-        $this->kategori_id   = $kategori->id;
-        $this->kode_kategori = $kategori->kode_kategori;
-        $this->nama_kategori = $kategori->nama_kategori;
-        $this->deskripsi     = $kategori->deskripsi;
-        $this->aktif         = $kategori->aktif;
+        $this->fill($kategori->toArray());
+        $this->kategori_id = $id;
     }
 
     public function resetForm()

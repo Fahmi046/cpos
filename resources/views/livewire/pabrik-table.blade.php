@@ -19,7 +19,7 @@
                     <td class="p-2 border">{{ $pabrik->telepon }}</td>
                     <td class="p-2 border">{{ $pabrik->aktif ? 'Ya' : 'Tidak' }}</td>
                     <td class="p-2 border">
-                        <button wire:click="$dispatch('edit', {{ $pabrik->id }})"
+                        <button wire:click="$dispatch('edit-pabrik', { id: {{ $pabrik->id }} })"
                             class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</button>
                         <button wire:click="delete({{ $pabrik->id }})"
                             class="bg-red-500 text-white px-2 py-1 rounded">Hapus</button>

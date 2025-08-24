@@ -50,12 +50,8 @@ class PabrikForm extends Component
     public function edit($id)
     {
         $pabrik = Pabrik::findOrFail($id);
-        $this->pabrik_id = $pabrik->id;
-        $this->kode_pabrik = $pabrik->kode_pabrik;
-        $this->nama_pabrik = $pabrik->nama_pabrik;
-        $this->alamat = $pabrik->alamat;
-        $this->telepon = $pabrik->telepon;
-        $this->aktif = $pabrik->aktif;
+        $this->fill($pabrik->toArray());
+        $this->pabrik_id = $id;
     }
 
     public function render()
