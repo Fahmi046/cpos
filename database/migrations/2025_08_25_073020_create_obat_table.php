@@ -18,13 +18,11 @@ return new class extends Migration
             $table->unsignedBigInteger('satuan_id');
             $table->unsignedBigInteger('sediaan_id');
             $table->unsignedBigInteger('pabrik_id');
+            $table->unsignedBigInteger('komposisi_id');
 
             // detail obat
-            $table->string('kandungan')->nullable();
             $table->decimal('harga_beli', 15, 2)->default(0);
             $table->decimal('harga_jual', 15, 2)->default(0);
-            $table->integer('stok')->default(0);
-            $table->date('tgl_expired')->nullable();
             $table->boolean('aktif')->default(true);
 
             $table->timestamps();
@@ -34,6 +32,7 @@ return new class extends Migration
             $table->foreign('satuan_id')->references('id')->on('satuan_obat')->onDelete('cascade');
             $table->foreign('sediaan_id')->references('id')->on('bentuk_sediaans')->onDelete('cascade');
             $table->foreign('pabrik_id')->references('id')->on('pabrik')->onDelete('cascade');
+            $table->foreign('komposisi_id')->references('id')->on('komposisi')->onDelete('cascade');
         });
     }
 

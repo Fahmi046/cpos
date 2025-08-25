@@ -20,61 +20,115 @@
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label>Kategori</label>
-                <select wire:model="kategori_id" class="border rounded p-2 w-full" x-ref="kategori"
-                    @keydown.enter.prevent="$refs.bentuk_sediaan.focus()">
-                    <option value="">-- Pilih Kategori --</option>
-                    @foreach ($kategoriList as $item)
-                        <option value="{{ $item->id }}">{{ $item->nama_kategori }}</option>
-                    @endforeach
-                </select>
+                <input type="text" wire:model="searchKategori"
+                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring" placeholder="Cari kategori..."
+                    x-ref="kategori" @keydown.arrow-down.prevent="$wire.incrementHighlight()"
+                    @keydown.arrow-up.prevent="$wire.decrementHighlight()"
+                    @keydown.enter.prevent="$wire.pilihHighlight(); $nextTick(() => $refs.bentuk_sediaan.focus())">
+
+                {{-- Dropdown hasil pencarian --}}
+                @if (!empty($kategoriList))
+                    <ul class="border bg-white rounded mt-1 max-h-40 overflow-y-auto">
+                        @foreach ($kategoriList as $index => $item)
+                            <li wire:click="pilihKategori({{ $item->id }}, '{{ $item->nama_kategori }}')"
+                                class="px-3 py-2 cursor-pointer
+                    {{ $highlightIndex === $index ? 'bg-blue-500 text-white' : 'hover:bg-blue-100' }}">
+                                {{ $item->nama_kategori }}
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+
+                {{-- Hidden field simpan ID kategori --}}
+                <input type="hidden" name="kategori_id" value="{{ $kategori_id }}">
             </div>
             <div>
-                <label>Bentuk Sediaan</label>
-                <select wire:model="sediaan_id" class="border rounded p-2 w-full" x-ref="bentuk_sediaan"
-                    @keydown.enter.prevent="$refs.kandungan.focus()">
-                    <option value="">-- Pilih Sediaan --</option>
-                    @foreach ($sediaanList as $item)
-                        <option value="{{ $item->id }}">{{ $item->nama_sediaan }}</option>
-                    @endforeach
-                </select>
+                <div>
+                    <label>Bentuk Sediaan</label>
+                    <input type="text" wire:model="searchsediaan"
+                        class="w-full border rounded px-3 py-2 focus:outline-none focus:ring"
+                        placeholder="Cari sediaan..." x-ref="bentuk_sediaan"
+                        @keydown.arrow-down.prevent="$wire.incrementHighlightsediaan()"
+                        @keydown.arrow-up.prevent="$wire.decrementHighlightsediaan()"
+                        @keydown.enter.prevent="$wire.pilihHighlightsediaan(); $nextTick(() => $refs.kandungan.focus())">
+
+                    {{-- Dropdown hasil pencarian --}}
+                    @if (!empty($sediaanList))
+                        <ul class="border bg-white rounded mt-1 max-h-40 overflow-y-auto">
+                            @foreach ($sediaanList as $index => $item)
+                                <li wire:click="pilihsediaan({{ $item->id }}, '{{ $item->nama_sediaan }}')"
+                                    class="px-3 py-2 cursor-pointer
+                    {{ $highlightIndex === $index ? 'bg-blue-500 text-white' : 'hover:bg-blue-100' }}">
+                                    {{ $item->nama_sediaan }}
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+
+                    {{-- Hidden field simpan ID kategori --}}
+                    <input type="hidden" name="sediaan_id" value="{{ $sediaan_id }}">
+                </div>
             </div>
         </div>
 
         <div>
             <label>Kandungan</label>
             <input type="text" wire:model="kandungan" class="w-full border rounded p-2" x-ref="kandungan"
-                @keydown.enter.prevent="$refs.stok.focus()">
+                @keydown.enter.prevent="$refs.satuan.focus()">
         </div>
 
-        <div class="grid grid-cols-3 gap-4">
-            <div>
-                <label>Stok</label>
-                <input type="number" wire:model="stok" class="w-full border rounded p-2" x-ref="stok"
-                    @keydown.enter.prevent="$refs.satuan.focus()">
-            </div>
+        <div class="grid grid-cols-2 gap-4">
             <div>
                 <label>Satuan</label>
-                <select wire:model="satuan_id" class="border rounded p-2 w-full" x-ref="satuan"
-                    @keydown.enter.prevent="$refs.pabrik.focus()">
-                    <option value="">-- Pilih Satuan --</option>
-                    @foreach ($satuanList as $item)
-                        <option value="{{ $item->id }}">{{ $item->nama_satuan }}</option>
-                    @endforeach
-                </select>
+                <input type="text" wire:model="searchsatuan"
+                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring" placeholder="Cari satuan..."
+                    x-ref="satuan" @keydown.arrow-down.prevent="$wire.incrementHighlightsatuan()"
+                    @keydown.arrow-up.prevent="$wire.decrementHighlightsatuan()"
+                    @keydown.enter.prevent="$wire.pilihHighlightsatuan(); $nextTick(() => $refs.pabrik.focus())">
+
+                {{-- Dropdown hasil pencarian --}}
+                @if (!empty($satuanList))
+                    <ul class="border bg-white rounded mt-1 max-h-40 overflow-y-auto">
+                        @foreach ($satuanList as $index => $item)
+                            <li wire:click="pilihsatuan({{ $item->id }}, '{{ $item->nama_satuan }}')"
+                                class="px-3 py-2 cursor-pointer
+                    {{ $highlightIndex === $index ? 'bg-blue-500 text-white' : 'hover:bg-blue-100' }}">
+                                {{ $item->nama_satuan }}
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+
+                {{-- Hidden field simpan ID kategori --}}
+                <input type="hidden" name="satuan_id" value="{{ $satuan_id }}">
             </div>
             <div>
                 <label>Pabrik</label>
-                <select wire:model="pabrik_id" class="border rounded p-2 w-full" x-ref="pabrik"
-                    @keydown.enter.prevent="$refs.harga_beli.focus()">
-                    <option value="">-- Pilih Pabrik --</option>
-                    @foreach ($pabrikList as $item)
-                        <option value="{{ $item->id }}">{{ $item->nama_pabrik }}</option>
-                    @endforeach
-                </select>
+                <input type="text" wire:model="searchpabrik"
+                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring" placeholder="Cari pabrik..."
+                    x-ref="pabrik" @keydown.arrow-down.prevent="$wire.incrementHighlightpabrik()"
+                    @keydown.arrow-up.prevent="$wire.decrementHighlightpabrik()"
+                    @keydown.enter.prevent="$wire.pilihHighlightpabrik(); $nextTick(() => $refs.harga_beli.focus())">
+
+                {{-- Dropdown hasil pencarian --}}
+                @if (!empty($pabrikList))
+                    <ul class="border bg-white rounded mt-1 max-h-40 overflow-y-auto">
+                        @foreach ($pabrikList as $index => $item)
+                            <li wire:click="pilihpabrik({{ $item->id }}, '{{ $item->nama_pabrik }}')"
+                                class="px-3 py-2 cursor-pointer
+                    {{ $highlightIndex === $index ? 'bg-blue-500 text-white' : 'hover:bg-blue-100' }}">
+                                {{ $item->nama_pabrik }}
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+
+                {{-- Hidden field simpan ID kategori --}}
+                <input type="hidden" name="pabrik_id" value="{{ $pabrik_id }}">
             </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 gap-4">
             <div>
                 <label>Harga Beli</label>
                 <input type="number" wire:model="harga_beli" step="0.01" class="w-full border rounded p-2"
@@ -83,12 +137,7 @@
             <div>
                 <label>Harga Jual</label>
                 <input type="number" wire:model="harga_jual" step="0.01" class="w-full border rounded p-2"
-                    x-ref="harga_jual" @keydown.enter.prevent="$refs.tgl_expired.focus()">
-            </div>
-            <div>
-                <label>Tanggal Expired</label>
-                <input type="date" wire:model="tgl_expired" class="w-full border rounded p-2" x-ref="tgl_expired"
-                    @keydown.enter.prevent="$refs.submit.focus()">
+                    x-ref="harga_jual" @keydown.enter.prevent="$refs.submit.focus()">
             </div>
         </div>
 

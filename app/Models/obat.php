@@ -41,4 +41,8 @@ class Obat extends Model
     {
         return $this->belongsTo(Pabrik::class, 'pabrik_id');
     }
+    public function komposisi()
+    {
+        return $this->belongsTo(Komposisi::class, 'komposisi_id');
+    }
 }

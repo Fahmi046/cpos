@@ -25,3 +25,7 @@ Route::get('/pabrik', function () {
 Route::get('/kategori-obat', function () {
     return view('pages.kategori-obat');
 });
+
+Route::get('/komposisi', function () {
+    return view('pages.komposisi');
+});

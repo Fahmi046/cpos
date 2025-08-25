@@ -3,7 +3,7 @@
         x-on:focus-nama-pabrik.window="$refs.nama_pabrik.focus()" class="space-y-3">
         <div>
             <label>Kode Pabrik</label>
-            <input type="text" wire:model="kode_pabrik" class="w-full border rounded p-2 cursor-not-allowed" readonly>
+            <input type="text" wire:model="kode_pabrik" class="w-full border rounded p-2" readonly>
             @error('kode_pabrik')
                 <span class="text-red-500 text-sm">{{ $message }}</span>
             @enderror
@@ -11,8 +11,8 @@
 
         <div>
             <label>Nama Pabrik</label>
-            <input type="text" wire:model="nama_pabrik" class="w-full border rounded p-2" x-ref="nama_pabrik"
-                @keydown.enter.prevent="$refs.alamat.focus()">
+            <input type="text" wire:model="nama_pabrik" class="w-full border rounded p-2" x-ref="nama_sediaan"
+                @keydown.enter.prevent="$refs.deskripsi.focus()">
             @error('nama_pabrik')
                 <span class="text-red-500 text-sm">{{ $message }}</span>
             @enderror
@@ -20,8 +20,8 @@
 
         <div>
             <label>Alamat</label>
-            <textarea wire:model="alamat" class="w-full border rounded p-2" x-ref="alamat"
-                @keydown.enter.prevent="$refs.telepon.focus()"></textarea>
+            <textarea wire:model="alamat" class="w-full border rounded p-2" x-ref="nama_sediaan"
+                @keydown.enter.prevent="$refs.deskripsi.focus()"></textarea>
         </div>
 
         <div>

@@ -6,5 +6,6 @@
         <li><a href="/bentuk-sediaan" class="text-gray-700 hover:text-blue-600">Bentuk Sediaan</a></li>
         <li><a href="/pabrik" class="text-gray-700 hover:text-blue-600">Pabrik</a></li>
         <li><a href="/kategori-obat" class="text-gray-700 hover:text-blue-600">Kategori</a></li>
+        <li><a href="/komposisi" class="text-gray-700 hover:text-blue-600">Komposisi</a></li>
     </ul>
 </nav>
