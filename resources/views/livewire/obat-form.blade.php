@@ -150,13 +150,15 @@
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <label>Harga Beli</label>
-                <input type="number" wire:model="harga_beli" step="0.01" class="w-full border rounded p-2"
-                    x-ref="harga_beli" @keydown.enter.prevent="$refs.harga_jual.focus()">
+                <input type="text" wire:model="harga_beli" step="0.01"
+                    class="w-full border rounded p-2 format-rupiah" x-ref="harga_beli"
+                    @keydown.enter.prevent="$refs.harga_jual.focus()">
             </div>
             <div>
                 <label>Harga Jual</label>
-                <input type="number" wire:model="harga_jual" step="0.01" class="w-full border rounded p-2"
-                    x-ref="harga_jual" @keydown.enter.prevent="$refs.submit.focus()">
+                <input type="text" wire:model="harga_jual" step="0.01"
+                    class="w-full border rounded p-2 format-rupiah" x-ref="harga_jual"
+                    @keydown.enter.prevent="$refs.submit.focus()">
             </div>
         </div>
 
@@ -164,4 +166,14 @@
             {{ $obat_id ? 'Update' : 'Simpan' }}
         </button>
     </form>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll('.format-rupiah').forEach(function(el) {
+                el.addEventListener('input', function() {
+                    let value = this.value.replace(/\D/g, '');
+                    this.value = new Intl.NumberFormat('id-ID').format(value);
+                });
+            });
+        });
+    </script>
 </div>

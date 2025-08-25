@@ -21,8 +21,8 @@ return new class extends Migration
             $table->unsignedBigInteger('komposisi_id');
 
             // detail obat
-            $table->decimal('harga_beli', 15, 2)->default(0);
-            $table->decimal('harga_jual', 15, 2)->default(0);
+            $table->unsignedBigInteger('harga_beli')->default(0);
+            $table->unsignedBigInteger('harga_jual')->default(0);
             $table->boolean('aktif')->default(true);
 
             $table->timestamps();

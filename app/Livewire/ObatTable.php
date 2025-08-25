@@ -30,10 +30,12 @@ class ObatTable extends Component
         session()->flash('message', 'Obat berhasil dihapus.');
         // Corrected: Dispatch event using the new syntax
         $this->dispatch('refreshKodeObat');
+        $this->dispatch('focus-nama-obat');
     }
 
     public function render()
     {
-        return view('livewire.obat-table');
+        $obats = obat::orderBy('nama_obat')->get();
+        return view('livewire.obat-table', compact('obats'));
     }
 }

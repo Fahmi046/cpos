@@ -16,7 +16,7 @@ class ObatForm extends Component
     public $obat_id;
     public $kode_obat, $nama_obat;
     public $kategori_id, $satuan_id, $sediaan_id, $komposisi_id, $pabrik_id;
-    public $harga_beli, $harga_jual, $satuan, $pabrik;
+    public $harga_beli, $harga_jual;
 
     public function mount()
     {
@@ -94,8 +94,8 @@ class ObatForm extends Component
                 'kategori_id'  => $this->kategori_id,   // ✅ pakai _id
                 'sediaan_id'   => $this->sediaan_id,
                 'komposisi_id'    => $this->komposisi_id,
-                'harga_beli'   => $this->harga_beli,
-                'harga_jual'   => $this->harga_jual,
+                'harga_beli' => str_replace(['.', ','], '', $this->harga_beli),
+                'harga_jual' => str_replace(['.', ','], '', $this->harga_jual),
                 'satuan_id'    => $this->satuan_id,
                 'pabrik_id'    => $this->pabrik_id,
             ]);
@@ -111,10 +111,31 @@ class ObatForm extends Component
 
     public function edit($id)
     {
-        $obat = Obat::findOrFail($id);
+        $obat = Obat::with(['kategori', 'satuan', 'sediaan', 'pabrik', 'komposisi'])
+            ->findOrFail($id);
+
+        // isi field bawaan tabel obat (kode, nama, harga, dll.)
         $this->fill($obat->toArray());
         $this->obat_id = $id;
+
+        // isi input pencarian autocomplete
+        $this->searchKategori   = $obat->kategori->nama_kategori   ?? '';
+        $this->kategori_id      = $obat->kategori_id;
+
+        $this->searchsatuan     = $obat->satuan->nama_satuan       ?? '';
+        $this->satuan_id        = $obat->satuan_id;
+
+        $this->searchsediaan    = $obat->sediaan->nama_sediaan     ?? '';
+        $this->sediaan_id       = $obat->sediaan_id;
+
+        $this->searchpabrik     = $obat->pabrik->nama_pabrik       ?? '';
+        $this->pabrik_id        = $obat->pabrik_id;
+
+        $this->searchkomposisi  = $obat->komposisi->nama_komposisi ?? '';
+        $this->komposisi_id     = $obat->komposisi_id;
     }
+
+
 
     public function resetForm()
     {
@@ -128,6 +149,12 @@ class ObatForm extends Component
             'harga_jual',
             'satuan_id',
             'pabrik_id',
+            // untuk input pencarian autocomplete
+            'searchKategori',
+            'searchsatuan',
+            'searchsediaan',
+            'searchpabrik',
+            'searchkomposisi',
         ]);
 
         // Generate kode obat baru
