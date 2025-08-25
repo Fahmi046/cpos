@@ -50,7 +50,7 @@
                         placeholder="Cari sediaan..." x-ref="bentuk_sediaan"
                         @keydown.arrow-down.prevent="$wire.incrementHighlightsediaan()"
                         @keydown.arrow-up.prevent="$wire.decrementHighlightsediaan()"
-                        @keydown.enter.prevent="$wire.pilihHighlightsediaan(); $nextTick(() => $refs.kandungan.focus())">
+                        @keydown.enter.prevent="$wire.pilihHighlightsediaan(); $nextTick(() => $refs.komposisi.focus())">
 
                     {{-- Dropdown hasil pencarian --}}
                     @if (!empty($sediaanList))
@@ -72,9 +72,28 @@
         </div>
 
         <div>
-            <label>Kandungan</label>
-            <input type="text" wire:model="kandungan" class="w-full border rounded p-2" x-ref="kandungan"
-                @keydown.enter.prevent="$refs.satuan.focus()">
+            <label>Komposisi</label>
+            <input type="text" wire:model="searchkomposisi"
+                class="w-full border rounded px-3 py-2 focus:outline-none focus:ring" placeholder="Cari komposisi..."
+                x-ref="komposisi" @keydown.arrow-down.prevent="$wire.incrementHighlightkomposisi()"
+                @keydown.arrow-up.prevent="$wire.decrementHighlightkomposisi()"
+                @keydown.enter.prevent="$wire.pilihHighlightkomposisi(); $nextTick(() => $refs.satuan.focus())">
+
+            {{-- Dropdown hasil pencarian --}}
+            @if (!empty($komposisiList))
+                <ul class="border bg-white rounded mt-1 max-h-40 overflow-y-auto">
+                    @foreach ($komposisiList as $index => $item)
+                        <li wire:click="pilihkomposisi({{ $item->id }}, '{{ $item->nama_komposisi }}')"
+                            class="px-3 py-2 cursor-pointer
+                    {{ $highlightIndex === $index ? 'bg-blue-500 text-white' : 'hover:bg-blue-100' }}">
+                            {{ $item->nama_komposisi }}
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
+            {{-- Hidden field simpan ID kategori --}}
+            <input type="hidden" name="komposisi_id" value="{{ $komposisi_id }}">
         </div>
 
         <div class="grid grid-cols-2 gap-4">

@@ -7,14 +7,15 @@ use App\Models\Obat;
 use App\Models\KategoriObat;
 use App\Models\SatuanObat;
 use App\Models\BentukSediaan;
+use App\Models\Komposisi;
 use App\Models\Pabrik;
 
 
 class ObatForm extends Component
 {
     public $obat_id;
-    public $kode_obat, $nama_obat, $kandungan;
-    public $kategori_id, $satuan_id, $sediaan_id, $pabrik_id;
+    public $kode_obat, $nama_obat;
+    public $kategori_id, $satuan_id, $sediaan_id, $komposisi_id, $pabrik_id;
     public $harga_beli, $harga_jual, $satuan, $pabrik;
 
     public function mount()
@@ -79,7 +80,7 @@ class ObatForm extends Component
                 'nama_obat'    => $this->nama_obat,
                 'kategori_id'  => $this->kategori_id,   // ✅ pakai _id
                 'sediaan_id'   => $this->sediaan_id,
-                'kandungan'    => $this->kandungan,
+                'komposisi_id'    => $this->komposisi_id,
                 'harga_beli'   => $this->harga_beli,
                 'harga_jual'   => $this->harga_jual,
                 'satuan_id'    => $this->satuan_id,
@@ -92,7 +93,7 @@ class ObatForm extends Component
                 'nama_obat'    => $this->nama_obat,
                 'kategori_id'  => $this->kategori_id,   // ✅ pakai _id
                 'sediaan_id'   => $this->sediaan_id,
-                'kandungan'    => $this->kandungan,
+                'komposisi_id'    => $this->komposisi_id,
                 'harga_beli'   => $this->harga_beli,
                 'harga_jual'   => $this->harga_jual,
                 'satuan_id'    => $this->satuan_id,
@@ -122,7 +123,7 @@ class ObatForm extends Component
             'nama_obat',
             'kategori_id',
             'sediaan_id',
-            'kandungan',
+            'komposisi_id',
             'harga_beli',
             'harga_jual',
             'satuan_id',
@@ -322,5 +323,52 @@ class ObatForm extends Component
         $this->satuan_id = $id;
         $this->searchsatuan = $nama;
         $this->satuanList = [];
+    }
+
+
+    public $searchkomposisi = '';
+    public $komposisiList = [];
+
+    public function updatedSearchkomposisi()
+    {
+        $this->komposisiList = Komposisi::where('nama_komposisi', 'like', '%' . $this->searchkomposisi . '%')
+            ->limit(10)
+            ->get();
+
+        $this->resetHighlight();
+    }
+
+
+    public function incrementHighlightkomposisi()
+    {
+        if ($this->highlightIndex === count($this->komposisiList) - 1) {
+            $this->highlightIndex = 0;
+        } else {
+            $this->highlightIndex++;
+        }
+    }
+
+    public function decrementHighlightkomposisi()
+    {
+        if ($this->highlightIndex === 0) {
+            $this->highlightIndex = count($this->komposisiList) - 1;
+        } else {
+            $this->highlightIndex--;
+        }
+    }
+
+    public function pilihHighlightkomposisi()
+    {
+        $komposisi = $this->komposisiList[$this->highlightIndex] ?? null;
+        if ($komposisi) {
+            $this->pilihkomposisi($komposisi['id'], $komposisi['nama_komposisi']);
+        }
+    }
+
+    public function pilihkomposisi($id, $nama)
+    {
+        $this->komposisi_id = $id;
+        $this->searchkomposisi = $nama;
+        $this->komposisiList = [];
     }
 }

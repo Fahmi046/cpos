@@ -17,7 +17,7 @@ class Obat extends Model
         'harga_beli',
         'harga_jual',
         'stok',
-        'kandungan',
+        'komposisi_id',
         'tgl_expired',
         'aktif'
     ];
