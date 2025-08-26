@@ -29,3 +29,6 @@ Route::get('/kategori-obat', function () {
 Route::get('/komposisi', function () {
     return view('pages.komposisi');
 });
+Route::get('/kreditur', function () {
+    return view('pages.kreditur');
+});

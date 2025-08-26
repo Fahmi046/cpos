@@ -3,7 +3,8 @@
         x-on:focus-nama-komposisi.window="$refs.nama_komposisi.focus()">
         <div>
             <label>Kode Komposisi</label>
-            <input type="text" wire:model="kode_komposisi" class="w-full border rounded p-2" readonly>
+            <input type="text" wire:model="kode_komposisi" class="w-full border rounded p-2 cursor-not-allowed"
+                readonly>
             @error('kode_komposisi')
                 <span class="text-red-500">{{ $message }}</span>
             @enderror

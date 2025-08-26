@@ -76,7 +76,7 @@ class KomposisiForm extends Component
         }
 
         // Format hasilnya
-        $this->kode_komposisi = '0013' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $this->kode_komposisi = '0014' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
     }
 
     protected $listeners = [
