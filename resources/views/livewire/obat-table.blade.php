@@ -1,6 +1,12 @@
 <div class="p-4 bg-white rounded shadow mt-4">
     <h2 class="text-lg font-bold mb-2">Daftar Obat</h2>
 
+    {{-- Kolom Pencarian --}}
+    <div class="mb-3">
+        <input type="text" wire:model.live="search" placeholder="Cari obat berdasarkan kode / nama..."
+            class="w-1/3 p-2 border rounded shadow-sm">
+    </div>
+
     @if (session()->has('message'))
         <div class="p-2 bg-green-100 text-green-700 mb-2">
             {{ session('message') }}
@@ -52,5 +58,9 @@
                 @endforelse
             </tbody>
         </table>
+
+        <div class="mt-3">
+            {{ $obats->links() }}
+        </div>
     </div>
 </div>

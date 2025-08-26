@@ -2,40 +2,46 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use App\Models\Obat;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class ObatTable extends Component
 {
-    public $obats;
+    use WithPagination;
 
-    // dengarkan event dari ObatForm
-    protected $listeners = ['refreshTable' => 'loadObats'];
+    protected $paginationTheme = 'tailwind';
 
+    public $search = '';
+    protected $updatesQueryString = ['search'];
 
-    public function mount()
+    protected $listeners = ['refreshTable' => '$refresh'];
+
+    public function updatingSearch()
     {
-        $this->loadObats();
-    }
-
-    public function loadObats()
-    {
-        $this->obats = Obat::orderBy('id', 'desc')->get();
+        $this->resetPage();
     }
 
     public function delete($id)
     {
         Obat::findOrFail($id)->delete();
-        $this->loadObats();
         session()->flash('message', 'Obat berhasil dihapus.');
-        // Corrected: Dispatch event using the new syntax
         $this->dispatch('refreshKodeObat');
         $this->dispatch('focus-nama-obat');
     }
 
     public function render()
     {
-        $obats = obat::orderBy('nama_obat')->get();
-        return view('livewire.obat-table', compact('obats'));
+        $obats = Obat::with(['kategori', 'sediaan', 'komposisi', 'satuan', 'pabrik'])
+            ->where(function ($q) {
+                $q->where('kode_obat', 'like', '%' . $this->search . '%')
+                    ->orWhere('nama_obat', 'like', '%' . $this->search . '%');
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+
+        return view('livewire.obat-table', [
+            'obats' => $obats,
+        ]);
     }
 }
