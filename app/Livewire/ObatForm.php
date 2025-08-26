@@ -2,24 +2,38 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use App\Models\Obat;
-use App\Models\KategoriObat;
-use App\Models\SatuanObat;
-use App\Models\BentukSediaan;
-use App\Models\Komposisi;
 use App\Models\Pabrik;
+use Livewire\Component;
+use App\Models\Kreditur;
+use App\Models\Komposisi;
+use App\Models\SatuanObat;
+use App\Models\KategoriObat;
+use App\Models\BentukSediaan;
 
 
 class ObatForm extends Component
 {
     public $obat_id;
     public $kode_obat, $nama_obat;
-    public $kategori_id, $satuan_id, $sediaan_id, $komposisi_id, $pabrik_id;
+    public $isi_obat, $dosis;
+    public $kategori_id, $satuan_id, $sediaan_id, $komposisi_id, $kreditur_id, $pabrik_id;
     public $harga_beli, $harga_jual;
 
-    public function mount()
+    public $prekursor = 0;
+    public $psikotropika = 0;
+    public $utuh_satuan = 0;
+    public $resep_active = 0;
+    public $aktif = 1; // default aktif
+
+
+    public function mount($obat_id = null)
     {
+
+        if ($obat_id) {
+            $obat = Obat::findOrFail($obat_id);
+            $this->fill($obat->toArray());
+        }
         // Saat pertama kali buka halaman, generate kode obat baru
         $this->generateKodeObat();
     }
@@ -54,6 +68,7 @@ class ObatForm extends Component
             'satuanList' => SatuanObat::all(),
             'sediaanList' => BentukSediaan::all(),
             'pabrikList' => Pabrik::all(),
+            'krediturList' => Kreditur::all(),
         ]);
     }
 
@@ -66,6 +81,7 @@ class ObatForm extends Component
             'satuan_id' => 'required',
             'sediaan_id' => 'required',
             'pabrik_id' => 'required',
+            'kreditur_id' => 'required',
         ]);
 
         // ✅ pastikan kode_obat di-generate sebelum simpan
@@ -85,6 +101,14 @@ class ObatForm extends Component
                 'harga_jual'   => $this->harga_jual,
                 'satuan_id'    => $this->satuan_id,
                 'pabrik_id'    => $this->pabrik_id,
+                'aktif'    => $this->aktif,
+                'isi_obat'    => $this->isi_obat,
+                'dosis'    => $this->dosis,
+                'utuh_satuan'    => $this->utuh_satuan,
+                'prekursor'    => $this->prekursor,
+                'psikotropika'    => $this->psikotropika,
+                'kreditur_id'    => $this->kreditur_id,
+                'resep_active'    => $this->resep_active,
             ]);
             session()->flash('message', 'Data berhasil diperbarui.');
         } else {
@@ -98,6 +122,14 @@ class ObatForm extends Component
                 'harga_jual' => str_replace(['.', ','], '', $this->harga_jual),
                 'satuan_id'    => $this->satuan_id,
                 'pabrik_id'    => $this->pabrik_id,
+                'aktif'    => $this->aktif,
+                'isi_obat'    => $this->isi_obat,
+                'dosis'    => $this->dosis,
+                'utuh_satuan'    => $this->utuh_satuan,
+                'prekursor'    => $this->prekursor,
+                'psikotropika'    => $this->psikotropika,
+                'kreditur_id'    => $this->kreditur_id,
+                'resep_active'    => $this->resep_active,
             ]);
             session()->flash('message', 'Data berhasil ditambahkan.');
         }
@@ -133,6 +165,9 @@ class ObatForm extends Component
 
         $this->searchkomposisi  = $obat->komposisi->nama_komposisi ?? '';
         $this->komposisi_id     = $obat->komposisi_id;
+
+        $this->searchkreditur  = $obat->kreditur->nama ?? '';
+        $this->kreditur_id     = $obat->kreditur_id;
     }
 
 
@@ -142,6 +177,8 @@ class ObatForm extends Component
         $this->reset([
             'obat_id',
             'nama_obat',
+            'isi_obat',
+            'dosis',
             'kategori_id',
             'sediaan_id',
             'komposisi_id',
@@ -149,12 +186,19 @@ class ObatForm extends Component
             'harga_jual',
             'satuan_id',
             'pabrik_id',
+            'kreditur_id',
             // untuk input pencarian autocomplete
             'searchKategori',
             'searchsatuan',
             'searchsediaan',
             'searchpabrik',
             'searchkomposisi',
+            'searchkreditur',
+            'aktif',
+            'utuh_satuan',
+            'prekursor',
+            'psikotropika',
+            'resep_active',
         ]);
 
         // Generate kode obat baru
@@ -397,5 +441,52 @@ class ObatForm extends Component
         $this->komposisi_id = $id;
         $this->searchkomposisi = $nama;
         $this->komposisiList = [];
+    }
+
+
+    public $searchkreditur = '';
+    public $krediturList = [];
+
+    public function updatedSearchkreditur()
+    {
+        $this->krediturList = Kreditur::where('nama', 'like', '%' . $this->searchkreditur . '%')
+            ->limit(10)
+            ->get();
+
+        $this->resetHighlight();
+    }
+
+
+    public function incrementHighlightKreditur()
+    {
+        if ($this->highlightIndex === count($this->krediturList) - 1) {
+            $this->highlightIndex = 0;
+        } else {
+            $this->highlightIndex++;
+        }
+    }
+
+    public function decrementHighlightKreditur()
+    {
+        if ($this->highlightIndex === 0) {
+            $this->highlightIndex = count($this->krediturList) - 1;
+        } else {
+            $this->highlightIndex--;
+        }
+    }
+
+    public function pilihHighlightKreditur()
+    {
+        $kreditur = $this->krediturList[$this->highlightIndex] ?? null;
+        if ($kreditur) {
+            $this->pilihkreditur($kreditur['id'], $kreditur['nama']);
+        }
+    }
+
+    public function pilihkreditur($id, $nama)
+    {
+        $this->kreditur_id = $id;
+        $this->searchkreditur = $nama;
+        $this->krediturList = [];
     }
 }

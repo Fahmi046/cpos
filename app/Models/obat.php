@@ -14,11 +14,16 @@ class Obat extends Model
         'satuan_id',
         'sediaan_id',
         'pabrik_id',
+        'kreditur_id',
+        'komposisi_id',
         'harga_beli',
         'harga_jual',
-        'stok',
-        'komposisi_id',
-        'tgl_expired',
+        'isi_obat',
+        'dosis',
+        'utuh_satuan',
+        'prekursor',
+        'psikotropika',
+        'resep_active',
         'aktif'
     ];
 
@@ -44,5 +49,10 @@ class Obat extends Model
     public function komposisi()
     {
         return $this->belongsTo(Komposisi::class, 'komposisi_id');
+    }
+
+    public function kreditur()
+    {
+        return $this->belongsTo(kreditur::class, 'kreditur_id');
     }
 }
