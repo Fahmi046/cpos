@@ -32,3 +32,7 @@ Route::get('/komposisi', function () {
 Route::get('/kreditur', function () {
     return view('pages.kreditur');
 });
+
+Route::get('/pesanan', function () {
+    return view('pages.pesanan');
+});

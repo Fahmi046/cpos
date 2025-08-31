@@ -88,8 +88,8 @@
 
                             <div x-show="open" @click.outside="open = false"
                                 class="absolute mt-2 w-48 rounded-md bg-white shadow-lg py-1 z-50">
-                                <a href="/Pesanan"
-                                    class="{{ request()->is('Pesanan')
+                                <a href="/pesanan"
+                                    class="{{ request()->is('pesanan')
                                         ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
                                     Surat Pesanan
