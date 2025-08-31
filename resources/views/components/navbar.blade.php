@@ -75,6 +75,27 @@
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Kreditur</a>
                             </div>
                         </div>
+                        {{--  Pembelian  --}}
+                        <div x-data="{ open: false }" class="relative">
+                            <button @click="open = !open"
+                                class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-1">
+                                Pembelian
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                                </svg>
+                            </button>
+
+                            <div x-show="open" @click.outside="open = false"
+                                class="absolute mt-2 w-48 rounded-md bg-white shadow-lg py-1 z-50">
+                                <a href="/Pesanan"
+                                    class="{{ request()->is('Pesanan')
+                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
+                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                    Surat Pesanan
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
