@@ -41,7 +41,7 @@ class PesananForm extends Component
         'NARKO' => 'SPN',
     ];
 
-    private function generateNoSp()
+    public function generateNoSp()
     {
         $tanggal = Carbon::parse($this->tanggal);
         $year = $tanggal->format('Y');
@@ -91,6 +91,9 @@ class PesananForm extends Component
     public function addDetail()
     {
         $this->details[] = ['obat_id' => '', 'qty' => 1, 'harga' => 0, 'jumlah' => 0];
+        $lastIndex = count($this->details) - 1;
+
+        $this->dispatch('focus-row', index: $lastIndex);
     }
 
     public function removeDetail($index)
@@ -153,6 +156,8 @@ class PesananForm extends Component
 
         session()->flash('message', 'Pesanan berhasil disimpan!');
         $this->resetForm();
+        $this->dispatch('refreshTable');
+        $this->dispatch('focus-tanggal');
     }
 
     private function resetForm()
@@ -168,5 +173,14 @@ class PesananForm extends Component
     public function render()
     {
         return view('livewire.pesanan-form');
+    }
+
+    protected $listeners = [
+        'refreshKodepesanan' => 'refreshKodepesanan',
+    ];
+
+    public function refreshKodepesanan()
+    {
+        $this->no_sp = $this->generateNoSp();
     }
 }
