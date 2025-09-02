@@ -15,35 +15,52 @@ class PesananTable extends Component
     protected $listeners = ['refreshTable' => 'loadData'];
 
     public $search = '';
+    public $selectedId;
+    public $no_sp, $tanggal, $kategori = '';
+    public $details = []; // Tambahkan deklarasi property details
+
     protected $paginationTheme = 'tailwind';
 
-    // Reset halaman ketika search berubah
     public function updatingSearch()
     {
         $this->resetPage();
     }
-
-    // Edit pesanan (dispatch ke browser)
     public function edit($id)
     {
-        $this->dispatch('edit-pesanan', ['id' => $id]);
+        $this->selectedId = $id;
+        $pesanan = Pesanan::with('details.obat')->findOrFail($id);
+
+        $this->no_sp = $pesanan->no_sp;
+        $this->tanggal = $pesanan->tanggal;
+        $this->kategori = $pesanan->kategori;
+
+        $this->details = $pesanan->details->map(function ($detail) {
+            return [
+                'obat_id' => $detail->obat_id,
+                'nama_obat' => $detail->obat->nama_obat ?? '',
+                'qty' => $detail->qty,
+                'harga' => $detail->harga,
+                'jumlah' => $detail->jumlah,
+            ];
+        })->toArray();
+
+        $this->dispatch('focus-tanggal');
     }
 
-    // Hapus pesanan beserta detailnya
+
+
     public function delete($id)
     {
         $pesanan = Pesanan::findOrFail($id);
         $pesanan->details()->delete();
         $pesanan->delete();
         $this->loadData();
-        session()->flash('message', 'Pabrik berhasil dihapus.');
+        session()->flash('message', 'Pesanan berhasil dihapus.');
 
         $this->dispatch('refreshKodepesanan');
-
         $this->dispatch('focus-tanggal');
     }
 
-    // Export Excel dengan filter search
     public function exportExcel()
     {
         return Excel::download(new PesananExport($this->search), 'pesanan.xlsx');
@@ -71,6 +88,7 @@ class PesananTable extends Component
     {
         $this->loadData();
     }
+
     public $pesanans;
 
     public function loadData()

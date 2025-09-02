@@ -10,6 +10,7 @@ use Carbon\Carbon;
 
 class PesananForm extends Component
 {
+    public $pesanan_id;
     public $no_sp;
     public $tanggal;
     public $kategori = '';
@@ -19,8 +20,6 @@ class PesananForm extends Component
         'GROSIR' => 'GROSIR'
     ];
     public $details = [];
-    public $obatList;
-
     protected $branchCode = 'APT-SHBT';
 
     public function mount()
@@ -121,40 +120,50 @@ class PesananForm extends Component
             $harga = $detail['harga'] ?? 0;
             $isi = $detail['isi'] ?? 1;
 
-            $this->details[$i]['jumlah'] = $qty * $harga * $isi;
+            $this->details[$i]['jumlah'] = $qty * $harga;
         }
     }
-
-
 
     public function save()
     {
         $this->validate([
-            'no_sp' => 'required|unique:pesanan,no_sp',
+            'no_sp' => 'required|unique:pesanan,no_sp,' . $this->selectedId,
             'tanggal' => 'required|date',
             'details.*.obat_id' => 'required|exists:obat,id',
             'details.*.qty' => 'required|numeric|min:1',
             'details.*.harga' => 'required|numeric|min:0',
         ]);
 
-        $this->no_sp = $this->generateNoSp();
-
-        $pesanan = Pesanan::create([
-            'no_sp' => $this->no_sp,
-            'tanggal' => $this->tanggal,
-        ]);
-
-        foreach ($this->details as $detail) {
-            PesananDetail::create([
-                'pesanan_id' => $pesanan->id,
-                'obat_id' => $detail['obat_id'],
-                'qty' => $detail['qty'],
-                'harga' => $detail['harga'],
-                'jumlah' => $detail['jumlah'],
+        if ($this->selectedId) {
+            // Update
+            $pesanan = Pesanan::find($this->selectedId);
+            $pesanan->update([
+                'no_sp' => $this->no_sp,
+                'tanggal' => $this->tanggal,
+                'kategori' => $this->kategori,
             ]);
+
+            $pesanan->details()->delete();
+            foreach ($this->details as $detail) {
+                $pesanan->details()->create($detail);
+            }
+
+            session()->flash('message', 'Pesanan berhasil diperbarui!');
+        } else {
+            // Insert baru
+            $pesanan = Pesanan::create([
+                'no_sp' => $this->no_sp,
+                'tanggal' => $this->tanggal,
+                'kategori' => $this->kategori,
+            ]);
+
+            foreach ($this->details as $detail) {
+                $pesanan->details()->create($detail);
+            }
+
+            session()->flash('message', 'Pesanan berhasil disimpan!');
         }
 
-        session()->flash('message', 'Pesanan berhasil disimpan!');
         $this->resetForm();
         $this->dispatch('refreshTable');
         $this->dispatch('focus-tanggal');
@@ -162,6 +171,7 @@ class PesananForm extends Component
 
     private function resetForm()
     {
+        $this->selectedId = null; // Reset ID
         $this->tanggal = date('Y-m-d');
         $this->kategori = 'UMUM';
         $this->details = [
@@ -177,10 +187,38 @@ class PesananForm extends Component
 
     protected $listeners = [
         'refreshKodepesanan' => 'refreshKodepesanan',
+        'edit-pesanan' => 'edit',
     ];
+    public function edit($id)
+    {
+        $this->selectedId = $id;
+        $pesanan = Pesanan::with('details.obat')->findOrFail($id);
+
+        $this->no_sp = $pesanan->no_sp;
+        $this->tanggal = $pesanan->tanggal;
+        $this->kategori = $pesanan->kategori;
+
+        $this->details = $pesanan->details->map(function ($detail) {
+            return [
+                'obat_id' => $detail->obat_id,
+                'nama_obat' => $detail->obat->nama_obat ?? '',
+                'qty' => $detail->qty,
+                'harga' => $detail->harga,
+                'isi' => $detail->obat->isi ?? '',
+                'satuan' => $detail->obat->satuan->nama_satuan ?? '',
+                'jumlah' => $detail->jumlah,
+            ];
+        })->toArray();
+
+        $this->dispatch('focus-tanggal');
+    }
+
+    public $selectedId = null;
 
     public function refreshKodepesanan()
     {
         $this->no_sp = $this->generateNoSp();
     }
+
+    public $obatList = [];
 }

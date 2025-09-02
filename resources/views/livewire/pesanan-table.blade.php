@@ -40,8 +40,10 @@
                         {{ number_format($pesanan->details->sum('jumlah'), 0) }}
                     </td>
                     <td class="border px-2 py-1">
-                        <button wire:click="edit({{ $pesanan->id }})"
-                            class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</button>
+                        <button wire:click="$dispatch('edit-pesanan', { id: {{ $pesanan->id }} })"
+                            class="bg-yellow-500 text-white px-2 py-1 rounded">
+                            Edit
+                        </button>
                         <button wire:click="delete({{ $pesanan->id }})"
                             class="bg-red-500 text-white px-2 py-1 rounded">Hapus</button>
                     </td>
