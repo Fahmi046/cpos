@@ -219,6 +219,98 @@ class PesananForm extends Component
     {
         $this->no_sp = $this->generateNoSp();
     }
-
     public $obatList = [];
+    public $obatSearch = [];          // Hasil pencarian per index row
+    public $showObatDropdown = [];    // Status dropdown per index row
+
+    public function searchObat($index, $query)
+    {
+        $this->obatSearch[$index] = Obat::where('nama_obat', 'like', "%{$query}%")
+            ->limit(10)
+            ->get();
+
+        $this->showObatDropdown[$index] = true;
+    }
+
+    public function selectObat($index, $id)
+    {
+        $selected = \App\Models\Obat::with('satuan')->find($id);
+
+        if ($selected) {
+            $this->details[$index]['obat_id'] = $selected->id;
+            $this->details[$index]['nama_obat'] = $selected->nama_obat;
+            $this->details[$index]['harga'] = $selected->harga_jual ?? 0;
+            $this->details[$index]['isi'] = $selected->isi_obat ?? 0;
+            $this->details[$index]['satuan'] = $selected->satuan?->nama_satuan ?? '';
+
+            $this->showObatDropdown[$index] = false;
+        }
+    }
+
+    public function selectFirstObat($index)
+    {
+        if (!empty($this->obatSearch[$index])) {
+            $firstObat = $this->obatSearch[$index]->first();
+            $this->selectObat($index, $firstObat->id);
+        }
+    }
+
+    public $highlightedIndex = []; // simpan index highlight per row
+
+    public function resetHighlight($index)
+    {
+        $this->highlightedIndex[$index] = 0;
+    }
+
+    public function incrementHighlight($index)
+    {
+        if (!isset($this->highlightedIndex[$index])) {
+            $this->highlightedIndex[$index] = 0;
+        }
+
+        $count = isset($this->obatSearch[$index]) ? $this->obatSearch[$index]->count() : 0;
+
+        if ($count > 0) {
+            $this->highlightedIndex[$index] = ($this->highlightedIndex[$index] + 1) % $count;
+        }
+    }
+
+    public function decrementHighlight($index)
+    {
+        if (!isset($this->highlightedIndex[$index])) {
+            $this->highlightedIndex[$index] = 0;
+        }
+
+        $count = isset($this->obatSearch[$index]) ? $this->obatSearch[$index]->count() : 0;
+
+        if ($count > 0) {
+            $this->highlightedIndex[$index] = ($this->highlightedIndex[$index] - 1 + $count) % $count;
+        }
+    }
+
+    public function selectHighlightedObat($index)
+    {
+        // Default index ke 0 kalau belum ada
+        if (!isset($this->highlightedIndex[$index])) {
+            $this->highlightedIndex[$index] = 0;
+        }
+
+        if (!empty($this->obatSearch[$index])) {
+            $selected = $this->obatSearch[$index][$this->highlightedIndex[$index]];
+
+            // Isi detail obat
+            $this->details[$index]['obat_id'] = $selected->id;
+            $this->details[$index]['nama_obat'] = $selected->nama_obat;
+            $this->details[$index]['harga'] = $selected->harga_jual ?? 0;
+            $this->details[$index]['isi'] = $selected->isi_obat ?? 0;
+            $this->details[$index]['satuan'] = $selected->satuan?->nama_satuan ?? '';
+
+            // Hitung jumlah awal (qty * harga)
+            $qty = $this->details[$index]['qty'] ?? 1; // Default 1 kalau kosong
+            $this->details[$index]['jumlah'] = $qty * ($this->details[$index]['harga'] ?? 0);
+
+            // Tutup dropdown
+            $this->showObatDropdown[$index] = false;
+        }
+    }
 }
