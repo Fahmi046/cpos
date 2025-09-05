@@ -36,3 +36,7 @@ Route::get('/kreditur', function () {
 Route::get('/pesanan', function () {
     return view('pages.pesanan');
 });
+
+Route::get('/penerimaan', function () {
+    return view('pages.penerimaan');
+})->name('penerimaan.index');
