@@ -95,4 +95,9 @@ class PesananTable extends Component
     {
         $this->pesanans = Pesanan::orderBy('no_sp')->get();
     }
+
+    public function print($id)
+    {
+        return redirect()->route('pesanan.print', $id);
+    }
 }

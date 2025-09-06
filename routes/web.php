@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PesananController;
 
 Route::get('/', function () {
     return view('pages.home');
@@ -36,3 +37,5 @@ Route::get('/kreditur', function () {
 Route::get('/pesanan', function () {
     return view('pages.pesanan');
 });
+
+Route::get('/pesanan/{id}/print', [PesananController::class, 'print'])->name('pesanan.print');
