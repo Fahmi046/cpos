@@ -71,9 +71,11 @@
                     <!-- Qty -->
                     <div class="col-span-1">
                         <input type="number" wire:model.live="details.{{ $index }}.qty"
-                            x-ref="qty_{{ $index }}" @keydown.enter.prevent="$refs.addDetail?.focus()"
-                            placeholder="Qty" class="border rounded p-2 w-full text-center" />
+                            x-ref="qty_{{ $index }}"
+                            @keydown.enter.prevent="$refs['checkbox_{{ $index }}']?.focus()" placeholder="Qty"
+                            class="border rounded p-2 w-full text-center" />
                     </div>
+
 
                     <!-- Harga -->
                     <div class="col-span-2">
@@ -81,11 +83,12 @@
                             class="border rounded p-2 w-full text-right" readonly>
                     </div>
 
-                    <!-- Isi -->
-                    <div class="col-span-1">
-                        <input type="number" wire:model="details.{{ $index }}.isi" placeholder="Isi"
-                            class="border rounded p-2 w-full text-center bg-gray-100" readonly>
+                    <!-- Jumlah -->
+                    <div class="col-span-2">
+                        <input type="number" wire:model="details.{{ $index }}.jumlah" placeholder="Jumlah"
+                            class="border rounded p-2 w-full text-right bg-gray-100" readonly>
                     </div>
+
 
                     <!-- Satuan -->
                     <div class="col-span-1">
@@ -93,11 +96,13 @@
                             class="border rounded p-2 w-full text-center bg-gray-100" readonly>
                     </div>
 
-                    <!-- Jumlah -->
-                    <div class="col-span-2">
-                        <input type="number" wire:model="details.{{ $index }}.jumlah" placeholder="Jumlah"
-                            class="border rounded p-2 w-full text-right bg-gray-100" readonly>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" wire:model="details.{{ $index }}.utuh_satuan"
+                            x-ref="checkbox_{{ $index }}" @keydown.enter.prevent="$refs.addDetail?.focus()"
+                            wire:change="toggleUtuhSatuan({{ $index }})">
+                        <label>Utuh</label>
                     </div>
+
 
                     <!-- Tombol Hapus -->
                     <div class="col-span-1 flex justify-center">
