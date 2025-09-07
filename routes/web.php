@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PesananController;
+use App\Models\PesananDetail;
 
 Route::get('/', function () {
     return view('pages.home');
