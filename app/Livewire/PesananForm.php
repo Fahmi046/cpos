@@ -267,23 +267,29 @@ class PesananForm extends Component
 
     public function selectObat($index, $obatId)
     {
-        $obat = Obat::find($obatId);
-        if (!$obat) return;
+        $obat = Obat::with(['satuan', 'sediaan', 'pabrik'])->find($obatId);
 
-        $this->details[$index]['obat_id'] = $obat->id;
-        $this->details[$index]['nama_obat'] = $obat->nama_obat ?? '';
-        $this->details[$index]['harga'] = $obat->harga_jual ?? 0;
-        $this->details[$index]['satuan'] = $obat->satuan->nama_satuan ?? '';
+        if ($obat) {
+            $this->details[$index]['obat_id']   = $obat->id;
+            $this->details[$index]['nama_obat'] = $obat->nama_obat;
+            $this->details[$index]['harga']     = $obat->harga_beli;
+            $this->details[$index]['qty']       = 1;
+            $this->details[$index]['jumlah']    = $obat->harga_beli;
 
-        // cek apakah isi_obat ada
-        if (!empty($obat->isi_obat) && $obat->isi_obat > 1) {
-            $this->details[$index]['utuh_satuan'] = true;   // auto-checklist
-            $this->details[$index]['isi'] = $obat->isi_obat;
-        } else {
-            $this->details[$index]['utuh_satuan'] = false;  // tidak dicentang
-            $this->details[$index]['isi'] = 1;
+            // simpan relasi ID
+            $this->details[$index]['satuan_id']  = $obat->satuan_id;
+            $this->details[$index]['sediaan_id'] = $obat->sediaan_id;
+            $this->details[$index]['pabrik_id']  = $obat->pabrik_id;
+
+            // default satuan ditentukan dari utuh atau tidak
+            $this->details[$index]['utuhan'] = $obat->utuhan;
+            $this->details[$index]['satuan'] = $obat->utuhan
+                ? ($obat->satuan->nama_satuan ?? '')
+                : ($obat->sediaan->nama_satuan ?? '');
         }
     }
+
+
 
 
 
@@ -369,19 +375,27 @@ class PesananForm extends Component
         if (!isset($this->details[$index])) return;
 
         $detail = $this->details[$index];
-        $obat = Obat::find($detail['obat_id'] ?? null);
+        $obatId = $detail['obat_id'] ?? null;
 
-        if ($obat) {
-            if (!empty($detail['utuh_satuan']) && $detail['utuh_satuan']) {
-                $this->details[$index]['qty'] = $obat->isi_obat ?? 1;
-                $this->details[$index]['satuan'] = $obat->satuan->nama_satuan ?? '';
-            } else {
-                $this->details[$index]['qty'] = 1;
-                $this->details[$index]['satuan'] = 'PCS';
-            }
+        if (!$obatId) return;
 
-            $this->details[$index]['jumlah'] =
-                ($this->details[$index]['qty'] ?? 1) * ($this->details[$index]['harga'] ?? 0);
+        $obat = Obat::with(['satuan', 'sediaan'])->find($obatId);
+        if (!$obat) return;
+
+        if (!empty($detail['utuh_satuan']) && $detail['utuh_satuan']) {
+            $this->details[$index]['qty']       = $obat->isi_obat ?? 1;
+            $this->details[$index]['satuan_id'] = $obat->satuan_id;
+            $this->details[$index]['satuan']    = $obat->satuan->nama_satuan ?? 'SET';
+            $this->details[$index]['utuhan']    = true;
+        } else {
+            $this->details[$index]['qty']       = 1;
+            $this->details[$index]['satuan_id'] = $obat->sediaan_id;
+            $this->details[$index]['satuan']    = $obat->sediaan->nama_satuan ?? 'PCS';
+            $this->details[$index]['utuhan']    = false;
         }
+
+        $qty   = $this->details[$index]['qty'] ?? 1;
+        $harga = $this->details[$index]['harga'] ?? 0;
+        $this->details[$index]['jumlah'] = $qty * $harga;
     }
 }

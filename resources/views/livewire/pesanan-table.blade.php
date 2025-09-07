@@ -42,6 +42,18 @@
                                     <li class="text-gray-700">
                                         {{ $detail->obat->nama_obat ?? '-' }}
                                         ({{ $detail->qty }} x {{ number_format($detail->harga, 0) }})
+                                        {{-- ✅ Tambahan info --}}
+                                        @if ($detail->pabrik)
+                                            | Pabrik: <span class="italic">{{ $detail->pabrik->nama_pabrik }}</span>
+                                        @endif
+                                        @if ($detail->satuan)
+                                            | Satuan: {{ $detail->satuan->nama_satuan }}
+                                        @endif
+                                        @if ($detail->sediaan)
+                                            | Sediaan: {{ $detail->sediaan->nama_satuan }}
+                                        @endif
+                                        | Utuh: {{ $detail->utuhan ? 'Ya' : 'Tidak' }}
+
                                         = <span class="font-semibold text-gray-900">
                                             {{ number_format($detail->jumlah, 0) }}
                                         </span>
@@ -49,6 +61,7 @@
                                 @endforeach
                             </ul>
                         </td>
+
                         <td class="px-3 py-2 text-center font-bold text-gray-900">
                             {{ number_format($pesanan->details->sum('jumlah'), 0) }}
                         </td>
