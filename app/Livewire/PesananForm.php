@@ -138,9 +138,6 @@ class PesananForm extends Component
         }
     }
 
-
-
-
     public function save()
     {
         $this->validate([
@@ -152,7 +149,7 @@ class PesananForm extends Component
         ]);
 
         if ($this->pesanan_id) {
-            // Update
+            // Update pesanan
             $pesanan = Pesanan::findOrFail($this->pesanan_id);
             $pesanan->update([
                 'no_sp'    => $this->no_sp,
@@ -160,12 +157,8 @@ class PesananForm extends Component
                 'kategori' => $this->kategori,
             ]);
 
+            // Hapus detail lama
             $pesanan->details()->delete();
-            foreach ($this->details as $detail) {
-                $pesanan->details()->create($detail);
-            }
-
-            session()->flash('message', 'Pesanan berhasil diperbarui!');
         } else {
             // Insert baru
             $pesanan = Pesanan::create([
@@ -173,18 +166,31 @@ class PesananForm extends Component
                 'tanggal'  => $this->tanggal,
                 'kategori' => $this->kategori,
             ]);
-
-            foreach ($this->details as $detail) {
-                $pesanan->details()->create($detail);
-            }
-
-            session()->flash('message', 'Pesanan berhasil disimpan!');
         }
+
+        // Simpan ulang semua detail
+        foreach ($this->details as $detail) {
+            $obat = \App\Models\Obat::findOrFail($detail['obat_id']); // ambil data obat
+
+            $pesanan->details()->create([
+                'obat_id'    => $detail['obat_id'],
+                'pabrik_id'  => $obat->pabrik_id,
+                'satuan_id'  => $obat->satuan_id,
+                'sediaan_id' => $obat->sediaan_id,
+                'qty'        => $detail['qty'],
+                'harga'      => $detail['harga'],
+                'jumlah'     => $detail['qty'] * $detail['harga'],
+                'utuhan'     => $detail['utuh_satuan'] ?? 0,
+            ]);
+        }
+
+        session()->flash('message', $this->pesanan_id ? 'Pesanan berhasil diperbarui!' : 'Pesanan berhasil disimpan!');
 
         $this->resetForm();
         $this->dispatch('refreshTable');
         $this->dispatch('focus-tanggal');
     }
+
 
 
     private function resetForm()
@@ -390,7 +396,7 @@ class PesananForm extends Component
         } else {
             $this->details[$index]['qty']       = 1;
             $this->details[$index]['satuan_id'] = $obat->sediaan_id;
-            $this->details[$index]['satuan']    = $obat->sediaan->nama_satuan ?? 'PCS';
+            $this->details[$index]['satuan']    = $obat->sediaan->nama_sediaan ?? 'PCS';
             $this->details[$index]['utuhan']    = false;
         }
 

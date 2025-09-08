@@ -17,7 +17,7 @@ class PesananDetail extends Model
         'qty',
         'harga',
         'jumlah',
-        'utuhan', // boolean
+        'utuhan' // boolean
     ];
 
     public function pesanan()
@@ -37,7 +37,7 @@ class PesananDetail extends Model
 
     public function sediaan()
     {
-        return $this->belongsTo(SatuanObat::class, 'sediaan_id');
+        return $this->belongsTo(BentukSediaan::class, 'sediaan_id');
     }
 
     public function pabrik()
