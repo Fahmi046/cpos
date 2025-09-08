@@ -53,15 +53,15 @@
                     </tr>
                     <tr>
                         <td>Kepada</td>
-                        <td>: {{ $pesanan->pabrik->nama ?? '-' }}</td>
+                        <td>: {{ $pesanan->details->first()->pabrik->nama_pabrik ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td>Alamat</td>
-                        <td>: {{ $pesanan->pabrik->alamat ?? '-' }}</td>
+                        <td>: {{ $pesanan->details->first()->pabrik->alamat ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td>Telp</td>
-                        <td>: {{ $pesanan->pabrik->telp ?? '-' }}</td>
+                        <td>: {{ $pesanan->details->first()->pabrik->telepon ?? '-' }}</td>
                     </tr>
                 </table>
             </td>
@@ -88,7 +88,7 @@
                     <td>{{ $i + 1 }}</td>
                     <td>{{ $detail->obat->nama_obat }}</td>
                     <td>{{ $detail->qty }}</td>
-                    <td>{{ $detail->satuan }}</td>
+                    <td>{{ $detail->utuhan ? $detail->satuan->nama_satuan : $detail->sediaan->nama_sediaan }}</td>
                     <td>{{ $detail->obat->komposisi->nama_komposisi ?? '-' }}</td>
                 </tr>
             @endforeach
