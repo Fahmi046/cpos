@@ -2,11 +2,12 @@
 
 namespace App\Livewire;
 
+use Carbon\Carbon;
+use App\Models\Pesanan;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Pesanan;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PesananExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PesananTable extends Component
 {
@@ -60,10 +61,12 @@ class PesananTable extends Component
         $this->dispatch('refreshKodepesanan');
         $this->dispatch('focus-tanggal');
     }
-
     public function exportExcel()
     {
-        return Excel::download(new PesananExport($this->search), 'pesanan.xlsx');
+        $tanggal = Carbon::today()->format('Y-m-d');
+        $fileName = "pesanan_{$tanggal}.xlsx";
+
+        return Excel::download(new PesananExport($this->search), $fileName);
     }
 
     public function render()
