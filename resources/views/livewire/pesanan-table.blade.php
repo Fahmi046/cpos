@@ -26,7 +26,8 @@
                     <th class="px-3 py-2">No SP</th>
                     <th class="px-3 py-2">Tanggal</th>
                     <th class="px-3 py-2">Nama Obat</th>
-                    <th class="px-3 py-2">Nama Pabrik</th>
+                    <th class="px-3 py-2">Pabrik</th>
+                    <th class="px-3 py-2">Kreditur</th>
                     <th class="px-3 py-2">Satuan</th>
                     <th class="px-3 py-2 text-center">Qty</th>
                     <th class="px-3 py-2 text-right">Harga</th>
@@ -43,6 +44,7 @@
                             <td class="px-3 py-2">{{ $pesanan->tanggal }}</td>
                             <td class="px-3 py-2">{{ $detail->obat->nama_obat ?? '-' }}</td>
                             <td class="px-3 py-2">{{ $detail->pabrik->nama_pabrik ?? '-' }}</td>
+                            <td class="px-3 py-2">{{ $detail->kreditur->nama ?? '-' }}</td>
                             <td class="px-3 py-2">
                                 @if ($detail->utuhan)
                                     {{ $detail->satuan->nama_satuan ?? '-' }}

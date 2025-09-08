@@ -14,6 +14,7 @@ class PesananDetail extends Model
         'satuan_id',
         'sediaan_id',
         'pabrik_id',
+        'kreditur_id',
         'qty',
         'harga',
         'jumlah',
@@ -43,5 +44,9 @@ class PesananDetail extends Model
     public function pabrik()
     {
         return $this->belongsTo(Pabrik::class, 'pabrik_id');
+    }
+    public function kreditur()
+    {
+        return $this->belongsTo(Kreditur::class, 'kreditur_id');
     }
 }

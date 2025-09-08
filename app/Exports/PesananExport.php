@@ -5,34 +5,59 @@ namespace App\Exports;
 use App\Models\Pesanan;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
 
-class PesananExport implements FromCollection, WithHeadings
+class PesananExport implements FromCollection, WithHeadings, WithMapping
 {
-    protected $search;
-
-    public function __construct($search = '')
-    {
-        $this->search = $search;
-    }
-
     public function collection()
     {
-        return Pesanan::with('details')
-            ->where('no_sp', 'like', '%' . $this->search . '%')
-            ->orWhere('tanggal', 'like', '%' . $this->search . '%')
-            ->latest()
-            ->get()
-            ->map(function ($pesanan) {
-                return [
-                    'No SP' => $pesanan->no_sp,
-                    'Tanggal' => $pesanan->tanggal,
-                    'Total' => $pesanan->details->sum('jumlah'),
-                ];
-            });
+        return Pesanan::with([
+            'details.obat.pabrik',
+            'details.obat.satuan',
+            'details.obat.sediaan',
+            'details.obat.kreditur'
+        ])->get();
     }
 
     public function headings(): array
     {
-        return ['No SP', 'Tanggal', 'Total'];
+        return [
+            'No',
+            'No SP',
+            'Tanggal',
+            'Nama Obat',
+            'Nama Pabrik',
+            'Satuan',
+            'Qty',
+            'Harga',
+            'Jumlah',
+            'Kreditur'
+        ];
+    }
+
+    public function map($pesanan): array
+    {
+        $rows = [];
+
+        foreach ($pesanan->details as $detail) {
+            $satuan = $detail->utuhan
+                ? ($detail->obat->satuan->nama_satuan ?? 'PCS')
+                : ($detail->obat->sediaan->nama_satuan ?? 'PCS');
+
+            $rows[] = [
+                $pesanan->id,
+                $pesanan->no_sp,
+                $pesanan->tanggal,
+                $detail->obat->nama_obat ?? '-',
+                $detail->obat->pabrik->nama_pabrik ?? '-',
+                $satuan,
+                $detail->qty,
+                $detail->harga,
+                $detail->jumlah,
+                $detail->obat->kreditur->nama ?? '-', // ✅ Tambahan Kreditur
+            ];
+        }
+
+        return $rows;
     }
 }

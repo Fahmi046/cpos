@@ -177,6 +177,7 @@ class PesananForm extends Component
                 'pabrik_id'  => $obat->pabrik_id,
                 'satuan_id'  => $obat->satuan_id,
                 'sediaan_id' => $obat->sediaan_id,
+                'kreditur_id' => $obat->kreditur_id,
                 'qty'        => $detail['qty'],
                 'harga'      => $detail['harga'],
                 'jumlah'     => $detail['qty'] * $detail['harga'],
