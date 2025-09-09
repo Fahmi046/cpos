@@ -31,8 +31,8 @@ class PenerimaanForm extends Component
         $this->obatResults = [[]];
         $this->highlightObatIndex = [0];
 
-        $this->tanggal = Carbon::now()->format('Y-m-d');
-        $this->no_penerimaan = $this->generateNoPenerimaan();
+        $this->tanggal = null; // biarkan kosong dulu
+        $this->no_penerimaan = '';
     }
 
     protected function emptyDetailRow(): array
@@ -218,7 +218,6 @@ class PenerimaanForm extends Component
         if ($pesanan) {
             $this->pesanan_id = $pesanan->id;
             $this->search = $pesanan->no_sp . ' - ' . $pesanan->tanggal;
-            $this->tanggal = $pesanan->tanggal;
 
             $this->details = [];
             $this->obatSearch = [];
@@ -326,23 +325,27 @@ class PenerimaanForm extends Component
         }
     }
 
-    public function generateNoPenerimaan()
+    public function updatedTanggal($value)
     {
-        $today = Carbon::now()->format('ymd'); // YYMMDD
+        $this->no_penerimaan = $this->generateNoPenerimaan($value);
+    }
 
-        // Cari penerimaan terakhir hari ini
-        $last = Penerimaan::whereDate('created_at', Carbon::today())
+    public function generateNoPenerimaan($tanggal)
+    {
+        if (!$tanggal) return '';
+
+        $date = Carbon::parse($tanggal)->format('ymd');
+
+        $last = Penerimaan::whereDate('tanggal', $tanggal)
             ->orderBy('no_penerimaan', 'desc')
             ->first();
 
-        if ($last) {
+        if ($last && strlen($last->no_penerimaan) >= 10) {
             $number = intval(substr($last->no_penerimaan, 6)) + 1;
         } else {
             $number = 1;
         }
 
-        $numberFormatted = str_pad($number, 4, '0', STR_PAD_LEFT);
-
-        return $today . $numberFormatted;
+        return $date . str_pad($number, 4, '0', STR_PAD_LEFT);
     }
 }

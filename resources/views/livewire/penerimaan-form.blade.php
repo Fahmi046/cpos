@@ -7,7 +7,8 @@
             <div class="col-span-2">
                 <label class="block mb-2 text-sm font-medium text-gray-900">No Penerimaan</label>
                 <input type="text" wire:model="no_penerimaan"
-                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
+                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 rounded"
+                    readonly>
             </div>
 
             {{-- Pesanan --}}
@@ -17,6 +18,7 @@
                 <input type="text" placeholder="Cari No SP / Tanggal..." wire:model.debounce.300ms="search"
                     wire:keydown.arrow-down.prevent="highlightNext" wire:keydown.arrow-up.prevent="highlightPrev"
                     wire:keydown.enter.prevent="selectHighlighted"
+                    @keydown.enter.prevent="$wire.selectHighlighted; $wire.showDropdown = false; $refs.tanggal.focus();"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500"
                     @focus="open = true" @click.outside="open = false" x-ref="no_sp">
 
@@ -37,13 +39,14 @@
 
             <div class="col-span-2">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Tanggal Terima</label>
-                <input type="date" wire:model="tanggal"
-                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
+                <input type="date" wire:model.lazy="tanggal" x-ref="tanggal"
+                    @keydown.enter.prevent="$refs.jenis_bayar.focus()"
+                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 rounded">
             </div>
 
             <div class="col-span-2">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Jenis Bayar</label>
-                <select wire:model="jenis_bayar"
+                <select wire:model="jenis_bayar" x-ref="jenis_bayar" @keydown.enter.prevent="$refs.jenis_bayar.focus()"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
                     <option value="">-- Pilih --</option>
                     <option value="CASH">CASH</option>
