@@ -94,6 +94,12 @@
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
                                     Surat Pesanan
                                 </a>
+                                <a href="/penerimaan"
+                                    class="{{ request()->is('penerimaan')
+                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
+                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                    Penerimaan
+                                </a>
                             </div>
                         </div>
                     </div>

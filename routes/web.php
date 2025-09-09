@@ -40,3 +40,7 @@ Route::get('/pesanan', function () {
 });
 
 Route::get('/pesanan/{id}/print', [PesananController::class, 'print'])->name('pesanan.print');
+
+Route::get('/penerimaan', function () {
+    return view('pages.penerimaan');
+});
