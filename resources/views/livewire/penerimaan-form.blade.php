@@ -53,6 +53,11 @@
                     <option value="KREDIT">KREDIT</option>
                 </select>
             </div>
+            <div class="col-span-2">
+                <label class="block mb-2 text-sm font-medium text-gray-900">Kreditur</label>
+                <input type="text" wire:model="kreditur"
+                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
+            </div>
 
             <div class="col-span-4">
                 <label class="block mb-2 text-sm font-medium text-gray-900">No Faktur</label>
@@ -60,19 +65,19 @@
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
             </div>
 
-            <div class="col-span-2">
+            <div class="col-span-1">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Tenor (hari)</label>
                 <input type="number" wire:model="tenor"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
             </div>
 
-            <div class="col-span-3">
+            <div class="col-span-2">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Jatuh Tempo</label>
                 <input type="date" wire:model="jatuh_tempo"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
             </div>
 
-            <div class="col-span-4">
+            <div class="col-span-2">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Jenis PPN</label>
                 <select wire:model="jenis_ppn"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">

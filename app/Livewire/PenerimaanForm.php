@@ -23,17 +23,24 @@ class PenerimaanForm extends Component
     public function mount(?int $penerimaan_id = null)
     {
         $this->penerimaan_id = $penerimaan_id;
-        // minimal 1 baris kosong
+
+        // minimal 1 baris kosong detail
         $this->details = [$this->emptyDetailRow()];
 
-        // inisialisasi array untuk auto-complete obat
         $this->obatSearch = [''];
         $this->obatResults = [[]];
         $this->highlightObatIndex = [0];
 
-        $this->tanggal = null; // biarkan kosong dulu
-        $this->no_penerimaan = '';
+        // 🔹 DEFAULT HEADER
+        $this->tanggal       = Carbon::now()->format('Y-m-d'); // hari ini
+        $this->jenis_bayar   = 'KREDIT';
+        $this->tenor         = 0;
+        $this->jenis_ppn     = 'INCLUDE';
+
+        // 🔹 NO PENERIMAAN OTOMATIS SESUAI TANGGAL HARI INI
+        $this->no_penerimaan = $this->generateNoPenerimaan($this->tanggal);
     }
+
 
     protected function emptyDetailRow(): array
     {
