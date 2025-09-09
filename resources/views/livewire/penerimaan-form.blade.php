@@ -53,13 +53,15 @@
                     <option value="KREDIT">KREDIT</option>
                 </select>
             </div>
-            <div class="col-span-2">
+
+            <div class="col-span-3">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Kreditur</label>
-                <input type="text" wire:model="kreditur"
-                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
+                <input type="text" wire:model="kreditur_nama"
+                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 rounded"
+                    readonly>
             </div>
 
-            <div class="col-span-4">
+            <div class="col-span-3">
                 <label class="block mb-2 text-sm font-medium text-gray-900">No Faktur</label>
                 <input type="text" wire:model="no_faktur"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">

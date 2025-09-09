@@ -14,7 +14,7 @@ class PenerimaanForm extends Component
     public $penerimaan_id;
 
     // Header Penerimaan
-    public $pesanan_id, $tanggal, $no_penerimaan, $jenis_bayar, $kreditur_id;
+    public $pesanan_id, $tanggal, $no_penerimaan, $jenis_bayar, $kreditur_id, $kreditur_nama;
     public $no_faktur, $tenor, $jatuh_tempo, $jenis_ppn;
 
     // DETAIL PENERIMAAN (<<— inilah yang dimaksud $details)
@@ -218,14 +218,25 @@ class PenerimaanForm extends Component
         }
         $this->highlightIndex = 0; // reset highlight saat search berubah
     }
-
     public function selectPesanan($id)
     {
-        $pesanan = Pesanan::with('details.obat')->find($id);
+        $pesanan = Pesanan::with('details.kreditur', 'details.obat')->find($id);
+
         if ($pesanan) {
             $this->pesanan_id = $pesanan->id;
             $this->search = $pesanan->no_sp . ' - ' . $pesanan->tanggal;
 
+            // 🔹 ambil kreditur dari detail pertama jika ada
+            $firstDetail = $pesanan->details->first();
+            if ($firstDetail) {
+                $this->kreditur_id   = $firstDetail->kreditur_id;
+                $this->kreditur_nama = $firstDetail->kreditur->nama ?? '';
+            } else {
+                $this->kreditur_id   = null;
+                $this->kreditur_nama = '';
+            }
+
+            // load detail
             $this->details = [];
             $this->obatSearch = [];
             $this->obatResults = [];
@@ -244,21 +255,19 @@ class PenerimaanForm extends Component
                     'disc2'      => 0,
                     'disc3'      => 0,
                     'utuh'       => false,
+                    'kreditur_id' => $d->kreditur_id ?? null,
                 ];
 
-                // 🔹 isi nama obat supaya tampil di input
                 $this->obatSearch[] = $d->obat->nama_obat ?? '';
                 $this->obatResults[] = [];
                 $this->highlightObatIndex[] = 0;
             }
 
-            // sembunyikan hasil search pesanan
+            // sembunyikan list pencarian
             $this->pesananList = [];
             $this->highlightIndex = 0;
         }
     }
-
-
 
     // navigasi keyboard
     public function highlightNext()
