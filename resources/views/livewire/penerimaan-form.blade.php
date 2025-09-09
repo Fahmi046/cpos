@@ -11,18 +11,29 @@
             </div>
 
             {{-- Pesanan --}}
-            <div class="col-span-5">
+            <div class="col-span-5 relative" x-data="{ open: @entangle('pesananList').defer.length > 0 }" x-init="$refs.no_sp.focus()">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Pesanan</label>
-                <select wire:model="pesanan_id" wire:change="loadPesanan"
-                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
-                    <option value="">-- Pilih Pesanan --</option>
-                    @foreach ($pesananList as $pesanan)
-                        <option value="{{ $pesanan->id }}">
-                            {{ $pesanan->no_sp }} - {{ $pesanan->tanggal }}
-                        </option>
-                    @endforeach
-                </select>
+
+                <input type="text" placeholder="Cari No SP / Tanggal..." wire:model.debounce.300ms="search"
+                    wire:keydown.arrow-down.prevent="highlightNext" wire:keydown.arrow-up.prevent="highlightPrev"
+                    wire:keydown.enter.prevent="selectHighlighted"
+                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                    @focus="open = true" @click.outside="open = false" x-ref="no_sp">
+
+                @if (!empty($pesananList))
+                    <ul class="absolute z-10 w-full bg-white border rounded-lg shadow-md mt-1 max-h-60 overflow-y-auto">
+                        @foreach ($pesananList as $index => $pesanan)
+                            <li wire:click="selectPesanan({{ $pesanan->id }})"
+                                class="px-4 py-2 cursor-pointer hover:bg-gray-200
+                           {{ $highlightIndex === $index ? 'bg-gray-300' : '' }}">
+                                {{ $pesanan->no_sp }} - {{ $pesanan->tanggal }}
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
+
+
 
             <div class="col-span-2">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Tanggal Terima</label>
@@ -40,42 +51,25 @@
                 </select>
             </div>
 
-            <div class="col-span-2">
-                <label class="block mb-2 text-sm font-medium text-gray-900">Kreditur</label>
-                <select wire:model="kreditur_id"
-                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
-                    <option value="">-- Pilih Kreditur --</option>
-                    {{--  @foreach ($krediturList as $k)
-                            <option value="{{ $k->id }}">{{ $k->nama }}</option>
-                        @endforeach  --}}
-                </select>
-            </div>
-
-            <div class="col-span-2">
+            <div class="col-span-4">
                 <label class="block mb-2 text-sm font-medium text-gray-900">No Faktur</label>
                 <input type="text" wire:model="no_faktur"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
             </div>
 
             <div class="col-span-2">
-                <label class="block mb-2 text-sm font-medium text-gray-900">Tanggal Faktur</label>
-                <input type="date" wire:model="tanggal"
-                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
-            </div>
-
-            <div class="col-span-1">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Tenor (hari)</label>
                 <input type="number" wire:model="tenor"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
             </div>
 
-            <div class="col-span-2">
+            <div class="col-span-3">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Jatuh Tempo</label>
                 <input type="date" wire:model="jatuh_tempo"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
             </div>
 
-            <div class="col-span-2">
+            <div class="col-span-4">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Jenis PPN</label>
                 <select wire:model="jenis_ppn"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
@@ -93,47 +87,46 @@
 
             <div class="space-y-3">
                 @forelse ($details as $i => $detail)
-                    <div class="grid grid-cols-10 gap-3 items-end border rounded-lg p-3 bg-gray-50">
+                    <div class="grid grid-cols-12 gap-3 items-end border rounded-lg p-3 bg-gray-50">
                         {{-- Obat --}}
-                        <div class="col-span-3">
+                        <div class="col-span-3 relative">
                             <label class="block mb-1 text-xs font-medium text-gray-700">Obat</label>
-                            <select wire:model="details.{{ $i }}.obat_id"
+
+                            <input type="text" placeholder="Cari obat..."
+                                wire:model.debounce.300ms="obatSearch.{{ $i }}"
+                                wire:keydown.arrow-down.prevent="highlightNextObat({{ $i }})"
+                                wire:keydown.arrow-up.prevent="highlightPrevObat({{ $i }})"
+                                wire:keydown.enter.prevent="selectHighlightedObat({{ $i }})"
+                                class="w-full p-2 border rounded-lg">
+
+                            @if (!empty($obatResults[$i]))
+                                <ul
+                                    class="absolute z-10 w-full bg-white border rounded shadow-md max-h-40 overflow-y-auto">
+                                    @foreach ($obatResults[$i] as $index => $obat)
+                                        <li wire:click="selectObat({{ $i }}, {{ $obat->id }})"
+                                            class="px-2 py-1 cursor-pointer hover:bg-gray-200
+                           {{ $highlightObatIndex[$i] === $index ? 'bg-gray-300' : '' }}">
+                                            {{ $obat->nama_obat }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+
+                        {{-- Pabrik --}}
+                        <div class="col-span-2">
+                            <label class="block mb-1 text-xs font-medium text-gray-700">Pabrik</label>
+                            <select wire:model="details.{{ $i }}.pabrik_id"
                                 class="w-full p-2 border rounded-lg">
                                 <option value="">-- Pilih --</option>
-                                @foreach ($obatList as $o)
-                                    <option value="{{ $o->id }}">{{ $o->nama_obat }}</option>
+                                @foreach ($pabrikList as $p)
+                                    <option value="{{ $p->id }}">{{ $p->nama }}</option>
                                 @endforeach
                             </select>
                         </div>
 
-                        {{-- isi obat --}}
-                        <div class="col-span-1">
-                            <label class="block mb-1 text-xs font-medium text-gray-700">isi obat</label>
-                            <input type="number" min="0" wire:model="details.{{ $i }}.isi_obat"
-                                class="w-full p-2 border rounded-lg text-center">
-                        </div>
-
-
-                        {{-- utuhan --}}
-                        <div class="col-span-1 flex flex-col items-center">
-                            <label for="utuh-{{ $i }}"
-                                class="mb-2 text-sm font-medium text-gray-900">Utuh</label>
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input id="utuh-{{ $i }}" type="checkbox"
-                                    wire:model="details.{{ $i }}.utuh" class="sr-only peer">
-                                <div
-                                    class="relative w-14 h-8 bg-gray-300 rounded-full peer-focus:ring-4 peer-focus:ring-blue-300 peer
-                    peer-checked:bg-green-500
-                    after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white
-                    after:border-gray-300 after:border after:rounded-full after:h-7 after:w-7 after:transition-all
-                    peer-checked:after:translate-x-6">
-                                </div>
-                            </label>
-                        </div>
-
-
                         {{-- Satuan --}}
-                        <div class="col-span-2">
+                        <div class="col-span-1">
                             <label class="block mb-1 text-xs font-medium text-gray-700">Satuan</label>
                             <select wire:model="details.{{ $i }}.satuan_id"
                                 class="w-full p-2 border rounded-lg">
@@ -148,14 +141,6 @@
                         <div class="col-span-1">
                             <label class="block mb-1 text-xs font-medium text-gray-700">Qty</label>
                             <input type="number" min="0" wire:model="details.{{ $i }}.qty"
-                                class="w-full p-2 border rounded-lg text-center">
-                        </div>
-
-
-                        {{-- harga --}}
-                        <div class="col-span-2">
-                            <label class="block mb-1 text-xs font-medium text-gray-700">harga</label>
-                            <input type="number" min="0" wire:model="details.{{ $i }}.harga"
                                 class="w-full p-2 border rounded-lg text-center">
                         </div>
 
@@ -192,6 +177,11 @@
                             <label class="block mb-1 text-xs font-medium text-gray-700">Disc 3</label>
                             <input type="number" min="0" wire:model="details.{{ $i }}.disc3"
                                 class="w-full p-2 border rounded-lg text-right">
+                        </div>
+
+                        {{-- Utuh --}}
+                        <div class="col-span-1 flex items-center justify-center mt-5">
+                            <input type="checkbox" wire:model="details.{{ $i }}.utuh" class="w-5 h-5">
                         </div>
 
                         {{-- Hapus --}}

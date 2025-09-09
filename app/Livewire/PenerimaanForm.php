@@ -2,9 +2,12 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
+use App\Models\Penerimaan;
+use App\Models\Pesanan;
+use App\Models\{BentukSediaan, Obat, Pabrik, Satuan, SatuanObat, Sediaan};
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Models\{BentukSediaan, Pesanan, Penerimaan, Obat, Pabrik, Satuan, SatuanObat, Sediaan};
+use Livewire\Component;
 
 class PenerimaanForm extends Component
 {
@@ -22,6 +25,14 @@ class PenerimaanForm extends Component
         $this->penerimaan_id = $penerimaan_id;
         // minimal 1 baris kosong
         $this->details = [$this->emptyDetailRow()];
+
+        // inisialisasi array untuk auto-complete obat
+        $this->obatSearch = [''];
+        $this->obatResults = [[]];
+        $this->highlightObatIndex = [0];
+
+        $this->tanggal = Carbon::now()->format('Y-m-d');
+        $this->no_penerimaan = $this->generateNoPenerimaan();
     }
 
     protected function emptyDetailRow(): array
@@ -44,6 +55,9 @@ class PenerimaanForm extends Component
     public function addDetail()
     {
         $this->details[] = $this->emptyDetailRow();
+        $this->obatSearch[] = '';
+        $this->obatResults[] = [];
+        $this->highlightObatIndex[] = 0;
     }
 
     public function removeDetail($index)
@@ -56,20 +70,29 @@ class PenerimaanForm extends Component
     {
         if (!$this->pesanan_id) {
             $this->details = [$this->emptyDetailRow()];
+            $this->obatSearch = [''];
+            $this->obatResults = [[]];
+            $this->highlightObatIndex = [0];
             return;
         }
 
-        $pesanan = Pesanan::with(['details'])
-            ->find($this->pesanan_id);
+        $pesanan = Pesanan::with('details.obat')->find($this->pesanan_id);
 
         if (!$pesanan) {
             $this->details = [$this->emptyDetailRow()];
+            $this->obatSearch = [''];
+            $this->obatResults = [[]];
+            $this->highlightObatIndex = [0];
             return;
         }
 
-        // mapping detail pesanan -> default detail penerimaan
-        $this->details = $pesanan->details->map(function ($d) {
-            return [
+        $this->details = [];
+        $this->obatSearch = [];
+        $this->obatResults = [];
+        $this->highlightObatIndex = [];
+
+        foreach ($pesanan->details as $d) {
+            $this->details[] = [
                 'obat_id'    => $d->obat_id,
                 'pabrik_id'  => $d->pabrik_id ?? null,
                 'satuan_id'  => $d->satuan_id,
@@ -82,8 +105,23 @@ class PenerimaanForm extends Component
                 'disc3'      => 0,
                 'utuh'       => false,
             ];
-        })->toArray();
+
+            // 🔹 penting: isi nama obat agar tampil di input auto-complete
+            $this->obatSearch[] = $d->obat->nama_obat ?? '';
+            $this->obatResults[] = [];
+            $this->highlightObatIndex[] = 0;
+        }
+
+        // jika kosong, tambah satu baris
+        if (empty($this->details)) {
+            $this->details = [$this->emptyDetailRow()];
+            $this->obatSearch = [''];
+            $this->obatResults = [[]];
+            $this->highlightObatIndex = [0];
+        }
     }
+
+
 
     public function save()
     {
@@ -155,5 +193,156 @@ class PenerimaanForm extends Component
             'satuanList'  => SatuanObat::orderBy('nama_satuan')->get(),
             'sediaanList' => BentukSediaan::orderBy('nama_sediaan')->get(),
         ]);
+    }
+    public $search = '';
+    public $pesananList = [];
+    public $highlightIndex = 0; // untuk navigasi keyboard
+
+    public function updatedSearch()
+    {
+        if ($this->search) {
+            $this->pesananList = Pesanan::where('no_sp', 'like', "%{$this->search}%")
+                ->orWhere('tanggal', 'like', "%{$this->search}%")
+                ->orderBy('tanggal', 'desc')
+                ->limit(5)
+                ->get();
+        } else {
+            $this->pesananList = [];
+        }
+        $this->highlightIndex = 0; // reset highlight saat search berubah
+    }
+
+    public function selectPesanan($id)
+    {
+        $pesanan = Pesanan::with('details.obat')->find($id);
+        if ($pesanan) {
+            $this->pesanan_id = $pesanan->id;
+            $this->search = $pesanan->no_sp . ' - ' . $pesanan->tanggal;
+            $this->tanggal = $pesanan->tanggal;
+
+            $this->details = [];
+            $this->obatSearch = [];
+            $this->obatResults = [];
+            $this->highlightObatIndex = [];
+
+            foreach ($pesanan->details as $d) {
+                $this->details[] = [
+                    'obat_id'    => $d->obat_id,
+                    'pabrik_id'  => $d->pabrik_id ?? null,
+                    'satuan_id'  => $d->satuan_id,
+                    'sediaan_id' => $d->sediaan_id ?? null,
+                    'qty'        => $d->qty,
+                    'ed'         => null,
+                    'batch'      => '',
+                    'disc1'      => 0,
+                    'disc2'      => 0,
+                    'disc3'      => 0,
+                    'utuh'       => false,
+                ];
+
+                // 🔹 isi nama obat supaya tampil di input
+                $this->obatSearch[] = $d->obat->nama_obat ?? '';
+                $this->obatResults[] = [];
+                $this->highlightObatIndex[] = 0;
+            }
+
+            // sembunyikan hasil search pesanan
+            $this->pesananList = [];
+            $this->highlightIndex = 0;
+        }
+    }
+
+
+
+    // navigasi keyboard
+    public function highlightNext()
+    {
+        if ($this->highlightIndex + 1 < count($this->pesananList)) {
+            $this->highlightIndex++;
+        }
+    }
+
+    public function highlightPrev()
+    {
+        if ($this->highlightIndex > 0) {
+            $this->highlightIndex--;
+        }
+    }
+
+    public function selectHighlighted()
+    {
+        if (isset($this->pesananList[$this->highlightIndex])) {
+            $this->selectPesanan($this->pesananList[$this->highlightIndex]->id);
+        }
+    }
+
+    public $obatSearch = [];        // array untuk tiap baris detail
+    public $obatResults = [];       // hasil pencarian obat per baris
+    public $highlightObatIndex = []; // highlight keyboard per baris
+
+    public function updatedObatSearch($value, $index)
+    {
+        if ($value) {
+            $this->obatResults[$index] = Obat::where('nama_obat', 'like', "%{$value}%")
+                ->orderBy('nama_obat')
+                ->limit(5)
+                ->get();
+        } else {
+            $this->obatResults[$index] = [];
+        }
+        $this->highlightObatIndex[$index] = 0;
+    }
+
+    public function selectObat($index, $obat_id)
+    {
+        $obat = Obat::find($obat_id);
+        if ($obat) {
+            $this->details[$index]['obat_id'] = $obat->id;
+            $this->details[$index]['satuan_id'] = $obat->satuan_id ?? null;
+            $this->obatSearch[$index] = $obat->nama_obat;
+            $this->obatResults[$index] = [];
+            $this->highlightObatIndex[$index] = 0;
+        }
+    }
+
+    public function highlightNextObat($index)
+    {
+        if (isset($this->obatResults[$index][$this->highlightObatIndex[$index] + 1])) {
+            $this->highlightObatIndex[$index]++;
+        }
+    }
+
+    public function highlightPrevObat($index)
+    {
+        if ($this->highlightObatIndex[$index] > 0) {
+            $this->highlightObatIndex[$index]--;
+        }
+    }
+
+    public function selectHighlightedObat($index)
+    {
+        if (isset($this->obatResults[$index][$this->highlightObatIndex[$index]])) {
+            $this->selectObat($index, $this->obatResults[$index][$this->highlightObatIndex[$index]]->id);
+        }
+    }
+
+    public function generateNoPenerimaan()
+    {
+        $today = Carbon::now()->format('ymd'); // YYMMDD
+
+        // Cari penerimaan terakhir hari ini
+        $last = Penerimaan::whereDate('created_at', Carbon::today())
+            ->orderBy('no_penerimaan', 'desc')
+            ->first();
+
+        if ($last) {
+            $number = intval(substr($last->no_penerimaan, 6)) + 1;
+        } else {
+            $number = 1;
+        }
+
+        $numberFormatted = str_pad($number, 4, '0', STR_PAD_LEFT);
+
+        return $today . $numberFormatted;
     }
 }
