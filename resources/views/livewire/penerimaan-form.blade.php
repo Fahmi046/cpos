@@ -100,7 +100,7 @@
 
             <div class="space-y-3">
                 @forelse ($details as $i => $detail)
-                    <div class="grid grid-cols-12 gap-3 items-end border rounded-lg p-3 bg-gray-50">
+                    <div class="grid grid-cols-11 gap-3 items-end border rounded-lg p-3 bg-gray-50">
                         {{-- Obat --}}
                         <div class="col-span-3 relative">
                             <label class="block mb-1 text-xs font-medium text-gray-700">Obat</label>
@@ -133,6 +133,27 @@
                                 class="w-full p-2 b order rounded-lg text-center">
                         </div>
 
+                        {{-- Utuhan --}}
+                        <div class="col-span-1 flex flex-col items-center justify-center h-full">
+                            {{-- Toggle Switch --}}
+                            <label class="flex flex-col items-center cursor-pointer">
+                                {{-- Label di atas --}}
+                                <span
+                                    class="mb-1 text-sm font-medium
+                    text-gray-500 peer-checked:text-green-600">
+                                    Utuhan
+                                </span>
+
+                                {{-- Input hidden --}}
+                                <input type="checkbox" wire:model.live="details.{{ $i }}.utuh"
+                                    wire:change="toggleUtuhSatuan({{ $i }})"
+                                    x-ref="checkbox_{{ $i }}"
+                                    @keydown.enter.prevent="$refs.addDetail?.focus()">
+
+                            </label>
+                        </div>
+
+
                         {{-- Satuan --}}
                         <div class="col-span-1">
                             <label class="block mb-1 text-xs font-medium text-gray-700">Satuan</label>
@@ -144,13 +165,6 @@
                         <div class="col-span-1">
                             <label class="block mb-1 text-xs font-medium text-gray-700">Isi Obat</label>
                             <input type="number" min="0" wire:model="details.{{ $i }}.isi_obat"
-                                class="w-full p-2 border rounded-lg text-center">
-                        </div>
-
-                        {{-- Qty --}}
-                        <div class="col-span-1">
-                            <label class="block mb-1 text-xs font-medium text-gray-700">Qty</label>
-                            <input type="number" min="0" wire:model="details.{{ $i }}.qty"
                                 class="w-full p-2 border rounded-lg text-center">
                         </div>
 
@@ -175,6 +189,13 @@
                                 class="w-full p-2 border rounded-lg">
                         </div>
 
+                        {{-- Qty --}}
+                        <div class="col-span-1">
+                            <label class="block mb-1 text-xs font-medium text-gray-700">Qty</label>
+                            <input type="number" min="0" wire:model="details.{{ $i }}.qty"
+                                class="w-full p-2 border rounded-lg text-center">
+                        </div>
+
                         {{-- Disc 1 --}}
                         <div class="col-span-1">
                             <label class="block mb-1 text-xs font-medium text-gray-700">Disc 1</label>
@@ -196,12 +217,12 @@
                                 class="w-full p-2 border rounded-lg text-right">
                         </div>
 
-                        {{-- Utuh --}}
-                        <div class="col-span-1 flex items-center justify-center mt-5">
-                            <input type="checkbox" wire:model.lazy="details.{{ $i }}.utuh"
-                                class="w-5 h-5">
+                        {{-- jumlah --}}
+                        <div class="col-span-2">
+                            <label class="block mb-1 text-xs font-medium text-gray-700">Jumlah</label>
+                            <input type="number" min="0" wire:model="details.{{ $i }}.jumlah"
+                                class="w-full p-2 border rounded-lg text-center">
                         </div>
-
                         {{-- Hapus --}}
                         <div class="col-span-1 flex items-center justify-center mt-5">
                             <button type="button" wire:click="removeDetail({{ $i }})"
