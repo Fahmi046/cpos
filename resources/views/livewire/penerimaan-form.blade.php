@@ -129,31 +129,35 @@
                         {{-- Pabrik --}}
                         <div class="col-span-2">
                             <label class="block mb-1 text-xs font-medium text-gray-700">Pabrik</label>
-                            <select wire:model="details.{{ $i }}.pabrik_id"
-                                class="w-full p-2 border rounded-lg">
-                                <option value="">-- Pilih --</option>
-                                @foreach ($pabrikList as $p)
-                                    <option value="{{ $p->id }}">{{ $p->nama }}</option>
-                                @endforeach
-                            </select>
+                            <input type="text" wire:model="details.{{ $i }}.pabrik"
+                                class="w-full p-2 b order rounded-lg text-center">
                         </div>
 
                         {{-- Satuan --}}
                         <div class="col-span-1">
                             <label class="block mb-1 text-xs font-medium text-gray-700">Satuan</label>
-                            <select wire:model="details.{{ $i }}.satuan_id"
-                                class="w-full p-2 border rounded-lg">
-                                <option value="">-- Pilih --</option>
-                                @foreach ($satuanList as $s)
-                                    <option value="{{ $s->id }}">{{ $s->nama }}</option>
-                                @endforeach
-                            </select>
+                            <input type="text" wire:model="details.{{ $i }}.satuan"
+                                class="w-full p-2 border rounded-lg text-center">
+                        </div>
+
+                        {{-- isi_obat --}}
+                        <div class="col-span-1">
+                            <label class="block mb-1 text-xs font-medium text-gray-700">Isi Obat</label>
+                            <input type="number" min="0" wire:model="details.{{ $i }}.isi_obat"
+                                class="w-full p-2 border rounded-lg text-center">
                         </div>
 
                         {{-- Qty --}}
                         <div class="col-span-1">
                             <label class="block mb-1 text-xs font-medium text-gray-700">Qty</label>
                             <input type="number" min="0" wire:model="details.{{ $i }}.qty"
+                                class="w-full p-2 border rounded-lg text-center">
+                        </div>
+
+                        {{-- harga --}}
+                        <div class="col-span-2">
+                            <label class="block mb-1 text-xs font-medium text-gray-700">Harga</label>
+                            <input type="number" min="0" wire:model="details.{{ $i }}.harga"
                                 class="w-full p-2 border rounded-lg text-center">
                         </div>
 
@@ -194,7 +198,8 @@
 
                         {{-- Utuh --}}
                         <div class="col-span-1 flex items-center justify-center mt-5">
-                            <input type="checkbox" wire:model="details.{{ $i }}.utuh" class="w-5 h-5">
+                            <input type="checkbox" wire:model.lazy="details.{{ $i }}.utuh"
+                                class="w-5 h-5">
                         </div>
 
                         {{-- Hapus --}}

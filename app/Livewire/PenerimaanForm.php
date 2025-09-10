@@ -383,4 +383,35 @@ class PenerimaanForm extends Component
             $this->jatuh_tempo = null;
         }
     }
+
+    public function updatedDetails($value, $key)
+    {
+        [$index, $field] = explode('.', $key);
+
+        if ($field === 'utuh') {
+            $this->setSatuanAndIsi($index);
+        }
+    }
+
+    private function setSatuanAndIsi($index)
+    {
+        $detail = $this->details[$index];
+
+        if (!empty($detail['obat_id'])) {
+            $obat = \App\Models\Obat::with(['satuan_obat', 'bentuk_sediaans'])
+                ->find($detail['obat_id']);
+
+            if ($obat) {
+                if ($this->details[$index]['utuh']) {
+                    // kalau utuh ✅
+                    $this->details[$index]['satuan'] = $obat->satuan_obat->nama_satuan ?? '-';
+                    $this->details[$index]['isi_obat']    = $obat->isi_obat ?? 1;
+                } else {
+                    // kalau ecer ❌
+                    $this->details[$index]['satuan'] = $obat->bentuk_sediaans->nama_sediaan ?? '-';
+                    $this->details[$index]['isi_obat']    = 1;
+                }
+            }
+        }
+    }
 }
