@@ -34,13 +34,14 @@ class PenerimaanForm extends Component
         // 🔹 DEFAULT HEADER
         $this->tanggal       = Carbon::now()->format('Y-m-d'); // hari ini
         $this->jenis_bayar   = 'KREDIT';
-        $this->tenor         = 0;
         $this->jenis_ppn     = 'INCLUDE';
 
-        // 🔹 NO PENERIMAAN OTOMATIS SESUAI TANGGAL HARI INI
+        // 🔹 NO PENERIMAAN OTOMATIS
         $this->no_penerimaan = $this->generateNoPenerimaan($this->tanggal);
-    }
 
+        // 🔹 Set tenor & jatuh tempo awal
+        $this->setTenorAndJatuhTempo();
+    }
 
     protected function emptyDetailRow(): array
     {
@@ -363,5 +364,23 @@ class PenerimaanForm extends Component
         }
 
         return $date . str_pad($number, 4, '0', STR_PAD_LEFT);
+    }
+    public function updatedJenisBayar($value)
+    {
+        $this->setTenorAndJatuhTempo();
+    }
+
+    private function setTenorAndJatuhTempo()
+    {
+        if ($this->jenis_bayar === 'KREDIT') {
+            $this->tenor = 30;
+            $this->jatuh_tempo = \Carbon\Carbon::parse($this->tanggal)->addDays(30)->format('Y-m-d');
+        } elseif ($this->jenis_bayar === 'CASH') {
+            $this->tenor = 0;
+            $this->jatuh_tempo = \Carbon\Carbon::parse($this->tanggal)->format('Y-m-d');
+        } else {
+            $this->tenor = null;
+            $this->jatuh_tempo = null;
+        }
     }
 }

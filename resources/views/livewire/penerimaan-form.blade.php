@@ -40,18 +40,26 @@
             <div class="col-span-2">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Tanggal Terima</label>
                 <input type="date" wire:model.lazy="tanggal" x-ref="tanggal"
-                    @keydown.enter.prevent="$refs.jenis_bayar.focus()"
+                    @keydown.enter.prevent="$refs.jenis_ppn.focus()"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 rounded">
             </div>
 
             <div class="col-span-2">
-                <label class="block mb-2 text-sm font-medium text-gray-900">Jenis Bayar</label>
-                <select wire:model="jenis_bayar" x-ref="jenis_bayar" @keydown.enter.prevent="$refs.jenis_bayar.focus()"
+                <label class="block mb-2 text-sm font-medium text-gray-900">Jenis PPN</label>
+                <select wire:model="jenis_ppn" x-ref="jenis_ppn" @keydown.enter.prevent="$refs.no_faktur.focus()"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
                     <option value="">-- Pilih --</option>
-                    <option value="CASH">CASH</option>
-                    <option value="KREDIT">KREDIT</option>
+                    <option value="INCLUDE">INCLUDE</option>
+                    <option value="EXCLUDE">EXCLUDE</option>
+                    <option value="NON">NON</option>
                 </select>
+            </div>
+
+            <div class="col-span-3">
+                <label class="block mb-2 text-sm font-medium text-gray-900">No Faktur</label>
+                <input type="text" wire:model="no_faktur" x-ref="no_faktur"
+                    @keydown.enter.prevent="$refs.jenis_bayar.focus()"
+                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
             </div>
 
             <div class="col-span-3">
@@ -61,33 +69,28 @@
                     readonly>
             </div>
 
-            <div class="col-span-3">
-                <label class="block mb-2 text-sm font-medium text-gray-900">No Faktur</label>
-                <input type="text" wire:model="no_faktur"
+            <div class="col-span-2">
+                <label class="block mb-2 text-sm font-medium text-gray-900">Jenis Bayar</label>
+                <select wire:model.lazy="jenis_bayar" x-ref="jenis_bayar" @keydown.enter.prevent="$refs.tenor.focus()"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
+                    <option value="">-- Pilih --</option>
+                    <option value="CASH">CASH</option>
+                    <option value="KREDIT">KREDIT</option>
+                </select>
             </div>
 
             <div class="col-span-1">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Tenor (hari)</label>
-                <input type="number" wire:model="tenor"
+                <input type="number" wire:model="tenor" x-ref="tenor"
+                    @keydown.enter.prevent="$refs.jatuh_tempo.focus()"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
             </div>
 
             <div class="col-span-2">
                 <label class="block mb-2 text-sm font-medium text-gray-900">Jatuh Tempo</label>
-                <input type="date" wire:model="jatuh_tempo"
+                <input type="date" wire:model="jatuh_tempo" x-ref="jatuh_tempo"
+                    @keydown.enter.prevent="$refs.jenis_bayar.focus()"
                     class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
-            </div>
-
-            <div class="col-span-2">
-                <label class="block mb-2 text-sm font-medium text-gray-900">Jenis PPN</label>
-                <select wire:model="jenis_ppn"
-                    class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
-                    <option value="">-- Pilih --</option>
-                    <option value="INCLUDE">INCLUDE</option>
-                    <option value="EXCLUDE">EXCLUDE</option>
-                    <option value="NON">NON</option>
-                </select>
             </div>
         </div>
 
