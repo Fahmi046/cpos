@@ -34,7 +34,7 @@ class PenerimaanForm extends Component
         // 🔹 DEFAULT HEADER
         $this->tanggal       = Carbon::now()->format('Y-m-d'); // hari ini
         $this->jenis_bayar   = 'KREDIT';
-        $this->jenis_ppn     = 'INCLUDE';
+        $this->jenis_ppn     = 'NON';
 
         // 🔹 NO PENERIMAAN OTOMATIS
         $this->no_penerimaan = $this->generateNoPenerimaan($this->tanggal);
@@ -51,7 +51,7 @@ class PenerimaanForm extends Component
             'satuan_id'  => null,
             'sediaan_id' => null,
             'qty'        => 0,
-            'ed'         => null,
+            'ed' => date('Y-m-d'), // 🔹 default tanggal sekarang
             'batch'      => '',
             'disc1'      => 0,
             'disc2'      => 0,
@@ -66,6 +66,10 @@ class PenerimaanForm extends Component
         $this->obatSearch[] = '';
         $this->obatResults[] = [];
         $this->highlightObatIndex[] = 0;
+
+        $lastIndex = count($this->details) - 1;
+
+        $this->dispatch('focus-row', index: $lastIndex);
     }
 
     public function removeDetail($index)
@@ -259,6 +263,7 @@ class PenerimaanForm extends Component
                 // default utuh → ikut dari database
                 $this->details[$i]['utuhan']     = (bool) $obat->utuh_satuan;
                 $this->details[$i]['isi_obat']   = $obat->isi_obat ?? 1;
+                $this->details[$i]['ed'] = Carbon::now()->format('Y-m-d');
 
 
                 // 🔹 ambil kreditur dari detail pertama jika ada
@@ -275,6 +280,8 @@ class PenerimaanForm extends Component
                 $this->obatSearch[$i]        = $obat->nama_obat;
                 $this->obatResults[$i]       = [];
                 $this->highlightObatIndex[$i] = 0;
+
+                $this->hitungRingkasan();
             }
         }
 
@@ -354,8 +361,6 @@ class PenerimaanForm extends Component
         }
     }
 
-
-
     public function toggleUtuhSatuan($index)
     {
         if (!isset($this->details[$index])) return;
@@ -369,24 +374,25 @@ class PenerimaanForm extends Component
         if (!$obat) return;
 
         if (!empty($detail['utuh']) && $detail['utuh']) {
-            // Kalau utuh
             $this->details[$index]['qty']       = $obat->isi_obat ?? 1;
             $this->details[$index]['satuan_id'] = $obat->satuan_id;
             $this->details[$index]['satuan']    = $obat->satuan->nama_satuan ?? 'SET';
+            $this->details[$index]['isi_obat']  = $obat->isi_obat ?? 1;
+            $this->details[$index]['harga']     = $obat->harga_jual ?? 0;
         } else {
-            // Kalau tidak utuh
             $this->details[$index]['qty']       = 1;
             $this->details[$index]['satuan_id'] = $obat->sediaan_id;
             $this->details[$index]['satuan']    = $obat->sediaan->nama_sediaan ?? 'PCS';
+            $this->details[$index]['isi_obat']  = 1;
+            $this->details[$index]['harga']     = $obat->harga_jual_eceran ?? ($obat->harga_jual / max($obat->isi_obat, 1));
         }
 
-        // Hitung ulang jumlah
-        $qty   = $this->details[$index]['qty'] ?? 1;
-        $harga = $this->details[$index]['harga'] ?? 0;
-        $this->details[$index]['jumlah'] = $qty * $harga;
+        // hitung ulang jumlah
+        $this->details[$index]['jumlah'] = ($this->details[$index]['qty'] ?? 1) * ($this->details[$index]['harga'] ?? 0);
+
+        // 🔹 Penting: hitung ringkasan DPP, PPN, TOTAL
+        $this->hitungRingkasan();
     }
-
-
 
     public function highlightNextObat($index)
     {
@@ -448,6 +454,87 @@ class PenerimaanForm extends Component
         } else {
             $this->tenor = null;
             $this->jatuh_tempo = null;
+        }
+    }
+    public $dpp = 0, $ppn = 0, $total = 0;
+
+    // Dipanggil kalau jenis_ppn berubah
+    public function updatedJenisPpn()
+    {
+        $this->hitungRingkasan();
+    }
+
+    // Dipanggil kalau detail berubah
+    public function updatedDetails($value, $name)
+    {
+        // $name contohnya: details.0.disc1, details.1.disc2, dsb
+        $this->hitungJumlahPerRow();
+        $this->hitungRingkasan();
+    }
+
+
+    private function hitungRingkasan()
+    {
+        $dpp_raw = collect($this->details)->sum('jumlah') ?? 0;
+
+        switch (strtoupper($this->jenis_ppn)) {
+            case 'NON':
+                $ppn   = 0;
+                $dpp   = round($dpp_raw);
+                $total = $dpp;
+                break;
+
+            case 'INCLUDE':
+                $ppn   = round($dpp_raw * 11 / 111);
+                $dpp   = round($dpp_raw - $ppn);
+                $total = round($dpp_raw);
+                break;
+
+            case 'EXCLUDE':
+                $ppn   = round($dpp_raw * 11 / 100);
+                $dpp   = round($dpp_raw);
+                $total = round($dpp_raw + $ppn);
+                break;
+
+            default:
+                $ppn   = 0;
+                $dpp   = round($dpp_raw);
+                $total = $dpp;
+        }
+
+        $this->dpp   = $dpp;
+        $this->ppn   = $ppn;
+        $this->total = $total;
+    }
+
+
+    public function updateHarga($index, $value)
+    {
+        // Hilangkan titik ribuan supaya tersimpan angka bersih
+        $clean = preg_replace('/[^\d]/', '', $value);
+        $harga = $clean === '' ? 0 : (int) $clean;
+
+        $this->details[$index]['harga'] = $harga;
+
+        // Hitung ulang jumlah (qty * harga)
+        $qty = $this->details[$index]['qty'] ?? 0;
+        $this->details[$index]['jumlah'] = $qty * $harga;
+
+        // Hitung ringkasan DPP, PPN, TOTAL
+        $this->hitungRingkasan();
+    }
+    private function hitungJumlahPerRow()
+    {
+        foreach ($this->details as $i => $detail) {
+            $harga = $detail['harga'] ?? 0;
+            $qty   = $detail['qty'] ?? 1;
+
+            $disc1 = $detail['disc1'] ?? 0;
+            $disc2 = $detail['disc2'] ?? 0;
+            $disc3 = $detail['disc3'] ?? 0;
+
+            $totalDisc = $harga * ($disc1 + $disc2 + $disc3) / 100;
+            $this->details[$i]['jumlah'] = ($harga * $qty) - $totalDisc;
         }
     }
 }

@@ -19,6 +19,12 @@ return new class extends Migration
             $table->integer('tenor')->nullable();
             $table->date('jatuh_tempo')->nullable();
             $table->enum('jenis_ppn', ['Include', 'Exclude'])->nullable();
+
+            // Tambahan kolom untuk perhitungan pajak
+            $table->decimal('dpp', 15, 2)->default(0);   // Dasar Pengenaan Pajak
+            $table->decimal('ppn', 15, 2)->default(0);   // Pajak Pertambahan Nilai
+            $table->decimal('total', 15, 2)->default(0); // Total = dpp + ppn
+
             $table->timestamps();
         });
     }
