@@ -245,6 +245,7 @@ class PenerimaanForm extends Component
                 $this->details[$i]['qty']       = $d->qty ?? 1;
                 $this->details[$i]['jumlah']    = ($obat->harga_beli ?? 0) * ($d->qty ?? 1);
 
+
                 // relasi
                 $this->details[$i]['pabrik_id']  = $obat->pabrik_id;
                 $this->details[$i]['pabrik']     = $obat->pabrik->nama_pabrik ?? '';
@@ -258,6 +259,17 @@ class PenerimaanForm extends Component
                 // default utuh → ikut dari database
                 $this->details[$i]['utuhan']     = (bool) $obat->utuh_satuan;
                 $this->details[$i]['isi_obat']   = $obat->isi_obat ?? 1;
+
+
+                // 🔹 ambil kreditur dari detail pertama jika ada
+                $firstDetail = $pesanan->details->first();
+                if ($firstDetail) {
+                    $this->kreditur_id   = $firstDetail->kreditur_id;
+                    $this->kreditur_nama = $firstDetail->kreditur->nama ?? '';
+                } else {
+                    $this->kreditur_id   = null;
+                    $this->kreditur_nama = '';
+                }
 
                 // reset search box untuk row ini
                 $this->obatSearch[$i]        = $obat->nama_obat;
