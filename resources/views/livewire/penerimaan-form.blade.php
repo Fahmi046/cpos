@@ -5,7 +5,19 @@
         $el.querySelector('form').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
     }
 ">
+
     <div class="max-w-7xl mx-auto p-4 bg-white rounded-lg shadow-md">
+
+        @if ($errors->any())
+            <div class="p-3 mb-2 text-sm text-red-700 bg-red-100 rounded-lg">
+                <ul class="list-disc pl-5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form wire:submit.prevent="save" class="space-y-6"
             x-on:focus-row.window="
         $nextTick(() => {
@@ -25,7 +37,8 @@
                 </div>
 
                 {{-- Pesanan --}}
-                <div class="col-span-5 relative" x-data="{ open: @entangle('pesananList').defer.length > 0 }" x-init="$refs.no_sp.focus()">
+                <div class="col-span-5 relative" x-data="{ open: @entangle('pesananList').defer.length > 0 }" x-on:focus-nosp.window="$refs.no_sp.focus()"
+                    x-init="$refs.no_sp.focus()">
                     <label class="block mb-2 text-sm font-medium text-gray-900">Pesanan</label>
 
                     <input type="text" placeholder="Cari No SP / Tanggal..." wire:model.debounce.300ms="search"
@@ -64,9 +77,9 @@
                         @keydown.enter.prevent="$refs.no_faktur.focus()"
                         class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
                         <option value="">-- Pilih --</option>
-                        <option value="INCLUDE">INCLUDE</option>
-                        <option value="EXCLUDE">EXCLUDE</option>
-                        <option value="NON">NON</option>
+                        <option value="include">INCLUDE</option>
+                        <option value="exclude">EXCLUDE</option>
+                        <option value="non">NON</option>
                     </select>
                 </div>
 
@@ -90,8 +103,8 @@
                         @keydown.enter.prevent="$refs.tenor.focus()"
                         class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
                         <option value="">-- Pilih --</option>
-                        <option value="CASH">CASH</option>
-                        <option value="KREDIT">KREDIT</option>
+                        <option value="Cash">CASH</option>
+                        <option value="Kredit">KREDIT</option>
                     </select>
                 </div>
 
@@ -126,7 +139,7 @@
                                     wire:keydown.arrow-down.prevent="highlightNextObat({{ $i }})"
                                     wire:keydown.arrow-up.prevent="highlightPrevObat({{ $i }})"
                                     wire:keydown.enter.prevent="selectHighlightedObat({{ $i }})"
-                                    x-ref="obat_id_{{ $i }}"
+                                    x-ref="nama_obat_{{ $i }}"
                                     @keydown.enter.prevent="$refs['checkbox_{{ $i }}']?.focus()"
                                     class="w-full p-2 border rounded-lg">
 
@@ -175,6 +188,8 @@
                             </div>
 
 
+                            {{-- Hidden satuan_id --}}
+                            <input type="hidden" wire:model="details.{{ $i }}.satuan_id">
 
                             {{-- Satuan --}}
                             <div class="col-span-1">
@@ -223,7 +238,8 @@
                             {{-- Qty --}}
                             <div class="col-span-1">
                                 <label class="block mb-1 text-xs font-medium text-gray-700">Qty</label>
-                                <input type="number" min="0" wire:model="details.{{ $i }}.qty"
+                                <input type="number" min="0"
+                                    wire:model.lazy="details.{{ $i }}.qty"
                                     x-ref="qty_{{ $i }}"
                                     @keydown.enter.prevent="$refs['disc1_{{ $i }}']?.focus()"
                                     class="w-full p-2 border rounded-lg text-center">
@@ -255,9 +271,16 @@
                                 <input type="number" min="0"
                                     wire:model.lazy="details.{{ $i }}.disc3"
                                     x-ref="disc3_{{ $i }}"
-                                    @keydown.enter.prevent="$refs.addDetail?.focus()"
+                                    @keydown.enter.prevent="
+    @if ($i + 1 < count($details)) $refs['nama_obat_{{ $i + 1 }}']?.focus();
+    @else
+        $wire.addDetail().then(() => {
+            setTimeout(() => $refs['nama_obat_{{ $i + 1 }}']?.focus(), 100);
+        }, 100); @endif
+"
                                     class="w-full p-2 border rounded-lg text-right">
                             </div>
+
 
                             {{-- jumlah --}}
                             <div class="col-span-2">

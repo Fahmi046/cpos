@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('no_faktur')->nullable();
             $table->integer('tenor')->nullable();
             $table->date('jatuh_tempo')->nullable();
-            $table->enum('jenis_ppn', ['Include', 'Exclude'])->nullable();
+            $table->enum('jenis_ppn', ['non', 'Include', 'Exclude'])->nullable();
 
             // Tambahan kolom untuk perhitungan pajak
             $table->decimal('dpp', 15, 2)->default(0);   // Dasar Pengenaan Pajak

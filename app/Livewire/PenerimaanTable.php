@@ -10,6 +10,8 @@ class PenerimaanTable extends Component
 {
     use WithPagination;
 
+    protected $listeners = ['refreshTable' => 'loadData'];
+
     public $search = '';
 
     protected $paginationTheme = 'tailwind';
@@ -27,5 +29,12 @@ class PenerimaanTable extends Component
             ->paginate(10);
 
         return view('livewire.penerimaan-table', compact('penerimaan'));
+    }
+    public $penerimaans;
+
+
+    public function loadData()
+    {
+        $this->penerimaans = penerimaan::orderBy('no_penerimaan')->get();
     }
 }

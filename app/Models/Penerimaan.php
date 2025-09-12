@@ -18,6 +18,9 @@ class Penerimaan extends Model
         'tenor',
         'jatuh_tempo',
         'jenis_ppn',
+        'dpp',
+        'ppn',
+        'total',
     ];
 
     public function pesanan()
@@ -33,5 +36,14 @@ class Penerimaan extends Model
     public function details()
     {
         return $this->hasMany(PenerimaanDetail::class, 'penerimaan_id');
+    }
+    public function pabrik()
+    {
+        return $this->belongsTo(pabrik::class, 'pabrik_id');
+    }
+
+    public function obat()
+    {
+        return $this->belongsTo(obat::class, 'obat_id');
     }
 }

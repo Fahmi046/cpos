@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
+
 class PenerimaanForm extends Component
 {
     public $penerimaan_id;
@@ -22,26 +23,45 @@ class PenerimaanForm extends Component
 
     public function mount(?int $penerimaan_id = null)
     {
+        $this->resetForm($penerimaan_id);
+    }
+
+    private function resetForm(?int $penerimaan_id = null)
+    {
         $this->penerimaan_id = $penerimaan_id;
 
         // minimal 1 baris kosong detail
         $this->details = [$this->emptyDetailRow()];
 
+        // reset autocomplete obat
         $this->obatSearch = [''];
         $this->obatResults = [[]];
         $this->highlightObatIndex = [0];
 
+        // reset search pesanan
+        $this->search = '';
+        $this->pesananList = [];
+        $this->highlightIndex = 0;
+
         // 🔹 DEFAULT HEADER
         $this->tanggal       = Carbon::now()->format('Y-m-d'); // hari ini
-        $this->jenis_bayar   = 'KREDIT';
-        $this->jenis_ppn     = 'NON';
+        $this->jenis_bayar   = 'Kredit';
+        $this->jenis_ppn     = 'non';
+        $this->kreditur_id   = null;
+        $this->kreditur_nama = '';
+        $this->no_faktur     = '';
+        $this->tenor         = 30;
+        $this->jatuh_tempo   = Carbon::now()->addDays(30)->format('Y-m-d');
 
         // 🔹 NO PENERIMAAN OTOMATIS
         $this->no_penerimaan = $this->generateNoPenerimaan($this->tanggal);
 
-        // 🔹 Set tenor & jatuh tempo awal
-        $this->setTenorAndJatuhTempo();
+        // 🔹 Reset ringkasan
+        $this->dpp   = 0;
+        $this->ppn   = 0;
+        $this->total = 0;
     }
+
 
     protected function emptyDetailRow(): array
     {
@@ -140,61 +160,76 @@ class PenerimaanForm extends Component
         $this->validate([
             'pesanan_id' => 'required|exists:pesanan,id',
             'tanggal'    => 'required|date',
-            'jenis_bayar' => 'required|in:CASH,KREDIT',
+            'jenis_bayar' => 'required|in:Cash,Kredit',
 
             'details'                 => 'required|array|min:1',
             'details.*.obat_id'       => 'required|exists:obat,id',
             'details.*.pabrik_id'     => 'nullable|exists:pabrik,id',
-            'details.*.satuan_id'     => 'required|exists:satuan,id',
-            'details.*.sediaan_id'    => 'nullable|exists:sediaan,id',
+            'details.*.satuan_id'     => 'required|exists:satuan_obat,id',
+            'details.*.sediaan_id'    => 'nullable|exists:bentuk_sediaans,id', // ✅ perbaikan
             'details.*.qty'           => 'required|numeric|min:1',
             'details.*.ed'            => 'nullable|date',
             'details.*.batch'         => 'nullable|string|max:50',
             'details.*.disc1'         => 'nullable|numeric|min:0',
             'details.*.disc2'         => 'nullable|numeric|min:0',
             'details.*.disc3'         => 'nullable|numeric|min:0',
-            'details.*.utuh'          => 'boolean',
+            'details.*.utuh'          => 'nullable|boolean',
         ]);
 
-        DB::transaction(function () {
-            $penerimaan = Penerimaan::updateOrCreate(
-                ['id' => $this->penerimaan_id],
-                [
-                    'pesanan_id'    => $this->pesanan_id,
-                    'tanggal'       => $this->tanggal,
-                    'no_penerimaan' => $this->no_penerimaan,
-                    'jenis_bayar'   => $this->jenis_bayar,
-                    'kreditur_id'   => $this->kreditur_id,
-                    'no_faktur'     => $this->no_faktur,
-                    'tenor'         => $this->tenor,
-                    'jatuh_tempo'   => $this->jatuh_tempo,
-                    'jenis_ppn'     => $this->jenis_ppn,
-                ]
-            );
+        try {
+            DB::transaction(function () {
+                $penerimaan = Penerimaan::updateOrCreate(
+                    ['id' => $this->penerimaan_id],
+                    [
+                        'pesanan_id'    => $this->pesanan_id,
+                        'tanggal'       => $this->tanggal,
+                        'no_penerimaan' => $this->no_penerimaan,
+                        'jenis_bayar'   => $this->jenis_bayar,
+                        'kreditur_id'   => $this->kreditur_id ?? null,
+                        'no_faktur'     => $this->no_faktur,
+                        'tenor'         => $this->tenor ?? null,
+                        'jatuh_tempo'   => $this->jatuh_tempo ?? null,
+                        'jenis_ppn'     => $this->jenis_ppn,
+                        'dpp'           => $this->dpp,
+                        'ppn'           => $this->ppn,
+                        'total'         => $this->total,
+                    ]
+                );
 
-            // sederhana: hapus & buat ulang detail
-            $penerimaan->details()->delete();
+                foreach ($this->details as $row) {
+                    $penerimaan->details()->updateOrCreate(
+                        ['id' => $row['id'] ?? 0],
+                        [
+                            'obat_id'    => $row['obat_id'],
+                            'pabrik_id'  => $row['pabrik_id'] ?? null,
+                            'satuan_id'  => $row['satuan_id'] ?? null,
+                            'sediaan_id' => $row['sediaan_id'] ?? null,
+                            'qty'        => $row['qty'] ?? 0,
+                            'ed'         => $row['ed'] ?? null,
+                            'batch'      => $row['batch'] ?? null,
+                            'disc1'      => $row['disc1'] ?? 0,
+                            'disc2'      => $row['disc2'] ?? 0,
+                            'disc3'      => $row['disc3'] ?? 0,
+                            'harga'      => $row['harga'] ?? 0,
+                            'subtotal'   => $row['subtotal'] ?? 0,
+                            'utuh'       => !empty($row['utuh']),
+                        ]
+                    );
+                }
+            });
 
-            foreach ($this->details as $row) {
-                $penerimaan->details()->create([
-                    'obat_id'    => $row['obat_id'],
-                    'pabrik_id'  => $row['pabrik_id'],
-                    'satuan_id'  => $row['satuan_id'],
-                    'sediaan_id' => $row['sediaan_id'],
-                    'qty'        => $row['qty'],
-                    'ed'         => $row['ed'],
-                    'batch'      => $row['batch'],
-                    'disc1'      => $row['disc1'] ?? 0,
-                    'disc2'      => $row['disc2'] ?? 0,
-                    'disc3'      => $row['disc3'] ?? 0,
-                    'utuh'       => !empty($row['utuh']),
-                ]);
-            }
-        });
-
-        session()->flash('success', 'Penerimaan disimpan.');
-        return redirect()->route('penerimaan.index');
+            session()->flash('success', 'Data berhasil disimpan.');
+            $this->resetForm();
+            $this->dispatch('refreshTable');
+            $this->dispatch('focus-nosp');
+            return redirect()->route('penerimaan.index');
+        } catch (\Throwable $e) {
+            \Log::error('Gagal simpan penerimaan: ' . $e->getMessage());
+            session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
+        }
     }
+
+
 
     public function render()
     {
@@ -246,8 +281,7 @@ class PenerimaanForm extends Component
                 $this->details[$i]['obat_id']   = $obat->id;
                 $this->details[$i]['nama_obat'] = $obat->nama_obat;
                 $this->details[$i]['harga']     = $obat->harga_beli ?? 0;
-                $this->details[$i]['qty']       = $d->qty ?? 1;
-                $this->details[$i]['jumlah']    = ($obat->harga_beli ?? 0) * ($d->qty ?? 1);
+                $this->details[$i]['qty']       =  1;
 
 
                 // relasi
@@ -260,8 +294,8 @@ class PenerimaanForm extends Component
                 $this->details[$i]['sediaan_id'] = $obat->sediaan_id;
                 $this->details[$i]['sediaan']    = $obat->sediaan->nama_sediaan ?? '';
 
-                // default utuh → ikut dari database
-                $this->details[$i]['utuhan']     = (bool) $obat->utuh_satuan;
+                // default utuh true kalau isi_obat > 1
+                $this->details[$i]['utuh'] = ($obat->isi_obat ?? 1) > 1 ? true : false;
                 $this->details[$i]['isi_obat']   = $obat->isi_obat ?? 1;
                 $this->details[$i]['ed'] = Carbon::now()->format('Y-m-d');
 
@@ -351,7 +385,8 @@ class PenerimaanForm extends Component
             $this->details[$index]['sediaan']    = $obat->sediaan->nama_sediaan ?? '';
 
             // default utuh true → gunakan isi_obat
-            $this->details[$index]['utuhan']     = (bool) $obat->utuh_satuan;
+            // default utuh true kalau isi_obat > 1
+            $this->details[$index]['utuh']      = ($obat->isi_obat ?? 1) > 1 ? true : false;
             $this->details[$index]['isi_obat']   = $obat->isi_obat ?? 1;
 
             // reset search box di row itu
@@ -445,10 +480,10 @@ class PenerimaanForm extends Component
 
     private function setTenorAndJatuhTempo()
     {
-        if ($this->jenis_bayar === 'KREDIT') {
+        if ($this->jenis_bayar === 'Kredit') {
             $this->tenor = 30;
             $this->jatuh_tempo = \Carbon\Carbon::parse($this->tanggal)->addDays(30)->format('Y-m-d');
-        } elseif ($this->jenis_bayar === 'CASH') {
+        } elseif ($this->jenis_bayar === 'Cash') {
             $this->tenor = 0;
             $this->jatuh_tempo = \Carbon\Carbon::parse($this->tanggal)->format('Y-m-d');
         } else {
@@ -467,6 +502,13 @@ class PenerimaanForm extends Component
     // Dipanggil kalau detail berubah
     public function updatedDetails($value, $name)
     {
+        if (str_contains($name, 'nama_obat')) {
+            $index = explode('.', $name)[1]; // ambil index dari details
+            $this->obatResults[$index] = Obat::where('nama_obat', 'like', "%{$value}%")
+                ->limit(10)
+                ->get()
+                ->toArray();
+        }
         // $name contohnya: details.0.disc1, details.1.disc2, dsb
         $this->hitungJumlahPerRow();
         $this->hitungRingkasan();
@@ -475,37 +517,63 @@ class PenerimaanForm extends Component
 
     private function hitungRingkasan()
     {
-        $dpp_raw = collect($this->details)->sum('jumlah') ?? 0;
+        $dpp_raw = 0;
 
-        switch (strtoupper($this->jenis_ppn)) {
-            case 'NON':
-                $ppn   = 0;
+        // Hitung jumlah per row dulu
+        foreach ($this->details as $i => $row) {
+            $harga = $row['harga'] ?? 0;
+            $qty   = $row['qty'] ?? 0;
+            $isi_obat   = $row['isi_obat'] ?? 0;
+            $disc1 = $row['disc1'] ?? 0;
+            $disc2 = $row['disc2'] ?? 0;
+            $disc3 = $row['disc3'] ?? 0;
+
+            // Hitung subtotal dengan diskon
+            $qty_all   = $qty * $isi_obat;
+            $subtotal = $harga * $qty_all;
+            $totalDisc = $subtotal * ($disc1 + $disc2 + $disc3) / 100;
+            $subtotal -= $totalDisc;
+
+            // Simpan kembali ke row
+            $this->details[$i]['jumlah'] = $subtotal;
+
+            // Tambahkan ke DPP raw
+            $dpp_raw += $subtotal;
+        }
+
+        // Hitung DPP, PPN, dan Total berdasarkan jenis_ppn
+        switch (strtolower($this->jenis_ppn)) {
+            case 'non':
                 $dpp   = round($dpp_raw);
+                $ppn   = 0;
                 $total = $dpp;
                 break;
 
-            case 'INCLUDE':
+            case 'include':
                 $ppn   = round($dpp_raw * 11 / 111);
                 $dpp   = round($dpp_raw - $ppn);
                 $total = round($dpp_raw);
                 break;
 
-            case 'EXCLUDE':
+            case 'exclude':
                 $ppn   = round($dpp_raw * 11 / 100);
                 $dpp   = round($dpp_raw);
                 $total = round($dpp_raw + $ppn);
                 break;
 
             default:
-                $ppn   = 0;
                 $dpp   = round($dpp_raw);
+                $ppn   = 0;
                 $total = $dpp;
+                break;
         }
 
+        // Simpan ke properti Livewire
         $this->dpp   = $dpp;
         $this->ppn   = $ppn;
         $this->total = $total;
     }
+
 
 
     public function updateHarga($index, $value)
@@ -527,14 +595,87 @@ class PenerimaanForm extends Component
     {
         foreach ($this->details as $i => $detail) {
             $harga = $detail['harga'] ?? 0;
+            $isi_obat = $detail['isi_obat'] ?? 0;
             $qty   = $detail['qty'] ?? 1;
+            $qty_all = $isi_obat + $qty;
 
             $disc1 = $detail['disc1'] ?? 0;
             $disc2 = $detail['disc2'] ?? 0;
             $disc3 = $detail['disc3'] ?? 0;
 
             $totalDisc = $harga * ($disc1 + $disc2 + $disc3) / 100;
-            $this->details[$i]['jumlah'] = ($harga * $qty) - $totalDisc;
+            $this->details[$i]['jumlah'] = ($harga * $qty_all) - $totalDisc;
         }
+    }
+
+    protected $listeners = ['edit-penerimaan' => 'edit'];
+
+    public function edit($id)
+    {
+        $penerimaan = Penerimaan::with(['pesanan', 'details.obat', 'kreditur'])->findOrFail($id);
+
+        // Header penerimaan
+        $this->penerimaan_id = $penerimaan->id;
+        $this->search = $penerimaan->pesanan->no_sp . ' - ' . $penerimaan->pesanan->tanggal;
+        $this->no_penerimaan = $penerimaan->no_penerimaan;
+        $this->pesanan_id    = $penerimaan->pesanan_id;
+        $this->tanggal = $penerimaan->tanggal
+            ? Carbon::parse($penerimaan->tanggal)->format('Y-m-d')
+            : null;
+        $this->jenis_ppn     = $penerimaan->jenis_ppn;
+        $this->no_faktur     = $penerimaan->no_faktur;
+        $this->jenis_bayar   = $penerimaan->jenis_bayar;
+        $this->tenor         = $penerimaan->tenor;
+        $this->jatuh_tempo = $penerimaan->jatuh_tempo
+            ? Carbon::parse($penerimaan->jatuh_tempo)->format('Y-m-d')
+            : null;
+        $this->kreditur_id   = $penerimaan->kreditur_id;
+        $this->kreditur_nama = $penerimaan->kreditur->nama ?? '';
+
+        // Reset details
+        $this->details = [];
+
+        foreach ($penerimaan->details as $i => $detail) {
+            $obat = $detail->obat;
+
+            $utuh   = false;
+            $satuan = 'PCS';
+            $isi    = $obat->isi_obat ?? 1;
+
+            if ($obat && $isi > 1 && $detail->qty == $isi) {
+                $utuh   = true;
+                $satuan = $obat->satuan->nama_satuan ?? '';
+            }
+
+            $this->details[$i] = [
+                'id'        => $detail->id, // 🔹 penting untuk update
+                'obat_id'   => $obat->id ?? null,
+                'nama_obat' => $obat->nama_obat,
+                'pabrik_id' => $obat->pabrik_id ?? null,
+                'pabrik'    => $obat->pabrik->nama_pabrik ?? '',
+                'satuan_id' => $obat->satuan_id ?? null,
+                'satuan'    => $obat->satuan->nama_satuan ?? '',
+                'sediaan_id' => $obat->sediaan_id ?? null,
+                'utuh'      => $utuh,
+                'isi_obat'  => $isi,
+                'harga'     => $detail->harga,
+                'ed'        => $detail->ed ? $detail->ed->format('Y-m-d') : null,
+                'batch'     => $detail->batch,
+                'qty'       => $detail->qty,
+                'disc1'     => $detail->disc1,
+                'disc2'     => $detail->disc2,
+                'disc3'     => $detail->disc3,
+                'subtotal'  => $detail->jumlah,
+            ];
+
+
+            // 🔹 Tambahkan ini supaya input autocomplete tampil
+            $this->obatSearch[$i] = $obat->nama_obat ?? '';
+            $this->obatResults[$i] = [];
+            $this->highlightObatIndex[$i] = 0;
+        }
+
+        // Hitung ulang total
+        $this->hitungRingkasan();
     }
 }
