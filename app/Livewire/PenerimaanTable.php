@@ -37,4 +37,21 @@ class PenerimaanTable extends Component
     {
         $this->penerimaans = penerimaan::orderBy('no_penerimaan')->get();
     }
+
+
+    public function delete($id)
+    {
+        $penerimaan = Penerimaan::find($id);
+
+        if ($penerimaan) {
+            // hapus relasi detail dulu biar aman
+            $penerimaan->details()->delete();
+            $penerimaan->delete();
+            $this->loadData();
+
+            session()->flash('message', 'Data penerimaan berhasil dihapus.');
+
+            $this->dispatch('focus-tanggal');
+        }
+    }
 }

@@ -2,12 +2,13 @@
 
 namespace App\Livewire;
 
-use App\Models\Penerimaan;
-use App\Models\Pesanan;
-use App\Models\{BentukSediaan, Obat, Pabrik, Satuan, SatuanObat, Sediaan};
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use App\Models\Pesanan;
 use Livewire\Component;
+use App\Models\Penerimaan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\{BentukSediaan, Obat, Pabrik, Satuan, SatuanObat, Sediaan};
 
 
 class PenerimaanForm extends Component
@@ -224,7 +225,7 @@ class PenerimaanForm extends Component
             $this->dispatch('focus-nosp');
             return redirect()->route('penerimaan.index');
         } catch (\Throwable $e) {
-            \Log::error('Gagal simpan penerimaan: ' . $e->getMessage());
+            Log::error('Gagal simpan penerimaan: ' . $e->getMessage());
             session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
         }
     }

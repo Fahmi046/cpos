@@ -118,7 +118,7 @@
                 <div class="col-span-2">
                     <label class="block mb-2 text-sm font-medium text-gray-900">Jatuh Tempo</label>
                     <input type="date" wire:model="jatuh_tempo" x-ref="jatuh_tempo"
-                        @keydown.enter.prevent="$refs['obat_id_0'].focus()"
+                        @keydown.enter.prevent="document.getElementById('nama_obat_0')?.focus()"
                         class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
                 </div>
             </div>
@@ -139,7 +139,7 @@
                                     wire:keydown.arrow-down.prevent="highlightNextObat({{ $i }})"
                                     wire:keydown.arrow-up.prevent="highlightPrevObat({{ $i }})"
                                     wire:keydown.enter.prevent="selectHighlightedObat({{ $i }})"
-                                    x-ref="nama_obat_{{ $i }}"
+                                    id="nama_obat_{{ $i }}" x-ref="nama_obat_{{ $i }}"
                                     @keydown.enter.prevent="$refs['checkbox_{{ $i }}']?.focus()"
                                     class="w-full p-2 border rounded-lg">
 
