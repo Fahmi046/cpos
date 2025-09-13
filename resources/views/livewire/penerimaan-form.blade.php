@@ -338,7 +338,7 @@
                 <div class="flex justify-end">
                     <button type="submit"
                         class="px-6 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700">
-                        Simpan
+                        Simpan (F10)
                     </button>
                 </div>
             </div>

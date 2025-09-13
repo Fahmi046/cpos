@@ -71,7 +71,8 @@ class PesananTable extends Component
 
     public function render()
     {
-        $pesananList = Pesanan::with('details.obat')
+        $pesananList = Pesanan::with(['details.obat'])
+            ->withExists('penerimaan') // otomatis bikin kolom boolean: penerimaan_exists
             ->where(function ($query) {
                 $query->where('no_sp', 'like', '%' . $this->search . '%')
                     ->orWhere('tanggal', 'like', '%' . $this->search . '%')
