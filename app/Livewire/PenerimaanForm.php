@@ -213,7 +213,8 @@ class PenerimaanForm extends Component
                             'disc3'      => $row['disc3'] ?? 0,
                             'harga'      => $row['harga'] ?? 0,
                             'subtotal'   => $row['subtotal'] ?? 0,
-                            'utuh'       => !empty($row['utuh']),
+                            'utuhan' => (bool) ($row['utuh'] ?? false),
+
                         ]
                     );
                 }

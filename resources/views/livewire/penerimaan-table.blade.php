@@ -41,7 +41,7 @@
                                         </div>
                                         <div class="text-xs text-gray-600">
                                             Satuan:
-                                            @if ($detail->utuh)
+                                            @if ($detail->utuhan)
                                                 {{ $detail->satuan->nama_satuan ?? '-' }}
                                             @else
                                                 {{ $detail->obat->sediaan->nama_sediaan ?? '-' }}
@@ -53,9 +53,9 @@
                                             |
                                             <br>
                                             Diskon:
-                                            {{ $detail->diskon1 ?? 0 }}% /
-                                            {{ $detail->diskon2 ?? 0 }}% /
-                                            {{ $detail->diskon3 ?? 0 }}%
+                                            {{ $detail->disc1 ?? 0 }}% /
+                                            {{ $detail->disc2 ?? 0 }}% /
+                                            {{ $detail->disc3 ?? 0 }}%
                                             |
                                             Subtotal: Rp
                                             {{ number_format(
