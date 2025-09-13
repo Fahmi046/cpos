@@ -53,18 +53,14 @@
                                             |
                                             <br>
                                             Diskon:
-                                            {{ $detail->disc1 ?? 0 }}% /
-                                            {{ $detail->disc2 ?? 0 }}% /
-                                            {{ $detail->disc3 ?? 0 }}%
+                                            {{ $detail->disc1 == intval($detail->disc1) ? intval($detail->disc1) : $detail->disc1 }}%
+                                            /
+                                            {{ $detail->disc2 == intval($detail->disc2) ? intval($detail->disc2) : $detail->disc2 }}%
+                                            /
+                                            {{ $detail->disc3 == intval($detail->disc3) ? intval($detail->disc3) : $detail->disc3 }}%
                                             |
-                                            Subtotal: Rp
-                                            {{ number_format(
-                                                $detail->qty * $detail->harga -
-                                                    (($detail->diskon1 + $detail->diskon2 + $detail->diskon3) / 100) * $detail->harga * $detail->qty,
-                                                0,
-                                                ',',
-                                                '.',
-                                            ) }}
+
+                                            Subtotal: Rp {{ number_format($detail->subtotal ?? 0, 0, ',', '.') }}
                                         </div>
                                     </li>
                                 @endforeach

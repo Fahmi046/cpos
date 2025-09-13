@@ -250,20 +250,31 @@ class PenerimaanForm extends Component
     public function updatedSearch()
     {
         if ($this->search) {
-            $this->pesananList = Pesanan::where('no_sp', 'like', "%{$this->search}%")
-                ->orWhere('tanggal', 'like', "%{$this->search}%")
+            $this->pesananList = Pesanan::where(function ($q) {
+                $q->where('no_sp', 'like', "%{$this->search}%")
+                    ->orWhere('tanggal', 'like', "%{$this->search}%");
+            })
+                ->whereNotIn('id', function ($q2) {
+                    $q2->select('pesanan_id')->from('penerimaan');
+                })
                 ->orderBy('tanggal', 'desc')
                 ->limit(5)
                 ->get();
         } else {
             $this->pesananList = [];
         }
+
         $this->highlightIndex = 0; // reset highlight saat search berubah
     }
+
     public function selectPesanan($id)
     {
-        $pesanan = Pesanan::with(['details.obat.satuan', 'details.obat.sediaan', 'details.obat.pabrik'])
+        $pesanan = Pesanan::with(['details.obat.satuan', 'details.obat.sediaan', 'details.obat.pabrik', 'details.kreditur'])
+            ->whereNotIn('id', function ($q) {
+                $q->select('pesanan_id')->from('penerimaan');
+            })
             ->find($id);
+
 
         if (!$pesanan) return;
 

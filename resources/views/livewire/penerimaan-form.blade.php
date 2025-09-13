@@ -274,9 +274,7 @@
                                     @keydown.enter.prevent="
     @if ($i + 1 < count($details)) $refs['nama_obat_{{ $i + 1 }}']?.focus();
     @else
-        $wire.addDetail().then(() => {
-            setTimeout(() => $refs['nama_obat_{{ $i + 1 }}']?.focus(), 100);
-        }, 100); @endif
+         $refs['addDetail']?.focus(); @endif
 "
                                     class="w-full p-2 border rounded-lg text-right">
                             </div>
