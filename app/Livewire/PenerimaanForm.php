@@ -649,16 +649,9 @@ class PenerimaanForm extends Component
         $this->details = [];
 
         foreach ($penerimaan->details as $i => $detail) {
-            $obat = $detail->obat;
-
-            $utuh   = false;
-            $satuan = 'PCS';
+            $obat   = $detail->obat;
             $isi    = $obat->isi_obat ?? 1;
-
-            if ($obat && $isi > 1 && $detail->qty == $isi) {
-                $utuh   = true;
-                $satuan = $obat->satuan->nama_satuan ?? '';
-            }
+            $utuh   = ($obat && $detail->qty < $isi);
 
             $this->details[$i] = [
                 'id'        => $detail->id, // 🔹 penting untuk update

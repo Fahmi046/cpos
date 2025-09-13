@@ -3,9 +3,10 @@
 
     {{-- Search --}}
     <div class="mb-4">
-        <input type="text" wire:model.debounce.300ms="search" placeholder="Cari No Penerimaan..."
+        <input type="text" wire:model.live="search" placeholder="Cari No Penerimaan..."
             class="w-1/3 rounded-lg border-gray-300 focus:ring-2 focus:ring-primary-500 text-sm p-2.5 shadow-sm">
     </div>
+
 
     <div class="overflow-x-auto rounded-lg shadow-sm">
         <table class="w-full text-sm text-left">
@@ -21,7 +22,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-                @forelse($penerimaan as $row)
+                @forelse($penerimaanList as $row)
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-4 py-3 font-medium text-gray-800">{{ $row->no_penerimaan }}</td>
                         <td class="px-4 py-3">
@@ -106,6 +107,6 @@
 
     {{-- Pagination --}}
     <div class="mt-6">
-        {{ $penerimaan->links() }}
+        {{ $penerimaanList->links() }}
     </div>
 </div>

@@ -23,19 +23,36 @@ class PenerimaanTable extends Component
 
     public function render()
     {
-        $penerimaan = Penerimaan::with('pesanan', 'kreditur')
-            ->where('no_penerimaan', 'like', "%{$this->search}%")
-            ->orderBy('tanggal', 'desc')
+        $penerimaanList = Penerimaan::with(['pesanan', 'kreditur'])
+            ->where(function ($query) {
+                $query->where('no_penerimaan', 'like', '%' . $this->search . '%')
+                    ->orWhere('tanggal', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('pesanan', function ($q) {
+                        $q->where('no_sp', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('kreditur', function ($q) {
+                        $q->where('nama', 'like', '%' . $this->search . '%');
+                    });
+            })
+            ->latest('tanggal')
             ->paginate(10);
 
-        return view('livewire.penerimaan-table', compact('penerimaan'));
+        return view('livewire.penerimaan-table', [
+            'penerimaanList' => $penerimaanList
+        ]);
     }
+
+    public function mount()
+    {
+        $this->loadData();
+    }
+
     public $penerimaans;
 
 
     public function loadData()
     {
-        $this->penerimaans = penerimaan::orderBy('no_penerimaan')->get();
+        $this->penerimaans = Penerimaan::orderBy('no_penerimaan')->get();
     }
 
 
