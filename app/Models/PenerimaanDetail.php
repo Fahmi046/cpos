@@ -60,25 +60,51 @@ class PenerimaanDetail extends Model
         return $this->belongsTo(Pabrik::class, 'pabrik_id');
     }
 
-    protected static function booted()
+    public static function booted()
     {
-        static::saving(function ($detail) {
-            $harga = floatval($detail->harga ?? 0);
-            $qty   = intval($detail->qty ?? 0);
-            $total = $harga * $qty;
+        // CREATE
+        static::created(function ($detail) {
+            KartuStok::create([
+                'obat_id'       => $detail->obat_id,
+                'satuan_id'     => $detail->satuan_id,
+                'sediaan_id'    => $detail->sediaan_id,
+                'pabrik_id'     => $detail->pabrik_id,
+                'penerimaan_id' => $detail->penerimaan_id,
+                'mutasi_id'     => null,
+                'jenis'         => 'masuk',
+                'qty'           => $detail->qty,
+                'utuhan'        => $detail->utuhan,
+                'ed'            => $detail->ed,
+                'batch'         => $detail->batch,
+                'tanggal'       => $detail->penerimaan->tanggal,
+            ]);
+        });
 
-            // Anggap disc1/2/3 adalah persen (0-100). Diskon berlapis.
-            if ($detail->disc1 > 0) {
-                $total -= $total * ($detail->disc1 / 100);
-            }
-            if ($detail->disc2 > 0) {
-                $total -= $total * ($detail->disc2 / 100);
-            }
-            if ($detail->disc3 > 0) {
-                $total -= $total * ($detail->disc3 / 100);
-            }
+        // UPDATE
+        static::updated(function ($detail) {
+            $stok = KartuStok::where('penerimaan_id', $detail->penerimaan_id)
+                ->where('obat_id', $detail->obat_id)
+                ->first();
 
-            $detail->subtotal = round($total, 2);
+            if ($stok) {
+                $stok->update([
+                    'satuan_id'  => $detail->satuan_id,
+                    'sediaan_id' => $detail->sediaan_id,
+                    'pabrik_id'  => $detail->pabrik_id,
+                    'qty'        => $detail->qty,
+                    'utuhan'     => $detail->utuhan,
+                    'ed'         => $detail->ed,
+                    'batch'      => $detail->batch,
+                    'tanggal'    => $detail->penerimaan->tanggal,
+                ]);
+            }
+        });
+
+        // DELETE
+        static::deleted(function ($detail) {
+            KartuStok::where('penerimaan_id', $detail->penerimaan_id)
+                ->where('obat_id', $detail->obat_id)
+                ->delete();
         });
     }
 }
