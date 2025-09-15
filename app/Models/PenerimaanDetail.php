@@ -59,32 +59,31 @@ class PenerimaanDetail extends Model
     {
         return $this->belongsTo(Pabrik::class, 'pabrik_id');
     }
-
     public static function booted()
     {
         // CREATE
         static::created(function ($detail) {
             KartuStok::create([
-                'obat_id'       => $detail->obat_id,
-                'satuan_id'     => $detail->satuan_id,
-                'sediaan_id'    => $detail->sediaan_id,
-                'pabrik_id'     => $detail->pabrik_id,
-                'penerimaan_id' => $detail->penerimaan_id,
-                'mutasi_id'     => null,
-                'jenis'         => 'masuk',
-                'qty'           => $detail->qty,
-                'utuhan'        => $detail->utuhan,
-                'ed'            => $detail->ed,
-                'batch'         => $detail->batch,
-                'tanggal'       => $detail->penerimaan->tanggal,
+                'obat_id'              => $detail->obat_id,
+                'satuan_id'            => $detail->satuan_id,
+                'sediaan_id'           => $detail->sediaan_id,
+                'pabrik_id'            => $detail->pabrik_id,
+                'penerimaan_id'        => $detail->penerimaan_id,
+                'penerimaan_detail_id' => $detail->id, // tambahkan ini
+                'mutasi_id'            => null,
+                'mutasi_detail_id'     => null,
+                'jenis'                => 'masuk',
+                'qty'                  => $detail->qty,
+                'utuhan'               => $detail->utuhan,
+                'ed'                   => $detail->ed,
+                'batch'                => $detail->batch,
+                'tanggal'              => $detail->penerimaan->tanggal,
             ]);
         });
 
         // UPDATE
         static::updated(function ($detail) {
-            $stok = KartuStok::where('penerimaan_id', $detail->penerimaan_id)
-                ->where('obat_id', $detail->obat_id)
-                ->first();
+            $stok = KartuStok::where('penerimaan_detail_id', $detail->id)->first();
 
             if ($stok) {
                 $stok->update([
@@ -102,9 +101,7 @@ class PenerimaanDetail extends Model
 
         // DELETE
         static::deleted(function ($detail) {
-            KartuStok::where('penerimaan_id', $detail->penerimaan_id)
-                ->where('obat_id', $detail->obat_id)
-                ->delete();
+            KartuStok::where('penerimaan_detail_id', $detail->id)->delete();
         });
     }
 }

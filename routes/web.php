@@ -44,3 +44,7 @@ Route::get('/pesanan/{id}/print', [PesananController::class, 'print'])->name('pe
 Route::get('/penerimaan', function () {
     return view('pages.penerimaan');
 });
+
+Route::get('/kartu-stok', function () {
+    return view('pages.kartu-stok');
+});

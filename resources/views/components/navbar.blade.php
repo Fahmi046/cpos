@@ -100,6 +100,12 @@
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
                                     Penerimaan
                                 </a>
+                                <a href="/kartu-stok"
+                                    class="{{ request()->is('kartu-stok')
+                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
+                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                    Kartu Stok
+                                </a>
                             </div>
                         </div>
                     </div>
