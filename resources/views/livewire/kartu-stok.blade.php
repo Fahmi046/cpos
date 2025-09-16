@@ -11,24 +11,41 @@
         {{-- Input autocomplete Obat --}}
         <div class="relative">
             <label for="obat" class="block mb-2 text-sm font-medium text-gray-700">Obat</label>
-            <input type="text" x-ref="obat" id="obat" wire:model.live="searchObat"
-                wire:keydown.arrow-down.prevent="incrementHighlight" wire:keydown.arrow-up.prevent="decrementHighlight"
-                wire:keydown.enter.prevent="selectHighlighted(); $dispatch('focus-start')"
-                placeholder="Ketik nama obat..."
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
-                          focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+            <div class="relative">
+                <input type="text" x-ref="obat" id="obat" wire:model.live="searchObat"
+                    wire:keydown.arrow-down.prevent="incrementHighlight"
+                    wire:keydown.arrow-up.prevent="decrementHighlight"
+                    wire:keydown.enter.prevent="selectHighlighted(); $dispatch('focus-start')"
+                    placeholder="Ketik nama obat..."
+                    class="block w-full p-2.5 ps-10 text-sm text-gray-900 border border-gray-300
+                       rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
 
+                {{-- Icon search --}}
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l4.387
+                          4.387a1 1 0 01-1.414 1.414l-4.387-4.387zM14
+                          8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+            </div>
+
+            {{-- Dropdown hasil pencarian --}}
             @if (!empty($obatResults))
-                <ul
-                    class="absolute z-10 bg-white border border-gray-300 w-full rounded-lg mt-1 max-h-48 overflow-y-auto shadow-md">
-                    @foreach ($obatResults as $i => $item)
-                        <li wire:click="selectObat({{ $item['id'] }})"
-                            class="px-3 py-2 cursor-pointer
+                <div
+                    class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg
+                       max-h-56 overflow-y-auto">
+                    <ul class="text-sm text-gray-700 divide-y divide-gray-100">
+                        @foreach ($obatResults as $i => $item)
+                            <li wire:click="selectObat({{ $item['id'] }})"
+                                class="block w-full px-4 py-2 cursor-pointer
                             {{ $highlightIndex === $i ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100' }}">
-                            {{ $item['nama_obat'] }}
-                        </li>
-                    @endforeach
-                </ul>
+                                {{ $item['nama_obat'] }}
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             @endif
         </div>
 
@@ -37,8 +54,8 @@
             <label for="start_date" class="block mb-2 text-sm font-medium text-gray-700">Dari</label>
             <input type="date" x-ref="start" id="start_date" wire:model.live="start_date"
                 wire:keydown.enter.prevent="$dispatch('focus-end')"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
-                          focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                class="block w-full p-2.5 text-sm text-gray-900 border border-gray-300 rounded-lg
+                   bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
         </div>
 
         {{-- End Date --}}
@@ -46,10 +63,26 @@
             <label for="end_date" class="block mb-2 text-sm font-medium text-gray-700">Sampai</label>
             <input type="date" x-ref="end" id="end_date" wire:model.live="end_date"
                 wire:keydown.enter.prevent="$wire.filter()"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
-                          focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
+                class="block w-full p-2.5 text-sm text-gray-900 border border-gray-300 rounded-lg
+                   bg-gray-50 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        {{-- Tombol Export --}}
+        <div class="flex items-end">
+            <button wire:click="exportExcel"
+                class="w-full inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white
+                   bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 3a1 1 0 000 2h14a1 1 0 100-2H3zM3
+                         7a1 1 0 000 2h14a1 1 0 100-2H3zM3
+                         11a1 1 0 000 2h14a1 1 0 100-2H3zM3
+                         15a1 1 0 000 2h14a1 1 0 100-2H3z" />
+                </svg>
+                Export Excel
+            </button>
         </div>
     </div>
+
 
 
     {{-- Tabel --}}
@@ -78,8 +111,10 @@
 
                         {{-- Detail Obat --}}
                         <td class="px-4 py-3">{{ $row->obat?->nama_obat ?? '-' }}</td>
-                        <td class="px-4 py-3">{{ $row->penerimaanDetail?->satuan?->nama_satuan ?? '-' }}</td>
-                        <td class="px-4 py-3">{{ $row->penerimaanDetail?->pabrik?->nama_pabrik ?? '-' }}</td>
+                        <td class="px-4 py-3">
+                            {{ $row->utuhan ? $row->satuan->nama_satuan ?? '-' : $row->sediaan->nama_sediaan ?? '-' }}
+                        </td>
+                        <td class="px-4 py-3">{{ $row->pabrik?->nama_pabrik ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $row->obat?->kategori?->nama_kategori ?? '-' }}</td>
 
                         {{-- Harga --}}

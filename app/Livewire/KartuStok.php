@@ -5,6 +5,8 @@ namespace App\Livewire;
 use Carbon\Carbon;
 use App\Models\Obat;
 use Livewire\Component;
+use App\Exports\KartuStokExport;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Models\KartuStok as KartuStokModel;
 
 class KartuStok extends Component
@@ -15,10 +17,11 @@ class KartuStok extends Component
 
     public function mount()
     {
-        // Default tanggal awal & akhir hari ini
-        $today = Carbon::today()->format('Y-m-d');
-        $this->start_date = $today;
-        $this->end_date   = $today;
+        // Awal bulan ini
+        $this->start_date = Carbon::now()->startOfMonth()->format('Y-m-d');
+
+        // Akhir = hari ini
+        $this->end_date = Carbon::today()->format('Y-m-d');
     }
 
 
@@ -32,7 +35,9 @@ class KartuStok extends Component
             'mutasi',
             'penerimaanDetail.satuan',
             'penerimaanDetail.penerimaan.kreditur',
-            'penerimaanDetail.pabrik',
+            'pabrik',
+            'sediaan',
+            'satuan',
             'obat.kategori',
         ]);
 
@@ -46,11 +51,17 @@ class KartuStok extends Component
 
         $riwayat = $query->orderBy('tanggal')->orderBy('id')->get();
 
-        // Hitung stok akhir berjalan
-        $saldo = 0;
+        // Hitung stok akhir berjalan per obat
+        $saldoPerObat = [];
         foreach ($riwayat as $row) {
-            $saldo += ($row->jenis === 'masuk' ? $row->qty : -$row->qty);
-            $row->stok_akhir = $saldo;
+            $obatId = $row->obat_id;
+
+            if (!isset($saldoPerObat[$obatId])) {
+                $saldoPerObat[$obatId] = 0;
+            }
+
+            $saldoPerObat[$obatId] += ($row->jenis === 'masuk' ? $row->qty : -$row->qty);
+            $row->stok_akhir = $saldoPerObat[$obatId];
         }
 
         return view('livewire.kartu-stok', [
@@ -58,6 +69,7 @@ class KartuStok extends Component
             'riwayat'  => $riwayat,
         ]);
     }
+
     public $searchObat = '';
     public $obatResults = [];
     public $highlightIndex = 0;
@@ -111,5 +123,13 @@ class KartuStok extends Component
             $this->obatResults = [];
             $this->highlightIndex = 0;
         }
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(
+            new KartuStokExport($this->start_date, $this->end_date, $this->obat_id),
+            'kartu_stok.xlsx'
+        );
     }
 }
