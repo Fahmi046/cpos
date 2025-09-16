@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PesananController;
-use App\Models\PesananDetail;
 
 Route::get('/', function () {
     return view('pages.home');
@@ -47,4 +46,8 @@ Route::get('/penerimaan', function () {
 
 Route::get('/kartu-stok', function () {
     return view('pages.kartu-stok');
+});
+
+Route::get('/outlet', function () {
+    return view('pages.outlet');
 });
