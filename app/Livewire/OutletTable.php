@@ -19,13 +19,13 @@ class OutletTable extends Component
 
     public function edit($id)
     {
-        $this->emit('editOutlet', $id);
+        $this->dispatch('editOutlet', $id);
     }
 
     public function delete($id)
     {
         Outlet::findOrFail($id)->delete();
         session()->flash('message', 'Outlet berhasil dihapus');
-        $this->emit('refreshOutletTable');
+        $this->dispatch('refreshOutletTable');
     }
 }

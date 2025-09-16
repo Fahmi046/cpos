@@ -7,11 +7,26 @@ use App\Models\Outlet;
 
 class OutletForm extends Component
 {
-    public $kode_outlet, $nama_outlet, $alamat, $telepon, $pic, $aktif = 1, $outlet_id;
-    public $isEdit = false;
+    public $outlet_id;
+    public $kode_outlet;
+    public $nama_outlet;
+    public $alamat;
+    public $telepon;
+    public $pic;
+    public $aktif = true;
+
+    protected $rules = [
+        'kode_outlet' => 'required|string|max:50',
+        'nama_outlet' => 'required|string|max:100',
+        'alamat'      => 'nullable|string|max:255',
+        'telepon'     => 'nullable|string|max:20',
+        'aktif'       => 'boolean',
+    ];
 
     protected $listeners = [
-        'editOutlet' => 'edit'
+        'editOutlet' => 'edit',
+        'refreshForm' => '$refresh',
+        'refreshKodeoutlet' => 'generateKodeOutlet',
     ];
 
     public function render()
@@ -19,38 +34,27 @@ class OutletForm extends Component
         return view('livewire.outlet-form');
     }
 
-    public function resetInput()
+    public function save()
     {
-        $this->kode_outlet = '';
-        $this->nama_outlet = '';
-        $this->alamat = '';
-        $this->telepon = '';
-        $this->pic = '';
-        $this->aktif = 1;
-        $this->outlet_id = null;
-        $this->isEdit = false;
-    }
+        $this->validate();
 
-    public function store()
-    {
-        $this->validate([
-            'kode_outlet' => 'required|unique:outlets,kode_outlet',
-            'nama_outlet' => 'required|string|max:255',
-        ]);
+        Outlet::updateOrCreate(
+            ['id' => $this->outlet_id],
+            [
+                'kode_outlet' => $this->kode_outlet,
+                'nama_outlet' => $this->nama_outlet,
+                'alamat'      => $this->alamat,
+                'telepon'     => $this->telepon,
+                'pic'     => $this->pic,
+                'aktif'       => $this->aktif,
+            ]
+        );
 
-        Outlet::create([
-            'kode_outlet' => $this->kode_outlet,
-            'nama_outlet' => $this->nama_outlet,
-            'alamat' => $this->alamat,
-            'telepon' => $this->telepon,
-            'pic' => $this->pic,
-            'aktif' => $this->aktif,
-        ]);
-
-        session()->flash('message', 'Outlet berhasil ditambahkan');
-        $this->resetInput();
-
-        $this->emit('refreshOutletTable');
+        $this->dispatch('outlet-saved');
+        $this->resetForm();
+        $this->generateKodeOutlet();
+        $this->dispatch('focus-nama-outlet');
+        $this->dispatch('refreshOutletTable');
     }
 
     public function edit($id)
@@ -63,29 +67,41 @@ class OutletForm extends Component
         $this->telepon = $outlet->telepon;
         $this->pic = $outlet->pic;
         $this->aktif = $outlet->aktif;
-        $this->isEdit = true;
     }
 
-    public function update()
+    public function mount($outlet_id = null)
     {
-        $this->validate([
-            'kode_outlet' => 'required|unique:outlets,kode_outlet,' . $this->outlet_id,
-            'nama_outlet' => 'required|string|max:255',
+        $this->generateKodeOutlet();
+    }
+    public function generateKodeOutlet()
+    {
+        $last = Outlet::orderBy('id', 'desc')->first();
+
+        if ($last && $last->kode_outlet) {
+            // Ambil hanya angka setelah prefix "0010"
+            $lastNumber = intval(substr($last->kode_outlet, 4));
+            $nextNumber = $lastNumber + 1;
+        } else {
+            // Kalau belum ada data → mulai dari 1
+            $nextNumber = 1;
+        }
+
+        // Format hasilnya
+        $this->kode_outlet = '0020' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function resetForm(): void
+    {
+        $this->reset([
+            'outlet_id',
+            'kode_outlet',
+            'nama_outlet',
+            'alamat',
+            'telepon',
+            'pic',
+            'aktif'
         ]);
 
-        $outlet = Outlet::findOrFail($this->outlet_id);
-        $outlet->update([
-            'kode_outlet' => $this->kode_outlet,
-            'nama_outlet' => $this->nama_outlet,
-            'alamat' => $this->alamat,
-            'telepon' => $this->telepon,
-            'pic' => $this->pic,
-            'aktif' => $this->aktif,
-        ]);
-
-        session()->flash('message', 'Outlet berhasil diperbarui');
-        $this->resetInput();
-
-        $this->emit('refreshOutletTable');
+        $this->kode_outlet = $this->generateKodeOutlet();
     }
 }
