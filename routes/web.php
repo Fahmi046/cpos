@@ -51,3 +51,7 @@ Route::get('/kartu-stok', function () {
 Route::get('/outlet', function () {
     return view('pages.outlet');
 });
+
+Route::get('/mutasi', function () {
+    return view('pages.mutasi');
+});

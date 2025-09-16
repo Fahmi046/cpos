@@ -127,8 +127,8 @@
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
                                     Outlet
                                 </a>
-                                <a href="/mutasi-stok"
-                                    class="{{ request()->is('mutasi-stok')
+                                <a href="/mutasi"
+                                    class="{{ request()->is('mutasi')
                                         ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
                                     Mutasi Stok
