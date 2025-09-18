@@ -2,10 +2,13 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use App\Models\Mutasi;
-use App\Models\MutasiDetail;
+use Carbon\Carbon;
 use App\Models\Obat;
+use App\Models\Mutasi;
+use App\Models\Outlet;
+use Livewire\Component;
+use App\Models\KartuStok;
+use App\Models\MutasiDetail;
 
 class MutasiForm extends Component
 {
@@ -15,54 +18,37 @@ class MutasiForm extends Component
     public $outlet_id;
     public $keterangan;
 
-    public $detail = []; // array detail mutasi
+    public $details = []; // array detail mutasi
     public $obat_id;
     public $qty = 1;
     public $batch;
     public $ed;
 
     public $outlets = [];
-    public $obats = [];
 
     public function mount()
     {
-        $this->tanggal = date('Y-m-d');
-        $this->no_mutasi = 'MTS-' . now()->format('Ymd-His');
-        $this->detail = [];
+        $this->tanggal = date('Y-m-d');;
+        $this->details = [$this->emptyDetailRow()];
         $this->outlets = \App\Models\Outlet::all();
-        $this->obats = Obat::all();
+        $this->no_mutasi = $this->generateNoMT();
     }
 
-    public function addDetail()
+    protected function emptyDetailRow(): array
     {
-        if (empty($this->obat_id)) return;
-
-        $obat = Obat::find($this->obat_id);
-        if (!$obat) return;
-
-        $this->detail[] = [
-            'obat_id'    => $obat->id,
-            'nama_obat'  => $obat->nama_obat,
-            'qty'        => $this->qty ?? 1,
-            'batch'      => $this->batch,
-            'ed'         => $this->ed,
-            'satuan_id'  => $obat->satuan_id ?? 1,
-            'sediaan_id' => $obat->sediaan_id ?? 1,
-            'pabrik_id'  => $obat->pabrik_id ?? 1,
-            'utuhan'     => $obat->utuhan ?? 0,
+        return [
+            'obat_id'    => null,
+            'pabrik_id'  => null,
+            'satuan_id'  => null,
+            'sediaan_id' => null,
+            'qty'        => 0,
+            'ed' => date('Y-m-d'), // 🔹 default tanggal sekarang
+            'batch'      => '',
+            'disc1'      => 0,
+            'disc2'      => 0,
+            'disc3'      => 0,
+            'utuh'       => false, // utuhan atau tidak
         ];
-
-        // reset input
-        $this->obat_id = null;
-        $this->qty = 1;
-        $this->batch = '';
-        $this->ed = '';
-    }
-
-    public function removeDetail($index)
-    {
-        unset($this->detail[$index]);
-        $this->detail = array_values($this->detail);
     }
     public function save()
     {
@@ -130,7 +116,7 @@ class MutasiForm extends Component
         $this->tanggal = date('Y-m-d');
         $this->outlet_id = null;
         $this->keterangan = '';
-        $this->detail = [];
+        $this->details = [];
         $this->obat_id = null;
         $this->qty = 1;
         $this->batch = '';
@@ -141,5 +127,225 @@ class MutasiForm extends Component
     public function render()
     {
         return view('livewire.mutasi-form');
+    }
+
+    protected $branchCode = 'GUDANG';
+
+    public function generateNoMT()
+    {
+        $tanggal = Carbon::parse($this->tanggal);
+        $year = $tanggal->format('Y');
+        $month = $this->monthToRoman((int)$tanggal->format('n'));
+
+        // Hitung urutan MT tahun ini
+        $count = Mutasi::whereYear('tanggal', $year)->count() + 1;
+        $seq = str_pad($count, 4, '0', STR_PAD_LEFT);
+
+        // Format MT
+        return "MT-{$seq}/{$month}/{$year}";
+    }
+
+    public function updatedTanggal()
+    {
+        $this->no_mutasi = $this->generateNoMT();
+    }
+
+    private function monthToRoman($month)
+    {
+        $romans = [
+            1 => 'I',
+            2 => 'II',
+            3 => 'III',
+            4 => 'IV',
+            5 => 'V',
+            6 => 'VI',
+            7 => 'VII',
+            8 => 'VIII',
+            9 => 'IX',
+            10 => 'X',
+            11 => 'XI',
+            12 => 'XII',
+        ];
+
+        return $romans[(int) $month] ?? $month;
+    }
+
+
+    public $searchoutlet = '';
+    public $outletResults = [];
+    public $highlightIndex = 0;
+    public function updatedSearchoutlet()
+    {
+        if (strlen($this->searchoutlet) > 1) {
+            $this->outletResults = outlet::where('nama_outlet', 'like', '%' . $this->searchoutlet . '%')
+                ->limit(10)
+                ->get()
+                ->toArray(); // <- pastikan array supaya index gampang
+            $this->highlightIndex = 0;
+        } else {
+            $this->outletResults = [];
+            $this->highlightIndex = 0;
+        }
+    }
+
+    public function incrementHighlight()
+    {
+        if (count($this->outletResults) === 0) return;
+
+        $this->highlightIndex++;
+        if ($this->highlightIndex >= count($this->outletResults)) {
+            $this->highlightIndex = 0;
+        }
+    }
+
+    public function decrementHighlight()
+    {
+        if (count($this->outletResults) === 0) return;
+
+        $this->highlightIndex--;
+        if ($this->highlightIndex < 0) {
+            $this->highlightIndex = count($this->outletResults) - 1;
+        }
+    }
+
+    public function selectHighlighted()
+    {
+        if (isset($this->outletResults[$this->highlightIndex])) {
+            $this->selectoutlet($this->outletResults[$this->highlightIndex]['id']);
+        }
+    }
+
+    public function selectoutlet($id)
+    {
+        $outlet = Outlet::find($id);
+        if ($outlet) {
+            $this->outlet_id = $outlet->id;
+            $this->searchoutlet = $outlet->nama_outlet;
+            $this->outletResults = [];
+            $this->highlightIndex = 0;
+        }
+    }
+
+
+    public $obatSearch = [];        // array untuk tiap baris detail
+    public $obatResults = [];       // hasil pencarian obat per baris
+    public $highlightObatIndex = []; // highlight keyboard per baris
+
+    public function updatedObatSearch($value, $index)
+    {
+        if ($value) {
+            $this->obatResults[$index] = KartuStok::with('obat')
+                ->select('id', 'obat_id', 'batch', 'ed')
+                ->whereHas('obat', function ($q) use ($value) {
+                    $q->where('nama_obat', 'like', "%{$value}%");
+                })
+                ->groupBy('id', 'obat_id', 'batch', 'ed')
+                ->orderBy('ed', 'asc')
+                ->limit(5)
+                ->get();
+        } else {
+            $this->obatResults[$index] = [];
+        }
+
+        $this->highlightObatIndex[$index] = 0;
+    }
+
+
+    public function selectObat($index, $obat_id)
+    {
+        $obat = Obat::with(['satuan', 'sediaan', 'pabrik'])->find($obat_id);
+        if (!$obat) return;
+
+        // ambil data terakhir dari kartu stok
+        $kartuStok = KartuStok::where('obat_id', $obat_id)
+            ->latest('tanggal') // atau kolom created_at
+            ->first();
+
+        $this->details[$index]['obat_id']   = $obat->id;
+        $this->details[$index]['nama_obat'] = $obat->nama_obat;
+        $this->details[$index]['isi_obat']  = $obat->isi_obat ?? 1;
+
+        // Harga → ambil dari kartu_stok kalau ada, fallback ke harga_beli di obat
+        $harga = $kartuStok->harga_beli ?? $obat->harga_beli ?? 0;
+        $this->details[$index]['harga']  = $harga;
+        $this->details[$index]['qty']    = 1;
+        $this->details[$index]['jumlah'] = $harga;
+
+        // Relasi
+        $this->details[$index]['pabrik_id'] = $obat->pabrik_id;
+        $this->details[$index]['pabrik']    = $obat->pabrik->nama_pabrik ?? '';
+
+        $this->details[$index]['satuan_id'] = $obat->satuan_id;
+        $this->details[$index]['satuan']    = $obat->satuan->nama_satuan ?? '';
+
+        $this->details[$index]['sediaan_id'] = $obat->sediaan_id;
+        $this->details[$index]['sediaan']    = $obat->sediaan->nama_sediaan ?? '';
+
+        // batch & ED kalau ada di kartu stok
+        $this->details[$index]['batch'] = $kartuStok->batch ?? '';
+        $this->details[$index]['ed']    = $kartuStok->ed ?? null;
+
+        // default utuh true kalau isi_obat > 1
+        $this->details[$index]['utuh'] = ($obat->isi_obat ?? 1) > 1;
+
+        // reset search box di row itu
+        $this->obatSearch[$index] = $obat->nama_obat;
+        $this->obatResults[$index] = [];
+        $this->highlightObatIndex[$index] = 0;
+    }
+
+
+    public function toggleUtuhSatuan($index)
+    {
+        if (!isset($this->details[$index])) return;
+
+        $detail = $this->details[$index];
+        $obatId = $detail['obat_id'] ?? null;
+
+        if (!$obatId) return;
+
+        $obat = Obat::with(['satuan', 'sediaan'])->find($obatId);
+        if (!$obat) return;
+
+        if (!empty($detail['utuh']) && $detail['utuh']) {
+            $this->details[$index]['qty']       = $obat->isi_obat ?? 1;
+            $this->details[$index]['satuan_id'] = $obat->satuan_id;
+            $this->details[$index]['satuan']    = $obat->satuan->nama_satuan ?? 'SET';
+            $this->details[$index]['isi_obat']  = $obat->isi_obat ?? 1;
+            $this->details[$index]['harga']     = $obat->harga_jual ?? 0;
+        } else {
+            $this->details[$index]['qty']       = 1;
+            $this->details[$index]['satuan_id'] = $obat->sediaan_id;
+            $this->details[$index]['satuan']    = $obat->sediaan->nama_sediaan ?? 'PCS';
+            $this->details[$index]['isi_obat']  = 1;
+            $this->details[$index]['harga']     = $obat->harga_jual_eceran ?? ($obat->harga_jual / max($obat->isi_obat, 1));
+        }
+
+        // hitung ulang jumlah
+        $this->details[$index]['jumlah'] = ($this->details[$index]['qty'] ?? 1) * ($this->details[$index]['harga'] ?? 0);
+
+        // 🔹 Penting: hitung ringkasan DPP, PPN, TOTAL
+        $this->hitungRingkasan();
+    }
+
+    public function highlightNextObat($index)
+    {
+        if (isset($this->obatResults[$index][$this->highlightObatIndex[$index] + 1])) {
+            $this->highlightObatIndex[$index]++;
+        }
+    }
+
+    public function highlightPrevObat($index)
+    {
+        if ($this->highlightObatIndex[$index] > 0) {
+            $this->highlightObatIndex[$index]--;
+        }
+    }
+
+    public function selectHighlightedObat($index)
+    {
+        if (isset($this->obatResults[$index][$this->highlightObatIndex[$index]])) {
+            $this->selectObat($index, $this->obatResults[$index][$this->highlightObatIndex[$index]]->id);
+        }
     }
 }
