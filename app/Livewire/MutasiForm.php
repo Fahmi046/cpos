@@ -9,6 +9,7 @@ use App\Models\Outlet;
 use Livewire\Component;
 use App\Models\KartuStok;
 use App\Models\MutasiDetail;
+use Illuminate\Support\Facades\DB;
 
 class MutasiForm extends Component
 {
@@ -234,14 +235,21 @@ class MutasiForm extends Component
     public function updatedObatSearch($value, $index)
     {
         if ($value) {
-            $this->obatResults[$index] = KartuStok::with('obat')
-                ->select('id', 'obat_id', 'batch', 'ed')
-                ->whereHas('obat', function ($q) use ($value) {
-                    $q->where('nama_obat', 'like', "%{$value}%");
-                })
-                ->groupBy('id', 'obat_id', 'batch', 'ed')
-                ->orderBy('ed', 'asc')
-                ->limit(5)
+            $this->obatResults[$index] = DB::table('kartu_stok')
+                ->join('obat', 'kartu_stok.obat_id', '=', 'obat.id')
+                ->select(
+                    'kartu_stok.obat_id',
+                    'obat.nama_obat',
+                    'kartu_stok.batch',
+                    'kartu_stok.ed',
+                    DB::raw("SUM(CASE WHEN kartu_stok.jenis = 'masuk' THEN kartu_stok.qty ELSE 0 END)
+                      - SUM(CASE WHEN kartu_stok.jenis = 'keluar' THEN kartu_stok.qty ELSE 0 END) as stok")
+                )
+                ->where('obat.nama_obat', 'like', '%' . $value . '%')
+                ->groupBy('kartu_stok.obat_id', 'kartu_stok.batch', 'kartu_stok.ed', 'obat.nama_obat')
+                ->havingRaw('stok > 0')
+                ->orderBy('kartu_stok.ed', 'asc')
+                ->limit(10)
                 ->get();
         } else {
             $this->obatResults[$index] = [];
@@ -251,27 +259,21 @@ class MutasiForm extends Component
     }
 
 
-    public function selectObat($index, $obat_id)
+    public function selectObat($index, $obat_id, $batch = null, $ed = null, $stok = 0)
     {
         $obat = Obat::with(['satuan', 'sediaan', 'pabrik'])->find($obat_id);
         if (!$obat) return;
-
-        // ambil data terakhir dari kartu stok
-        $kartuStok = KartuStok::where('obat_id', $obat_id)
-            ->latest('tanggal') // atau kolom created_at
-            ->first();
 
         $this->details[$index]['obat_id']   = $obat->id;
         $this->details[$index]['nama_obat'] = $obat->nama_obat;
         $this->details[$index]['isi_obat']  = $obat->isi_obat ?? 1;
 
-        // Harga → ambil dari kartu_stok kalau ada, fallback ke harga_beli di obat
-        $harga = $kartuStok->harga_beli ?? $obat->harga_beli ?? 0;
-        $this->details[$index]['harga']  = $harga;
+        // harga
+        $this->details[$index]['harga']  = $obat->harga_beli ?? 0;
         $this->details[$index]['qty']    = 1;
-        $this->details[$index]['jumlah'] = $harga;
+        $this->details[$index]['jumlah'] = $this->details[$index]['harga'];
 
-        // Relasi
+        // relasi
         $this->details[$index]['pabrik_id'] = $obat->pabrik_id;
         $this->details[$index]['pabrik']    = $obat->pabrik->nama_pabrik ?? '';
 
@@ -281,18 +283,20 @@ class MutasiForm extends Component
         $this->details[$index]['sediaan_id'] = $obat->sediaan_id;
         $this->details[$index]['sediaan']    = $obat->sediaan->nama_sediaan ?? '';
 
-        // batch & ED kalau ada di kartu stok
-        $this->details[$index]['batch'] = $kartuStok->batch ?? '';
-        $this->details[$index]['ed']    = $kartuStok->ed ?? null;
+        // batch, ED, stok
+        $this->details[$index]['batch'] = $batch ?? '';
+        $this->details[$index]['ed']    = $ed ?? null;
+        $this->details[$index]['stok']  = $stok ?? 0;
 
-        // default utuh true kalau isi_obat > 1
+        // default utuh
         $this->details[$index]['utuh'] = ($obat->isi_obat ?? 1) > 1;
 
-        // reset search box di row itu
+        // reset search
         $this->obatSearch[$index] = $obat->nama_obat;
         $this->obatResults[$index] = [];
         $this->highlightObatIndex[$index] = 0;
     }
+
 
 
     public function toggleUtuhSatuan($index)
@@ -330,6 +334,10 @@ class MutasiForm extends Component
 
     public function highlightNextObat($index)
     {
+        if (!isset($this->highlightObatIndex[$index])) {
+            $this->highlightObatIndex[$index] = 0;
+        }
+
         if (isset($this->obatResults[$index][$this->highlightObatIndex[$index] + 1])) {
             $this->highlightObatIndex[$index]++;
         }
@@ -337,15 +345,40 @@ class MutasiForm extends Component
 
     public function highlightPrevObat($index)
     {
+        if (!isset($this->highlightObatIndex[$index])) {
+            $this->highlightObatIndex[$index] = 0;
+        }
+
         if ($this->highlightObatIndex[$index] > 0) {
             $this->highlightObatIndex[$index]--;
         }
     }
 
+
     public function selectHighlightedObat($index)
     {
         if (isset($this->obatResults[$index][$this->highlightObatIndex[$index]])) {
-            $this->selectObat($index, $this->obatResults[$index][$this->highlightObatIndex[$index]]->id);
+            $ks = $this->obatResults[$index][$this->highlightObatIndex[$index]];
+
+            $this->selectObat(
+                $index,
+                $ks->obat_id,
+                $ks->batch,
+                $ks->ed,
+                $ks->stok
+            );
+        }
+    }
+    public function addDetail()
+    {
+        $this->details[] = $this->emptyDetailRow();
+    }
+
+    public function removeDetail($index)
+    {
+        if (isset($this->details[$index])) {
+            unset($this->details[$index]);
+            $this->details = array_values($this->details);
         }
     }
 }

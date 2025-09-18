@@ -50,6 +50,8 @@ class KartuStokExport implements FromCollection, WithHeadings, WithMapping
         return [
             'Tanggal',
             'Obat',
+            'Batch',
+            'ED',
             'Satuan',
             'Pabrik',
             'Kategori',
@@ -79,6 +81,8 @@ class KartuStokExport implements FromCollection, WithHeadings, WithMapping
         return [
             Carbon::parse($row->tanggal)->format('d-m-Y'),
             $row->obat?->nama_obat ?? '-',
+            $row->batch ?? '-',
+            Carbon::parse($row->ed)->format('d-m-Y'),
             $row->utuhan ? ($row->satuan->nama_satuan ?? '-') : ($row->sediaan->nama_sediaan ?? '-'),
             $row->pabrik?->nama_pabrik ?? '-',
             $row->obat?->kategori?->nama_kategori ?? '-',

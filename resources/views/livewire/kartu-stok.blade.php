@@ -92,6 +92,8 @@
                 <tr>
                     <th class="px-4 py-3">Tanggal</th>
                     <th class="px-4 py-3">Obat</th>
+                    <th class="px-4 py-3">Batch</th>
+                    <th class="px-4 py-3">ED</th>
                     <th class="px-4 py-3">Satuan</th>
                     <th class="px-4 py-3">Pabrik</th>
                     <th class="px-4 py-3">Kategori</th>
@@ -111,6 +113,11 @@
 
                         {{-- Detail Obat --}}
                         <td class="px-4 py-3">{{ $row->obat?->nama_obat ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $row->batch ?? '-' }}</td>
+                        {{-- ed --}}
+                        <td class="px-4 py-3">
+                            {{ \Carbon\Carbon::parse($row->ed)->format('d-m-Y') }}
+                        </td>
                         <td class="px-4 py-3">
                             {{ $row->utuhan ? $row->satuan->nama_satuan ?? '-' : $row->sediaan->nama_sediaan ?? '-' }}
                         </td>
