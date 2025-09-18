@@ -42,62 +42,59 @@ class MutasiForm extends Component
             'pabrik_id'  => null,
             'satuan_id'  => null,
             'sediaan_id' => null,
-            'qty'        => 0,
+            'qty'        => 1,
             'ed' => date('Y-m-d'), // 🔹 default tanggal sekarang
             'batch'      => '',
-            'disc1'      => 0,
-            'disc2'      => 0,
-            'disc3'      => 0,
             'utuh'       => false, // utuhan atau tidak
         ];
     }
     public function save()
     {
-        // jika ada obat_id belum ditambahkan ke detail, tambahkan otomatis
+        // Jika ada obat_id belum ditambahkan ke details, tambahkan otomatis
         if ($this->obat_id) {
             $this->addDetail();
         }
 
         $this->validate([
-            'no_mutasi' => 'required|unique:mutasi,no_mutasi,' . ($this->mutasi_id ?? ''),
-            'tanggal' => 'required|date',
-            'outlet_id' => 'required|exists:outlets,id',
-            'detail.*.obat_id' => 'required|exists:obat,id',
-            'detail.*.qty' => 'required|numeric|min:1',
+            'no_mutasi'   => 'required|unique:mutasi,no_mutasi,' . ($this->mutasi_id ?? ''),
+            'tanggal'     => 'required|date',
+            'outlet_id'   => 'required|exists:outlets,id',
+            'details.*.obat_id' => 'required|exists:obat,id',
+            'details.*.qty'     => 'required|numeric|min:1',
         ]);
 
         if ($this->mutasi_id) {
             $mutasi = \App\Models\Mutasi::findOrFail($this->mutasi_id);
             $mutasi->update([
-                'no_mutasi' => $this->no_mutasi,
-                'tanggal' => $this->tanggal,
-                'outlet_id' => $this->outlet_id,
+                'no_mutasi'  => $this->no_mutasi,
+                'tanggal'    => $this->tanggal,
+                'outlet_id'  => $this->outlet_id,
                 'keterangan' => $this->keterangan,
             ]);
             $mutasi->details()->delete();
         } else {
             $mutasi = \App\Models\Mutasi::create([
-                'no_mutasi' => $this->no_mutasi,
-                'tanggal' => $this->tanggal,
-                'outlet_id' => $this->outlet_id,
+                'no_mutasi'  => $this->no_mutasi,
+                'tanggal'    => $this->tanggal,
+                'outlet_id'  => $this->outlet_id,
                 'keterangan' => $this->keterangan,
             ]);
         }
 
-        foreach ($this->detail as $d) {
+        foreach ($this->details as $d) {
             $obat = \App\Models\Obat::find($d['obat_id']);
             if (!$obat) continue;
 
             $mutasi->details()->create([
-                'obat_id' => $obat->id,
+                'obat_id'   => $obat->id,
                 'pabrik_id' => $obat->pabrik_id ?? 1,
                 'satuan_id' => $obat->satuan_id ?? 1,
                 'sediaan_id' => $obat->sediaan_id ?? 1,
-                'qty' => $d['qty'] ?? 1,
-                'batch' => $d['batch'] ?? null,
-                'ed' => $d['ed'] ?? null,
-                'jumlah' => ($d['qty'] ?? 1) * ($d['harga'] ?? 0),
-                'utuhan' => $d['utuhan'] ?? 0,
+                'qty'       => $d['qty'] ?? 1,
+                'batch'     => $d['batch'] ?? null,
+                'ed'        => $d['ed'] ?? null,
+                'jumlah'    => ($d['qty'] ?? 1) * ($d['harga'] ?? 0),
+                'utuhan'    => $d['utuhan'] ?? 0,
             ]);
         }
 
@@ -108,6 +105,7 @@ class MutasiForm extends Component
         $this->dispatch('refreshTable');
         $this->dispatch('focus-tanggal');
     }
+
 
     private function resetForm()
     {
@@ -188,28 +186,21 @@ class MutasiForm extends Component
             $this->highlightIndex = 0;
         }
     }
-
-    public function incrementHighlight()
+    public function incrementHighlight(): void
     {
-        if (count($this->outletResults) === 0) return;
-
-        $this->highlightIndex++;
-        if ($this->highlightIndex >= count($this->outletResults)) {
-            $this->highlightIndex = 0;
+        if ($this->highlightIndex < count($this->outletResults) - 1) {
+            $this->highlightIndex++;
         }
     }
 
-    public function decrementHighlight()
+    public function decrementHighlight(): void
     {
-        if (count($this->outletResults) === 0) return;
-
-        $this->highlightIndex--;
-        if ($this->highlightIndex < 0) {
-            $this->highlightIndex = count($this->outletResults) - 1;
+        if ($this->highlightIndex > 0) {
+            $this->highlightIndex--;
         }
     }
 
-    public function selectHighlighted()
+    public function selectHighlighted(): void
     {
         if (isset($this->outletResults[$this->highlightIndex])) {
             $this->selectoutlet($this->outletResults[$this->highlightIndex]['id']);
@@ -354,24 +345,42 @@ class MutasiForm extends Component
         }
     }
 
-
     public function selectHighlightedObat($index)
     {
-        if (isset($this->obatResults[$index][$this->highlightObatIndex[$index]])) {
-            $ks = $this->obatResults[$index][$this->highlightObatIndex[$index]];
-
-            $this->selectObat(
-                $index,
-                $ks->obat_id,
-                $ks->batch,
-                $ks->ed,
-                $ks->stok
-            );
+        // Cek apakah hasil pencarian ada
+        if (empty($this->obatResults[$index])) {
+            return;
         }
+
+        // Ambil highlight index dengan fallback 0
+        $highlight = $this->highlightObatIndex[$index] ?? 0;
+
+        // Cek apakah highlight valid
+        if (!isset($this->obatResults[$index][$highlight])) {
+            return;
+        }
+
+        $ks = $this->obatResults[$index][$highlight];
+
+        $this->selectObat(
+            $index,
+            $ks->obat_id,
+            $ks->batch,
+            $ks->ed,
+            $ks->stok
+        );
     }
+
     public function addDetail()
     {
         $this->details[] = $this->emptyDetailRow();
+        $this->obatSearch[] = '';
+        $this->obatResults[] = [];
+        $this->highlightObatIndex[] = 0;
+
+        $lastIndex = count($this->details) - 1;
+
+        $this->dispatch('focus-obat', index: $lastIndex);
     }
 
     public function removeDetail($index)
