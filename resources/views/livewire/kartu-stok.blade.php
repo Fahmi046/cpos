@@ -129,12 +129,14 @@
                             {{ $row->penerimaanDetail?->harga ? 'Rp ' . number_format($row->penerimaanDetail->harga, 0, ',', '.') : '-' }}
                         </td>
 
-                        {{-- Masuk & Keluar --}}
+                        {{-- Masuk --}}
                         <td class="px-4 py-3 text-center text-green-600 font-semibold">
-                            {{ $row->qty > 0 ? $row->qty : '-' }}
+                            {{ $row->jenis === 'masuk' ? $row->qty : '-' }}
                         </td>
+
+                        {{-- Keluar --}}
                         <td class="px-4 py-3 text-center text-red-600 font-semibold">
-                            {{ $row->qty < 0 ? abs($row->qty) : '-' }}
+                            {{ $row->jenis === 'keluar' ? $row->qty : '-' }}
                         </td>
 
                         {{-- Stok Akhir --}}

@@ -51,18 +51,20 @@ class KartuStok extends Component
 
         $riwayat = $query->orderBy('tanggal')->orderBy('id')->get();
 
-        // Hitung stok akhir berjalan per obat
+        // Hitung stok akhir berjalan per obat+batch+ed
         $saldoPerObat = [];
         foreach ($riwayat as $row) {
-            $obatId = $row->obat_id;
+            // Buat key unik
+            $key = $row->obat_id . '-' . $row->batch . '-' . $row->ed;
 
-            if (!isset($saldoPerObat[$obatId])) {
-                $saldoPerObat[$obatId] = 0;
+            if (!isset($saldoPerObat[$key])) {
+                $saldoPerObat[$key] = 0;
             }
 
-            $saldoPerObat[$obatId] += ($row->jenis === 'masuk' ? $row->qty : -$row->qty);
-            $row->stok_akhir = $saldoPerObat[$obatId];
+            $saldoPerObat[$key] += ($row->jenis === 'masuk' ? $row->qty : -$row->qty);
+            $row->stok_akhir = $saldoPerObat[$key];
         }
+
 
         return view('livewire.kartu-stok', [
             'obatList' => $obatList,

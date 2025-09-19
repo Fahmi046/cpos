@@ -64,18 +64,19 @@ class KartuStokExport implements FromCollection, WithHeadings, WithMapping
 
     public function map($row): array
     {
-        $obatId = $row->obat_id;
+        // key unik: obat + batch + ed
+        $key = $row->obat_id . '-' . $row->batch . '-' . $row->ed;
 
-        // jika belum ada saldo untuk obat ini, set 0
-        if (!isset($this->saldoPerObat[$obatId])) {
-            $this->saldoPerObat[$obatId] = 0;
+        // jika belum ada saldo untuk kombinasi ini, set 0
+        if (!isset($this->saldoPerObat[$key])) {
+            $this->saldoPerObat[$key] = 0;
         }
 
         // hitung saldo sesuai jenis transaksi
         if ($row->jenis === 'masuk') {
-            $this->saldoPerObat[$obatId] += $row->qty;
+            $this->saldoPerObat[$key] += $row->qty;
         } else {
-            $this->saldoPerObat[$obatId] -= $row->qty;
+            $this->saldoPerObat[$key] -= $row->qty;
         }
 
         return [
@@ -83,13 +84,17 @@ class KartuStokExport implements FromCollection, WithHeadings, WithMapping
             $row->obat?->nama_obat ?? '-',
             $row->batch ?? '-',
             Carbon::parse($row->ed)->format('d-m-Y'),
-            $row->utuhan ? ($row->satuan->nama_satuan ?? '-') : ($row->sediaan->nama_sediaan ?? '-'),
+            $row->utuhan
+                ? ($row->satuan->nama_satuan ?? '-')
+                : ($row->sediaan->nama_sediaan ?? '-'),
             $row->pabrik?->nama_pabrik ?? '-',
             $row->obat?->kategori?->nama_kategori ?? '-',
-            $row->penerimaanDetail?->harga ? 'Rp ' . number_format($row->penerimaanDetail->harga, 0, ',', '.') : '-',
+            $row->penerimaanDetail?->harga
+                ? 'Rp ' . number_format($row->penerimaanDetail->harga, 0, ',', '.')
+                : '-',
             $row->qty > 0 ? $row->qty : '-',
             $row->qty < 0 ? abs($row->qty) : '-',
-            $this->saldoPerObat[$obatId], // saldo per obat
+            $this->saldoPerObat[$key], // saldo per obat+batch+ed
         ];
     }
 }

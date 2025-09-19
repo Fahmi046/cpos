@@ -50,57 +50,104 @@ class MutasiForm extends Component
     }
     public function save()
     {
-        // Jika ada obat_id belum ditambahkan ke details, tambahkan otomatis
+        // Tambah detail terakhir kalau masih ada input
         if ($this->obat_id) {
             $this->addDetail();
         }
 
         $this->validate([
-            'no_mutasi'   => 'required|unique:mutasi,no_mutasi,' . ($this->mutasi_id ?? ''),
+            'no_mutasi'   => 'required|unique:mutasi,no_mutasi,' . ($this->mutasi_id ?? 'NULL') . ',id',
             'tanggal'     => 'required|date',
             'outlet_id'   => 'required|exists:outlets,id',
             'details.*.obat_id' => 'required|exists:obat,id',
             'details.*.qty'     => 'required|numeric|min:1',
         ]);
 
-        if ($this->mutasi_id) {
-            $mutasi = \App\Models\Mutasi::findOrFail($this->mutasi_id);
-            $mutasi->update([
-                'no_mutasi'  => $this->no_mutasi,
-                'tanggal'    => $this->tanggal,
-                'outlet_id'  => $this->outlet_id,
-                'keterangan' => $this->keterangan,
-            ]);
-            $mutasi->details()->delete();
-        } else {
-            $mutasi = \App\Models\Mutasi::create([
-                'no_mutasi'  => $this->no_mutasi,
-                'tanggal'    => $this->tanggal,
-                'outlet_id'  => $this->outlet_id,
-                'keterangan' => $this->keterangan,
-            ]);
-        }
+        DB::transaction(function () {
+            // ===============================
+            // CREATE / UPDATE MUTASI
+            // ===============================
+            if ($this->mutasi_id) {
+                $mutasi = \App\Models\Mutasi::findOrFail($this->mutasi_id);
 
-        foreach ($this->details as $d) {
-            $obat = \App\Models\Obat::find($d['obat_id']);
-            if (!$obat) continue;
+                // rollback stok outlet lama (hapus riwayat stok_outlet & kartu_stok lama)
+                \App\Models\StokOutlet::where('mutasi_id', $mutasi->id)->delete();
+                \App\Models\KartuStok::where('mutasi_id', $mutasi->id)->delete();
 
-            $mutasi->details()->create([
-                'obat_id'   => $obat->id,
-                'pabrik_id' => $obat->pabrik_id ?? 1,
-                'satuan_id' => $obat->satuan_id ?? 1,
-                'sediaan_id' => $obat->sediaan_id ?? 1,
-                'qty'       => $d['qty'] ?? 1,
-                'batch'     => $d['batch'] ?? null,
-                'ed'        => $d['ed'] ?? null,
-                'jumlah'    => ($d['qty'] ?? 1) * ($d['harga'] ?? 0),
-                'utuhan'    => $d['utuhan'] ?? 0,
-            ]);
-        }
+                // hapus detail lama
+                $mutasi->details()->delete();
+
+                // update header
+                $mutasi->update([
+                    'no_mutasi'  => $this->no_mutasi,
+                    'tanggal'    => $this->tanggal,
+                    'outlet_id'  => $this->outlet_id,
+                    'keterangan' => $this->keterangan,
+                ]);
+            } else {
+                $mutasi = \App\Models\Mutasi::create([
+                    'no_mutasi'  => $this->no_mutasi,
+                    'tanggal'    => $this->tanggal,
+                    'outlet_id'  => $this->outlet_id,
+                    'keterangan' => $this->keterangan,
+                ]);
+            }
+
+            // ===============================
+            // SIMPAN DETAIL & UPDATE STOK
+            // ===============================
+            foreach ($this->details as $d) {
+                $obat = \App\Models\Obat::find($d['obat_id']);
+                if (!$obat) continue;
+
+                $detail = $mutasi->details()->create([
+                    'obat_id'   => $obat->id,
+                    'pabrik_id' => $obat->pabrik_id ?? 1,
+                    'satuan_id' => $obat->satuan_id ?? 1,
+                    'sediaan_id' => $obat->sediaan_id ?? 1,
+                    'qty'       => $d['qty'] ?? 1,
+                    'batch'     => $d['batch'] ?? null,
+                    'ed'        => $d['ed'] ?? null,
+                    'jumlah'    => ($d['qty'] ?? 1) * ($d['harga'] ?? 0),
+                    'utuhan'    => $d['utuhan'] ?? 0,
+                ]);
+
+                // --- 1) Kartu stok (gudang keluar) ---
+                \App\Models\KartuStok::create([
+                    'obat_id'          => $obat->id,
+                    'satuan_id'        => $obat->satuan_id ?? 1,
+                    'sediaan_id'       => $obat->sediaan_id ?? 1,
+                    'pabrik_id'        => $obat->pabrik_id ?? 1,
+                    'mutasi_id'        => $mutasi->id,
+                    'mutasi_detail_id' => $detail->id,
+                    'jenis'            => 'keluar', // dari gudang
+                    'qty'              => $detail->qty,
+                    'batch'            => $detail->batch,
+                    'ed'               => $detail->ed,
+                    'tanggal'          => $mutasi->tanggal,
+                ]);
+
+                // --- 3) Tambah stok ke outlet tujuan ---
+                if ($mutasi->outlet_id) {
+                    \App\Models\StokOutlet::recordMovement([
+                        'outlet_id'        => $mutasi->outlet_id,
+                        'obat_id'          => $obat->id,
+                        'batch'            => $detail->batch,
+                        'ed'               => $detail->ed,
+                        'jenis'            => 'masuk',
+                        'qty'              => $detail->qty,
+                        'tanggal'          => $mutasi->tanggal,
+                        'satuan_id'        => $obat->satuan_id ?? 1,
+                        'sediaan_id'       => $obat->sediaan_id ?? 1,
+                        'pabrik_id'        => $obat->pabrik_id ?? 1,
+                        'mutasi_id'        => $mutasi->id,
+                        'mutasi_detail_id' => $detail->id,
+                    ]);
+                }
+            }
+        });
 
         session()->flash('message', $this->mutasi_id ? 'Mutasi berhasil diperbarui!' : 'Mutasi berhasil disimpan!');
-
-        // Reset form
         $this->resetForm();
         $this->dispatch('refreshTable');
         $this->dispatch('focus-tanggal');
@@ -226,20 +273,22 @@ class MutasiForm extends Component
     public function updatedObatSearch($value, $index)
     {
         if ($value) {
-            $this->obatResults[$index] = DB::table('kartu_stok')
-                ->join('obat', 'kartu_stok.obat_id', '=', 'obat.id')
+            $this->obatResults[$index] = DB::table('kartu_stok as ks')
+                ->join('obat as o', 'ks.obat_id', '=', 'o.id')
                 ->select(
-                    'kartu_stok.obat_id',
-                    'obat.nama_obat',
-                    'kartu_stok.batch',
-                    'kartu_stok.ed',
-                    DB::raw("SUM(CASE WHEN kartu_stok.jenis = 'masuk' THEN kartu_stok.qty ELSE 0 END)
-                      - SUM(CASE WHEN kartu_stok.jenis = 'keluar' THEN kartu_stok.qty ELSE 0 END) as stok")
+                    'ks.obat_id',
+                    'o.nama_obat',
+                    'ks.batch',
+                    'ks.ed',
+                    DB::raw("
+            COALESCE(SUM(CASE WHEN ks.jenis = 'masuk' THEN ks.qty ELSE 0 END), 0)
+            - COALESCE(SUM(CASE WHEN ks.jenis = 'keluar' THEN ks.qty ELSE 0 END), 0) as stok
+        ")
                 )
-                ->where('obat.nama_obat', 'like', '%' . $value . '%')
-                ->groupBy('kartu_stok.obat_id', 'kartu_stok.batch', 'kartu_stok.ed', 'obat.nama_obat')
-                ->havingRaw('stok > 0')
-                ->orderBy('kartu_stok.ed', 'asc')
+                ->where('o.nama_obat', 'like', '%' . $value . '%')
+                ->groupBy('ks.obat_id', 'ks.batch', 'ks.ed', 'o.nama_obat')
+                ->having('stok', '>', 0)
+                ->orderBy('ks.ed', 'asc')
                 ->limit(10)
                 ->get();
         } else {
@@ -248,6 +297,7 @@ class MutasiForm extends Component
 
         $this->highlightObatIndex[$index] = 0;
     }
+
 
 
     public function selectObat($index, $obat_id, $batch = null, $ed = null, $stok = 0)

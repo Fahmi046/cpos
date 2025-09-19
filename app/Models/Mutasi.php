@@ -25,4 +25,16 @@ class Mutasi extends Model
     {
         return $this->hasMany(MutasiDetail::class, 'mutasi_id');
     }
+
+    protected static function booted()
+    {
+        static::deleting(function ($mutasi) {
+            $mutasi->stokOutlets()->delete();
+        });
+    }
+
+    public function stokOutlets()
+    {
+        return $this->hasMany(StokOutlet::class, 'mutasi_id');
+    }
 }

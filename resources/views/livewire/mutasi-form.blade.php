@@ -13,11 +13,12 @@
     <form wire:submit.prevent="save" class="space-y-6" x-data x-init="$nextTick(() => $refs.tanggal.focus())"
         x-on:focus-tanggal.window="$refs.tanggal.focus()"
         x-on:focus-obat.window="
-            $nextTick(() => {
-                const el = $refs['nama_obat_' + $event.detail.index];
-                if (el) el.focus();
-            })
-        ">
+          $nextTick(() => {
+              const el = $refs['nama_obat_' + $event.detail.index];
+              if (el) el.focus();
+          })
+      "
+        x-on:keydown.window.prevent.f10="document.getElementById('btnSave').click()">
 
         {{-- Header --}}
         <div class="grid grid-cols-2 gap-4">
@@ -216,6 +217,6 @@
         </div>
 
         {{-- Tombol Simpan --}}
-        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Simpan (F10)</button>
+        <button type="submit" id="btnSave" class="bg-green-600 text-white px-4 py-2 rounded">Simpan (F10)</button>
     </form>
 </div>
