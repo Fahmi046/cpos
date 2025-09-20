@@ -7,7 +7,9 @@ use App\Models\Mutasi;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Exports\MutasiExport;
+use App\Exports\MutasiExportSummary;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MutasiExportDetailed;
 
 class MutasiTable extends Component
 {
@@ -19,6 +21,9 @@ class MutasiTable extends Component
     public $selectedId;
     public $no_mutasi, $tanggal, $outlet_id, $keterangan = '';
     public $details = [];
+    public $start_date;
+    public $end_date;
+
 
     protected $paginationTheme = 'tailwind';
 
@@ -68,13 +73,26 @@ class MutasiTable extends Component
         $this->dispatch('focus-tanggal');
     }
 
-    public function exportExcel()
+    public function exportExcelDetailed()
     {
-        $tanggal = Carbon::today()->format('Y-m-d');
-        $fileName = "mutasi_{$tanggal}.xlsx";
+        $tanggal = Carbon::now()->format('Y-m-d');
+        $fileName = $this->start_date && $this->end_date
+            ? "mutasi_{$this->start_date}_sd_{$this->end_date}.xlsx"
+            : "mutasi_{$tanggal}.xlsx";
 
-        return Excel::download(new MutasiExport($this->search), $fileName);
+        return Excel::download(new MutasiExportDetailed($this->search, $this->start_date, $this->end_date), $fileName);
     }
+
+    public function exportExcelSummary()
+    {
+        $tanggal = Carbon::now()->format('Y-m-d');
+        $fileName = $this->start_date && $this->end_date
+            ? "mutasi_{$this->start_date}_sd_{$this->end_date}.xlsx"
+            : "mutasi_{$tanggal}.xlsx";
+
+        return Excel::download(new MutasiExportSummary($this->search, $this->start_date, $this->end_date), $fileName);
+    }
+
 
     public function render()
     {
@@ -108,6 +126,9 @@ class MutasiTable extends Component
     public function loadData()
     {
         $this->mutasis = Mutasi::orderBy('no_mutasi')->get();
+        $this->search = '';
+        $this->start_date = \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d');
+        $this->end_date   = \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d');
     }
 
     public function print($id)

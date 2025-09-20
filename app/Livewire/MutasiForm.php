@@ -158,18 +158,30 @@ class MutasiForm extends Component
 
     private function resetForm()
     {
+        $this->mutasi_id   = null;
+        $this->no_mutasi   = $this->generateNoMT();
+        $this->tanggal     = date('Y-m-d');
+        $this->outlet_id   = null;
+        $this->keterangan  = '';
 
-        $this->mutasi_id = null;
-        $this->no_mutasi = 'MTS-' . now()->format('Ymd-His');
-        $this->tanggal = date('Y-m-d');
-        $this->outlet_id = null;
-        $this->keterangan = '';
-        $this->details = [];
+        // reset outlet search
+        $this->searchoutlet   = '';
+        $this->outletResults  = [];
+        $this->highlightIndex = 0;
+
+        // reset detail baris
+        $this->details             = [$this->emptyDetailRow()];
+        $this->obatSearch          = [''];
+        $this->obatResults         = [[]];
+        $this->highlightObatIndex  = [0];
+
+        // reset inputan satuan
         $this->obat_id = null;
-        $this->qty = 1;
-        $this->batch = '';
-        $this->ed = '';
+        $this->qty     = 1;
+        $this->batch   = '';
+        $this->ed      = '';
     }
+
 
 
     public function render()

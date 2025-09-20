@@ -4,15 +4,12 @@
         <input type="text" wire:model.debounce.300ms="search" placeholder="Cari No Mutasi atau Keterangan"
             class="border border-gray-300 rounded-md px-4 py-2 w-full md:w-1/3 focus:ring-2 focus:ring-indigo-300 focus:outline-none transition">
 
-        <button wire:click="exportExcel"
-            class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-md transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 7h12M8 12h12M8 17h12M3 7h.01M3 12h.01M3 17h.01" />
-            </svg>
-            Export
-        </button>
+        <div class="flex gap-2 mb-4">
+            <button wire:click="exportExcelDetailed" class="px-3 py-2 bg-indigo-600 text-white rounded">Export
+                (Detail)</button>
+            <button wire:click="exportExcelSummary" class="px-3 py-2 bg-gray-600 text-white rounded">Export
+                (Ringkas)</button>
+        </div>
     </div>
 
     <h2 class="text-2xl font-bold mb-4 text-gray-800">📦 Daftar Mutasi Stok</h2>
@@ -82,7 +79,7 @@
 
                         <!-- Aksi -->
                         <td class="px-4 py-3 flex justify-center space-x-2">
-                            <button wire:click="$dispatch('edit-mutasi', { id: {{ $mutasi->id }} })"
+                            <button wire:click="edit({{ $mutasi->id }})"
                                 class="p-2 bg-yellow-100 text-yellow-600 rounded-md hover:bg-yellow-200 transition"
                                 title="Edit">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
