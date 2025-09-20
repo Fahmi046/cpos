@@ -65,6 +65,9 @@ class KartuStok extends Component
             $row->stok_akhir = $saldoPerObat[$key];
         }
 
+        // Balik hasil untuk tampilan tabel (terbaru di atas)
+        $riwayat = $riwayat->reverse();
+
 
         return view('livewire.kartu-stok', [
             'obatList' => $obatList,

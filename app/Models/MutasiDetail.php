@@ -15,8 +15,10 @@ class MutasiDetail extends Model
         'sediaan_id',
         'pabrik_id',
         'qty',
+        'utuhan',
         'batch',
         'ed',
+        'harga',
     ];
 
     // ================== RELASI ================== //
@@ -43,5 +45,9 @@ class MutasiDetail extends Model
     public function pabrik()
     {
         return $this->belongsTo(Pabrik::class, 'pabrik_id');
+    }
+    public function penerimaanDetail()
+    {
+        return $this->belongsTo(PenerimaanDetail::class, 'penerimaan_detail_id');
     }
 }

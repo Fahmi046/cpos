@@ -78,7 +78,11 @@ class MutasiTable extends Component
 
     public function render()
     {
-        $mutasiList = Mutasi::with(['details.obat', 'outlet'])
+        $mutasiList = Mutasi::with([
+            'details.obat',
+            'details.penerimaanDetail',
+            'outlet'
+        ])
             ->where(function ($query) {
                 $query->where('no_mutasi', 'like', '%' . $this->search . '%')
                     ->orWhere('tanggal', 'like', '%' . $this->search . '%')

@@ -63,7 +63,7 @@
                                                 Qty: {{ $detail->qty }}
                                             </span>
                                             <span class="text-sm font-bold text-indigo-600">
-                                                Rp {{ number_format($detail->jumlah, 0) }}
+                                                Rp {{ number_format($detail->harga, 0) }}
                                             </span>
                                         </div>
 

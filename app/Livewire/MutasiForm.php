@@ -9,6 +9,7 @@ use App\Models\Outlet;
 use Livewire\Component;
 use App\Models\KartuStok;
 use App\Models\MutasiDetail;
+use App\Models\PenerimaanDetail;
 use Illuminate\Support\Facades\DB;
 
 class MutasiForm extends Component
@@ -101,15 +102,16 @@ class MutasiForm extends Component
                 if (!$obat) continue;
 
                 $detail = $mutasi->details()->create([
-                    'obat_id'   => $obat->id,
-                    'pabrik_id' => $obat->pabrik_id ?? 1,
-                    'satuan_id' => $obat->satuan_id ?? 1,
+                    'obat_id'    => $obat->id,
+                    'pabrik_id'  => $obat->pabrik_id ?? 1,
+                    'satuan_id'  => $obat->satuan_id ?? 1,
                     'sediaan_id' => $obat->sediaan_id ?? 1,
-                    'qty'       => $d['qty'] ?? 1,
-                    'batch'     => $d['batch'] ?? null,
-                    'ed'        => $d['ed'] ?? null,
-                    'jumlah'    => ($d['qty'] ?? 1) * ($d['harga'] ?? 0),
-                    'utuhan'    => $d['utuhan'] ?? 0,
+                    'qty'        => $d['qty'] ?? 1,
+                    'harga'      => $d['harga'] ?? 0,   // ✅ simpan harga
+                    'batch'      => $d['batch'] ?? null,
+                    'ed'         => $d['ed'] ?? null,
+                    'jumlah'     => ($d['qty'] ?? 1) * ($d['harga'] ?? 0),
+                    'utuhan'     => $d['utuhan'] ?? 0,
                 ]);
 
                 // --- 1) Kartu stok (gudang keluar) ---
@@ -299,20 +301,27 @@ class MutasiForm extends Component
     }
 
 
-
     public function selectObat($index, $obat_id, $batch = null, $ed = null, $stok = 0)
     {
         $obat = Obat::with(['satuan', 'sediaan', 'pabrik'])->find($obat_id);
         if (!$obat) return;
 
+        // Cari detail penerimaan terbaru untuk obat + batch + ed
+        $penerimaanDetail = PenerimaanDetail::where('obat_id', $obat_id)
+            ->when($batch, fn($q) => $q->where('batch', $batch))
+            ->when($ed, fn($q) => $q->where('ed', $ed))
+            ->latest('id')
+            ->first();
+
         $this->details[$index]['obat_id']   = $obat->id;
         $this->details[$index]['nama_obat'] = $obat->nama_obat;
         $this->details[$index]['isi_obat']  = $obat->isi_obat ?? 1;
 
-        // harga
-        $this->details[$index]['harga']  = $obat->harga_beli ?? 0;
+        // harga → ambil dari penerimaan detail kalau ada
+        $harga = $penerimaanDetail->harga ?? $obat->harga_beli ?? 0;
+        $this->details[$index]['harga']  = $harga;
         $this->details[$index]['qty']    = 1;
-        $this->details[$index]['jumlah'] = $this->details[$index]['harga'];
+        $this->details[$index]['jumlah'] = $harga;
 
         // relasi
         $this->details[$index]['pabrik_id'] = $obat->pabrik_id;
@@ -324,9 +333,9 @@ class MutasiForm extends Component
         $this->details[$index]['sediaan_id'] = $obat->sediaan_id;
         $this->details[$index]['sediaan']    = $obat->sediaan->nama_sediaan ?? '';
 
-        // batch, ED, stok
-        $this->details[$index]['batch'] = $batch ?? '';
-        $this->details[$index]['ed']    = $ed ?? null;
+        // batch, ED, stok → pakai dari penerimaanDetail kalau ada
+        $this->details[$index]['batch'] = $penerimaanDetail->batch ?? $batch ?? '';
+        $this->details[$index]['ed']    = $penerimaanDetail->ed ?? $ed ?? null;
         $this->details[$index]['stok']  = $stok ?? 0;
 
         // default utuh
@@ -337,6 +346,7 @@ class MutasiForm extends Component
         $this->obatResults[$index] = [];
         $this->highlightObatIndex[$index] = 0;
     }
+
 
 
 

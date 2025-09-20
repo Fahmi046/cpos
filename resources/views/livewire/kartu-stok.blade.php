@@ -126,8 +126,15 @@
 
                         {{-- Harga --}}
                         <td class="px-4 py-3 text-right">
-                            {{ $row->penerimaanDetail?->harga ? 'Rp ' . number_format($row->penerimaanDetail->harga, 0, ',', '.') : '-' }}
+                            @if ($row->penerimaanDetail?->harga)
+                                Rp {{ number_format($row->penerimaanDetail->harga, 0, ',', '.') }}
+                            @elseif ($row->mutasiDetail?->harga)
+                                Rp {{ number_format($row->mutasiDetail->harga, 0, ',', '.') }}
+                            @else
+                                -
+                            @endif
                         </td>
+
 
                         {{-- Masuk --}}
                         <td class="px-4 py-3 text-center text-green-600 font-semibold">
