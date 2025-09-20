@@ -20,17 +20,13 @@ class PesananExport implements FromQuery, WithHeadings, WithMapping
     public function query()
     {
         return PesananDetail::with(['pesanan', 'obat.pabrik', 'obat.satuan', 'obat.sediaan', 'obat.kreditur'])
-            ->whereHas('pesanan', function ($q) {
-                // filter tanggal hari ini
-                $q->whereDate('tanggal', Carbon::today());
-
-                // optional: filter pencarian jika ada
-                if ($this->search) {
-                    $q->where(function ($sub) {
-                        $sub->where('no_sp', 'like', '%' . $this->search . '%')
-                            ->orWhere('tanggal', 'like', '%' . $this->search . '%');
-                    });
-                }
+            ->when($this->search, function ($query) {
+                $query->whereHas('pesanan', function ($q) {
+                    $q->where('no_sp', 'like', '%' . $this->search . '%')
+                        ->orWhere('tanggal', 'like', '%' . $this->search . '%');
+                })->orWhereHas('obat', function ($q) {
+                    $q->where('nama_obat', 'like', '%' . $this->search . '%');
+                });
             });
     }
 
@@ -51,19 +47,25 @@ class PesananExport implements FromQuery, WithHeadings, WithMapping
 
     public function map($detail): array
     {
+        // Tentukan satuan sesuai utuhan
         $satuan = $detail->utuhan
             ? ($detail->obat->satuan->nama_satuan ?? 'PCS')
             : ($detail->obat->sediaan->nama_sediaan ?? 'PCS');
 
+        // Hitung qty sesuai utuhan
+        $qty = $detail->utuhan && $detail->obat->isi_obat
+            ? intval($detail->qty / $detail->obat->isi_obat)
+            : $detail->qty;
+
         return [
             $detail->pesanan->no_sp ?? '-',
-            $detail->pesanan->tanggal ?? '-',
+            $detail->pesanan->tanggal ? Carbon::parse($detail->pesanan->tanggal)->format('d-m-Y') : '-',
             $detail->obat->nama_obat ?? '-',
             $detail->obat->pabrik->nama_pabrik ?? '-',
             $satuan,
-            $detail->qty,
-            $detail->harga,
-            $detail->jumlah,
+            $qty,
+            $detail->harga ?? 0,
+            $detail->jumlah ?? 0,
             $detail->obat->kreditur->nama ?? '-',
         ];
     }

@@ -79,16 +79,6 @@
 
                         <!-- Aksi -->
                         <td class="px-4 py-3 flex justify-center space-x-2">
-                            <button wire:click="edit({{ $mutasi->id }})"
-                                class="p-2 bg-yellow-100 text-yellow-600 rounded-md hover:bg-yellow-200 transition"
-                                title="Edit">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-2 2h.01" />
-                                </svg>
-                            </button>
-
                             <button wire:click="delete({{ $mutasi->id }})"
                                 class="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition"
                                 title="Hapus">

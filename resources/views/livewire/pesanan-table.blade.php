@@ -52,7 +52,8 @@
                                                 {{ $detail->obat->nama_obat ?? '-' }}
                                             </span>
                                             <span class="text-sm font-medium text-gray-600">
-                                                Qty: {{ $detail->qty }}
+                                                Qty:
+                                                {{ $detail->utuhan == 1 && $detail->obat->isi_obat ? round($detail->qty / $detail->obat->isi_obat) : $detail->qty }}
                                             </span>
                                             <span class="text-sm font-bold text-indigo-600">
                                                 Rp {{ number_format($detail->jumlah, 0) }}

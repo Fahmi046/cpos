@@ -73,13 +73,19 @@
                                     class="{{ request()->is('kreditur')
                                         ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Kreditur</a>
+                                <a href="/outlet"
+                                    class="{{ request()->is('outlet')
+                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
+                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                    Outlet
+                                </a>
                             </div>
                         </div>
-                        {{--  Pembelian  --}}
+                        {{--  Penyediaan  --}}
                         <div x-data="{ open: false }" class="relative">
                             <button @click="open = !open"
                                 class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-1">
-                                Pembelian
+                                Penyediaan
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
@@ -106,27 +112,6 @@
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
                                     Kartu Stok
                                 </a>
-                            </div>
-                        </div>
-                        {{--  Penyediaan  --}}
-                        <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open"
-                                class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-1">
-                                Penyediaan
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
-                                </svg>
-                            </button>
-
-                            <div x-show="open" @click.outside="open = false"
-                                class="absolute mt-2 w-48 rounded-md bg-white shadow-lg py-1 z-50">
-                                <a href="/outlet"
-                                    class="{{ request()->is('outlet')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
-                                    Outlet
-                                </a>
                                 <a href="/mutasi"
                                     class="{{ request()->is('mutasi')
                                         ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
@@ -143,8 +128,8 @@
                     class="relative rounded-full p-1 text-gray-400 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500">
                     <span class="absolute -inset-1.5"></span>
                     <span class="sr-only">View notifications</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                        data-slot="icon" aria-hidden="true" class="size-6">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon"
+                        aria-hidden="true" class="size-6">
                         <path
                             d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
                             stroke-linecap="round" stroke-linejoin="round" />
