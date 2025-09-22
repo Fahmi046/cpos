@@ -12,6 +12,7 @@ class Mutasi extends Model
         'no_mutasi',
         'tanggal',
         'outlet_id',
+        'permintaan_id',   // tambahkan ini
         'keterangan',
     ];
 
@@ -26,15 +27,22 @@ class Mutasi extends Model
         return $this->hasMany(MutasiDetail::class, 'mutasi_id');
     }
 
-    protected static function booted()
+    public function permintaan()
     {
-        static::deleting(function ($mutasi) {
-            $mutasi->stokOutlets()->delete();
-        });
+        return $this->belongsTo(Permintaan::class, 'permintaan_id');
     }
 
     public function stokOutlets()
     {
         return $this->hasMany(StokOutlet::class, 'mutasi_id');
+    }
+
+    // ================== EVENT HOOK ================== //
+    protected static function booted()
+    {
+        static::deleting(function ($mutasi) {
+            // kalau mutasi dihapus, stok outlet ikut terhapus
+            $mutasi->stokOutlets()->delete();
+        });
     }
 }

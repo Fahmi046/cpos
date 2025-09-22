@@ -7,25 +7,21 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('mutasi', function (Blueprint $table) {
+        Schema::create('permintaan', function (Blueprint $table) {
             $table->id();
-            $table->string('no_mutasi')->unique();
+            $table->string('no_permintaan')->unique();
             $table->date('tanggal');
-
-            // relasi opsional ke permintaan
-            $table->foreignId('permintaan_id')
-                ->nullable()
-                ->constrained('permintaan')
-                ->nullOnDelete(); // kalau permintaan dihapus, field ini otomatis null
-
             $table->foreignId('outlet_id')->constrained('outlets')->onDelete('cascade');
+
+            $table->enum('status', ['pending', 'sebagian', 'selesai'])->default('pending');
             $table->text('keterangan')->nullable();
+
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('mutasi');
+        Schema::dropIfExists('permintaan');
     }
 };

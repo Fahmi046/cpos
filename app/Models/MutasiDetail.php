@@ -14,11 +14,17 @@ class MutasiDetail extends Model
         'satuan_id',
         'sediaan_id',
         'pabrik_id',
+        'penerimaan_detail_id',
+        'permintaan_detail_id',
         'qty',
         'utuhan',
         'batch',
         'ed',
         'harga',
+    ];
+
+    protected $casts = [
+        'ed' => 'date',
     ];
 
     // ================== RELASI ================== //
@@ -46,8 +52,19 @@ class MutasiDetail extends Model
     {
         return $this->belongsTo(Pabrik::class, 'pabrik_id');
     }
+
     public function penerimaanDetail()
     {
         return $this->belongsTo(PenerimaanDetail::class, 'penerimaan_detail_id');
+    }
+
+    public function permintaanDetail()
+    {
+        return $this->belongsTo(PermintaanDetail::class, 'permintaan_detail_id');
+    }
+
+    public function stokOutlet()
+    {
+        return $this->hasOne(StokOutlet::class, 'mutasi_detail_id');
     }
 }
