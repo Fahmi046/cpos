@@ -112,6 +112,12 @@
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
                                     Kartu Stok
                                 </a>
+                                <a href="/permintaan"
+                                    class="{{ request()->is('permintaan')
+                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
+                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                    Permintaan Outlet
+                                </a>
                                 <a href="/mutasi"
                                     class="{{ request()->is('mutasi')
                                         ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'

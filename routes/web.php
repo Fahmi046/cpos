@@ -55,3 +55,6 @@ Route::get('/outlet', function () {
 Route::get('/mutasi', function () {
     return view('pages.mutasi');
 });
+Route::get('/permintaan', function () {
+    return view('pages.permintaan');
+});

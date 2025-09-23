@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Permintaan;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PermintaanDetail extends Model
 {
@@ -43,5 +44,20 @@ class PermintaanDetail extends Model
     public function mutasiDetails()
     {
         return $this->hasMany(MutasiDetail::class, 'permintaan_detail_id');
+    }
+
+    public function satuan()
+    {
+        return $this->belongsTo(SatuanObat::class);
+    }
+
+    public function sediaan()
+    {
+        return $this->belongsTo(BentukSediaan::class);
+    }
+
+    public function pabrik()
+    {
+        return $this->belongsTo(Pabrik::class);
     }
 }
