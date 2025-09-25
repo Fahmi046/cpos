@@ -112,7 +112,7 @@ class PermintaanForm extends Component
                     'harga'      => $d['harga'] ?? 0,
                     'batch'      => $d['batch'] ?? null,
                     'ed'         => $d['ed'] ?? null,
-                    'utuhan'     => $d['utuhan'] ?? 0,
+                    'utuhan'     => isset($d['utuh']) && $d['utuh'] ? 1 : 0,
                     'status'     => $d['status'] ?? 'pending',
                 ]);
             }

@@ -78,7 +78,9 @@
                         </td>
 
                         <!-- Aksi -->
+                        <!-- Aksi -->
                         <td class="px-4 py-3 flex justify-center space-x-2">
+                            <!-- Tombol Hapus -->
                             <button wire:click="delete({{ $permintaan->id }})"
                                 class="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition"
                                 title="Hapus">
@@ -89,7 +91,16 @@
                                 </svg>
                             </button>
 
-
+                            <!-- Tombol Tambah Mutasi -->
+                            <a href="{{ route('mutasi.create', ['permintaan_id' => $permintaan->id]) }}"
+                                class="p-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition"
+                                title="Tambahkan Mutasi">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                            </a>
                         </td>
                     </tr>
                 @empty

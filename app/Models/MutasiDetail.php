@@ -14,7 +14,6 @@ class MutasiDetail extends Model
         'satuan_id',
         'sediaan_id',
         'pabrik_id',
-        'penerimaan_detail_id',
         'permintaan_detail_id',
         'qty',
         'utuhan',

@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\MutasiForm;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PesananController;
 
@@ -58,3 +59,6 @@ Route::get('/mutasi', function () {
 Route::get('/permintaan', function () {
     return view('pages.permintaan');
 });
+Route::get('/mutasi/create', function () {
+    return view('pages.mutasi-create');
+})->name('mutasi.create');

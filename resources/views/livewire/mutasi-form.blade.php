@@ -29,6 +29,7 @@
                     class="block w-full rounded-lg border-gray-300 bg-gray-100 text-sm p-2.5">
             </div>
 
+
             {{-- Tanggal --}}
             <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">Tanggal</label>
@@ -119,7 +120,7 @@
                             <span class="mb-1 text-sm font-medium text-gray-500">Utuhan</span>
                             <div class="relative">
                                 <input type="checkbox" wire:model="details.{{ $i }}.utuh"
-                                    class="sr-only peer" disabled>
+                                    class="sr-only peer">
                                 <div
                                     class="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors duration-300">
                                 </div>

@@ -9,6 +9,7 @@ use App\Models\Outlet;
 use Livewire\Component;
 use App\Models\KartuStok;
 use App\Models\MutasiDetail;
+use Illuminate\Http\Request;
 use App\Models\PenerimaanDetail;
 use Illuminate\Support\Facades\DB;
 
@@ -25,16 +26,85 @@ class MutasiForm extends Component
     public $qty = 1;
     public $batch;
     public $ed;
+    public $permintaan_id;
+    public $permintaan;
+
 
     public $outlets = [];
 
-    public function mount()
+    public function mount(Request $request)
     {
-        $this->tanggal = date('Y-m-d');;
-        $this->details = [$this->emptyDetailRow()];
+        $this->tanggal = date('Y-m-d');
         $this->outlets = \App\Models\Outlet::all();
-        $this->no_mutasi = $this->generateNoMT();
+
+        // Ambil permintaan_id dari query string
+        $this->permintaan_id = $request->get('permintaan_id');
+
+        if ($this->permintaan_id) {
+            $this->loadFromPermintaan($this->permintaan_id);
+        } else {
+            // default kalau tanpa permintaan
+            $this->no_mutasi = $this->generateNoMT();
+            $this->details = [$this->emptyDetailRow()];
+        }
     }
+
+    /**
+     * Preload data dari permintaan ke form mutasi
+     */
+    private function loadFromPermintaan($permintaan_id)
+    {
+        $this->permintaan = \App\Models\Permintaan::with('details.obat.satuan', 'outlet')->findOrFail($permintaan_id);
+
+        // Isi header mutasi
+        $this->no_mutasi   = $this->permintaan->no_permintaan; // sesuai instruksi
+        $this->tanggal     = $this->permintaan->tanggal;
+        $this->outlet_id   = $this->permintaan->outlet_id;
+        $this->keterangan  = $this->permintaan->keterangan;
+
+        // isi nama outlet ke input pencarian
+        $this->searchoutlet = $this->permintaan->outlet->nama_outlet ?? '';
+
+        // Reset details & pencarian obat
+        $this->details = [];
+        $this->obatSearch = [];
+
+        foreach ($this->permintaan->details as $index => $detail) {
+            $obat = $detail->obat;
+
+            // 🔎 Ambil stok saldo untuk obat + batch yang sama
+            $stok = DB::table('kartu_stok as ks')
+                ->selectRaw("
+                COALESCE(SUM(CASE WHEN ks.jenis = 'masuk' THEN ks.qty ELSE 0 END), 0)
+                - COALESCE(SUM(CASE WHEN ks.jenis = 'keluar' THEN ks.qty ELSE 0 END), 0) as stok
+            ")
+                ->where('ks.obat_id', $obat->id)
+                ->where('ks.batch', $detail->batch)
+                ->whereDate('ks.ed', $detail->ed) // cocokkan dengan ED di permintaan
+                ->value('stok');
+
+            $this->details[$index] = [
+                'obat_id'   => $obat->id,
+                'pabrik'    => $obat->pabrik->nama_pabrik ?? '',
+                'utuh' => isset($detail->utuhan)
+                    ? (bool) $detail->utuhan  // convert dari DB
+                    : (($obat->isi_obat ?? 1) > 1), // otomatis boolean
+                'satuan_id' => $obat->satuan->id ?? null,
+                'satuan'    => $obat->satuan->nama_satuan ?? '',
+                'isi_obat'  => $obat->isi_obat ?? 0,
+                'harga'     => $detail->harga ?? 0,
+                'ed'        => $detail->ed ?? null,
+                'batch'     => $detail->batch ?? '',
+                'stok'      => $stok ?? 0, // hasil dari kartu_stok
+                'qty'       => $detail->qty_minta ?? 0,
+                'permintaan_detail_id' => $detail->id,
+            ];
+
+            // isi nama obat ke pencarian agar tampil di input
+            $this->obatSearch[$index] = $obat->nama_obat;
+        }
+    }
+
 
     protected function emptyDetailRow(): array
     {
@@ -46,7 +116,8 @@ class MutasiForm extends Component
             'qty'        => 1,
             'ed' => date('Y-m-d'), // 🔹 default tanggal sekarang
             'batch'      => '',
-            'utuh'       => false, // utuhan atau tidak
+            'utuh'       => false,
+            'permintaan_detail_id' => null, // utuhan atau tidak
         ];
     }
     public function save()
@@ -65,13 +136,54 @@ class MutasiForm extends Component
         ]);
 
         DB::transaction(function () {
-            // ===============================
+            // ===================================================
+            // JIKA MUTASI DARI PERMINTAAN
+            // ===================================================
+            if ($this->permintaan_id) {
+                $permintaan = \App\Models\Permintaan::with('details')->find($this->permintaan_id);
+
+                foreach ($this->details as $d) {
+                    $pd = $permintaan->details->firstWhere('obat_id', $d['obat_id']);
+                    if ($pd) {
+                        // update qty_mutasi
+                        $pd->qty_mutasi = ($pd->qty_mutasi ?? 0) + $d['qty'];
+
+                        // cek status per detail
+                        if ($pd->qty_mutasi >= $pd->qty_minta) {
+                            $pd->status = 'selesai';
+                        } elseif ($pd->qty_mutasi > 0 && $pd->qty_mutasi < $pd->qty_minta) {
+                            $pd->status = 'pending';
+                        } else {
+                            $pd->status = 'baru'; // opsional
+                        }
+
+                        $pd->save();
+                    }
+                }
+
+
+                // update status permintaan
+                $semuaTerpenuhi = $permintaan->details->every(fn($det) => $det->qty_mutasi >= $det->qty_minta);
+                $adaTerpenuhi   = $permintaan->details->some(fn($det) => $det->qty_mutasi > 0);
+
+                if ($semuaTerpenuhi) {
+                    $permintaan->status = 'selesai';
+                } elseif ($adaTerpenuhi) {
+                    $permintaan->status = 'sebagian';
+                } else {
+                    $permintaan->status = 'baru';
+                }
+
+                $permintaan->save();
+            }
+
+            // ===================================================
             // CREATE / UPDATE MUTASI
-            // ===============================
+            // ===================================================
             if ($this->mutasi_id) {
                 $mutasi = \App\Models\Mutasi::findOrFail($this->mutasi_id);
 
-                // rollback stok outlet lama (hapus riwayat stok_outlet & kartu_stok lama)
+                // rollback stok lama
                 \App\Models\StokOutlet::where('mutasi_id', $mutasi->id)->delete();
                 \App\Models\KartuStok::where('mutasi_id', $mutasi->id)->delete();
 
@@ -80,23 +192,25 @@ class MutasiForm extends Component
 
                 // update header
                 $mutasi->update([
-                    'no_mutasi'  => $this->no_mutasi,
-                    'tanggal'    => $this->tanggal,
-                    'outlet_id'  => $this->outlet_id,
-                    'keterangan' => $this->keterangan,
+                    'no_mutasi'     => $this->no_mutasi,
+                    'tanggal'       => $this->tanggal,
+                    'outlet_id'     => $this->outlet_id,
+                    'keterangan'    => $this->keterangan,
+                    'permintaan_id' => $this->permintaan_id, // simpan referensi
                 ]);
             } else {
                 $mutasi = \App\Models\Mutasi::create([
-                    'no_mutasi'  => $this->no_mutasi,
-                    'tanggal'    => $this->tanggal,
-                    'outlet_id'  => $this->outlet_id,
-                    'keterangan' => $this->keterangan,
+                    'no_mutasi'     => $this->no_mutasi,
+                    'tanggal'       => $this->tanggal,
+                    'outlet_id'     => $this->outlet_id,
+                    'keterangan'    => $this->keterangan,
+                    'permintaan_id' => $this->permintaan_id, // simpan referensi
                 ]);
             }
 
-            // ===============================
+            // ===================================================
             // SIMPAN DETAIL & UPDATE STOK
-            // ===============================
+            // ===================================================
             foreach ($this->details as $d) {
                 $obat = \App\Models\Obat::find($d['obat_id']);
                 if (!$obat) continue;
@@ -107,14 +221,15 @@ class MutasiForm extends Component
                     'satuan_id'  => $obat->satuan_id ?? 1,
                     'sediaan_id' => $obat->sediaan_id ?? 1,
                     'qty'        => $d['qty'] ?? 1,
-                    'harga'      => $d['harga'] ?? 0,   // ✅ simpan harga
+                    'harga'      => $d['harga'] ?? 0,
                     'batch'      => $d['batch'] ?? null,
                     'ed'         => $d['ed'] ?? null,
                     'jumlah'     => ($d['qty'] ?? 1) * ($d['harga'] ?? 0),
-                    'utuhan'     => $d['utuhan'] ?? 0,
+                    'utuhan'     => isset($d['utuh']) && $d['utuh'] ? 1 : 0,
+                    'permintaan_detail_id' => $d['permintaan_detail_id'] ?? null,
                 ]);
 
-                // --- 1) Kartu stok (gudang keluar) ---
+                // gudang keluar
                 \App\Models\KartuStok::create([
                     'obat_id'          => $obat->id,
                     'satuan_id'        => $obat->satuan_id ?? 1,
@@ -122,14 +237,14 @@ class MutasiForm extends Component
                     'pabrik_id'        => $obat->pabrik_id ?? 1,
                     'mutasi_id'        => $mutasi->id,
                     'mutasi_detail_id' => $detail->id,
-                    'jenis'            => 'keluar', // dari gudang
+                    'jenis'            => 'keluar',
                     'qty'              => $detail->qty,
                     'batch'            => $detail->batch,
                     'ed'               => $detail->ed,
                     'tanggal'          => $mutasi->tanggal,
                 ]);
 
-                // --- 3) Tambah stok ke outlet tujuan ---
+                // outlet tujuan masuk
                 if ($mutasi->outlet_id) {
                     \App\Models\StokOutlet::recordMovement([
                         'outlet_id'        => $mutasi->outlet_id,
@@ -153,6 +268,7 @@ class MutasiForm extends Component
         $this->resetForm();
         $this->dispatch('refreshTable');
         $this->dispatch('focus-tanggal');
+        $this->no_mutasi = $this->generateNoMT();
     }
 
 
