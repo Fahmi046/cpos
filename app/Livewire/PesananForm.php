@@ -2,11 +2,12 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use App\Models\Pesanan;
-use App\Models\PesananDetail;
-use App\Models\Obat;
 use Carbon\Carbon;
+use App\Models\Obat;
+use App\Models\Pesanan;
+use Livewire\Component;
+use App\Models\PesananDetail;
+use Illuminate\Support\Facades\DB;
 
 class PesananForm extends Component
 {
@@ -42,19 +43,30 @@ class PesananForm extends Component
 
     public function generateNoSp()
     {
-        $tanggal = Carbon::parse($this->tanggal);
-        $year = $tanggal->format('Y');
-        $month = $this->monthToRoman((int)$tanggal->format('n'));
+        return DB::transaction(function () {
+            $tanggal = Carbon::parse($this->tanggal);
+            $year = $tanggal->format('Y');
+            $month = $this->monthToRoman((int)$tanggal->format('n'));
 
-        // Ambil kode kategori dari mapping
-        $kategoriCode = $this->kategoriCodes[$this->kategori] ?? $this->kategori;
+            // Ambil kode kategori dari mapping
+            $kategoriCode = $this->kategoriCodes[$this->kategori] ?? $this->kategori;
 
-        // Hitung urutan SP tahun ini
-        $count = Pesanan::whereYear('tanggal', $year)->count() + 1;
-        $seq = str_pad($count, 4, '0', STR_PAD_LEFT);
+            // Ambil record terakhir di tahun berjalan dan kunci tabel
+            $last = Pesanan::whereYear('tanggal', $year)
+                ->lockForUpdate()
+                ->orderByDesc('id')
+                ->first();
 
-        // Format SP
-        return "SP-{$seq}/{$this->branchCode}/{$kategoriCode}/{$month}/{$year}";
+            if ($last && preg_match('/SP-(\d+)\//', $last->no_sp, $matches)) {
+                $count = (int)$matches[1] + 1;
+            } else {
+                $count = 1;
+            }
+
+            $seq = str_pad($count, 4, '0', STR_PAD_LEFT);
+
+            return "SP-{$seq}/{$this->branchCode}/{$kategoriCode}/{$month}/{$year}";
+        });
     }
 
 

@@ -40,6 +40,10 @@ class PermintaanForm extends Component
         ];
     }
 
+    protected $listeners = [
+        'refreshKodepermintaan' => 'updatedTanggal',
+    ];
+
 
     public function mount()
     {
@@ -150,6 +154,7 @@ class PermintaanForm extends Component
         $this->qty     = 1;
         $this->batch   = '';
         $this->ed      = '';
+        $this->dispatch('focus-tanggal');
     }
 
 
@@ -163,17 +168,31 @@ class PermintaanForm extends Component
 
     public function generateNoMO()
     {
-        $tanggal = Carbon::parse($this->tanggal);
-        $year = $tanggal->format('Y');
-        $month = $this->monthToRoman((int)$tanggal->format('n'));
+        return DB::transaction(function () {
+            $tanggal = Carbon::parse($this->tanggal);
+            $year = $tanggal->format('Y');
+            $month = $this->monthToRoman((int)$tanggal->format('n'));
 
-        // Hitung urutan MO tahun ini
-        $count = permintaan::whereYear('tanggal', $year)->count() + 1;
-        $seq = str_pad($count, 4, '0', STR_PAD_LEFT);
+            // lock data permintaan di tahun berjalan
+            $last = permintaan::whereYear('tanggal', $year)
+                ->lockForUpdate()
+                ->orderByDesc('id')
+                ->first();
 
-        // Format MO
-        return "MO-{$seq}/{$month}/{$year}";
+            // ambil nomor terakhir, kalau belum ada mulai dari 1
+            if ($last && preg_match('/MO-(\d+)\//', $last->no_permintaan, $matches)) {
+                $count = (int)$matches[1] + 1;
+            } else {
+                $count = 1;
+            }
+
+            $seq = str_pad($count, 4, '0', STR_PAD_LEFT);
+
+            return "MO-{$seq}/{$month}/{$year}";
+        });
     }
+
+
 
     public function updatedTanggal()
     {

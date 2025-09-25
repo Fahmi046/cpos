@@ -22,10 +22,11 @@ class PenerimaanForm extends Component
     // DETAIL PENERIMAAN (<<— inilah yang dimaksud $details)
     public $details = [];   // <- WAJIB ada supaya tidak "Undefined variable $details"
 
-    public function mount(?int $penerimaan_id = null)
+    public function mount(?int $penerimaan_id = null): void
     {
         $this->resetForm($penerimaan_id);
     }
+
 
     private function resetForm(?int $penerimaan_id = null)
     {
@@ -468,24 +469,28 @@ class PenerimaanForm extends Component
         $this->no_penerimaan = $this->generateNoPenerimaan($value);
     }
 
-    public function generateNoPenerimaan($tanggal)
+    public function generateNoPenerimaan($tanggal = null)
     {
-        if (!$tanggal) return '';
+        // kalau tidak dikirim, default pakai hari ini
+        $tanggal = $tanggal ?? Carbon::today()->toDateString();
 
-        $date = Carbon::parse($tanggal)->format('ymd');
+        return DB::transaction(function () use ($tanggal) {
+            $date = Carbon::parse($tanggal)->format('ymd');
 
-        $last = Penerimaan::whereDate('tanggal', $tanggal)
-            ->orderBy('no_penerimaan', 'desc')
-            ->first();
+            $last = Penerimaan::whereDate('tanggal', $tanggal)
+                ->lockForUpdate()
+                ->orderByDesc('no_penerimaan')
+                ->first();
 
-        if ($last && strlen($last->no_penerimaan) >= 10) {
-            $number = intval(substr($last->no_penerimaan, 6)) + 1;
-        } else {
-            $number = 1;
-        }
+            $number = ($last && strlen($last->no_penerimaan) >= 10)
+                ? intval(substr($last->no_penerimaan, 6)) + 1
+                : 1;
 
-        return $date . str_pad($number, 4, '0', STR_PAD_LEFT);
+            return $date . str_pad($number, 4, '0', STR_PAD_LEFT);
+        });
     }
+
+
     public function updatedJenisBayar($value)
     {
         $this->setTenorAndJatuhTempo();
@@ -513,19 +518,21 @@ class PenerimaanForm extends Component
     }
 
     // Dipanggil kalau detail berubah
-    public function updatedDetails($value, $name)
+    public function updatedDetails($value, $key)
     {
-        if (str_contains($name, 'nama_obat')) {
-            $index = explode('.', $name)[1]; // ambil index dari details
+        // $key contoh: "0.qty" atau "1.nama_obat"
+        if (str_contains($key, 'nama_obat')) {
+            $index = explode('.', $key)[0]; // ambil index dari details
             $this->obatResults[$index] = Obat::where('nama_obat', 'like', "%{$value}%")
                 ->limit(10)
                 ->get()
                 ->toArray();
         }
-        // $name contohnya: details.0.disc1, details.1.disc2, dsb
+
         $this->hitungJumlahPerRow();
         $this->hitungRingkasan();
     }
+
 
 
     private function hitungRingkasan()
@@ -621,7 +628,17 @@ class PenerimaanForm extends Component
         }
     }
 
-    protected $listeners = ['edit-penerimaan' => 'edit'];
+    protected $listeners = [
+        'refreshKodepenerimaan' => 'refreshNoPenerimaan',
+        'edit-penerimaan' => 'edit'
+    ];
+    public function refreshNoPenerimaan()
+    {
+        // pakai tanggal yang ada di form, atau hari ini jika null
+        $tanggal = $this->tanggal ?? Carbon::today()->toDateString();
+        $this->no_penerimaan = $this->generateNoPenerimaan($tanggal);
+    }
+
 
     public function edit($id)
     {

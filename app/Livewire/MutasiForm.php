@@ -269,7 +269,15 @@ class MutasiForm extends Component
         $this->dispatch('refreshTable');
         $this->dispatch('focus-tanggal');
         $this->no_mutasi = $this->generateNoMT();
+
+        if ($this->permintaan_id) {
+            return redirect('/permintaan');
+        }
     }
+
+    protected $listeners = [
+        'refreshKodeMutasi' => 'updatedTanggal',
+    ];
 
 
     private function resetForm()
@@ -309,17 +317,30 @@ class MutasiForm extends Component
 
     public function generateNoMT()
     {
-        $tanggal = Carbon::parse($this->tanggal);
-        $year = $tanggal->format('Y');
-        $month = $this->monthToRoman((int)$tanggal->format('n'));
+        return DB::transaction(function () {
+            $tanggal = Carbon::parse($this->tanggal);
+            $year    = $tanggal->format('Y');
+            $month   = $this->monthToRoman((int)$tanggal->format('n'));
 
-        // Hitung urutan MT tahun ini
-        $count = Mutasi::whereYear('tanggal', $year)->count() + 1;
-        $seq = str_pad($count, 4, '0', STR_PAD_LEFT);
+            // lock data mutasi di tahun berjalan
+            $last = \App\Models\Mutasi::whereYear('tanggal', $year)
+                ->lockForUpdate()
+                ->orderByDesc('id')
+                ->first();
 
-        // Format MT
-        return "MT-{$seq}/{$month}/{$year}";
+            // ambil nomor terakhir, kalau belum ada mulai dari 1
+            if ($last && preg_match('/MT-(\d+)\//', $last->no_mutasi, $matches)) {
+                $count = (int) $matches[1] + 1;
+            } else {
+                $count = 1;
+            }
+
+            $seq = str_pad($count, 4, '0', STR_PAD_LEFT);
+
+            return "MT-{$seq}/{$month}/{$year}";
+        });
     }
+
 
     public function updatedTanggal()
     {

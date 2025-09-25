@@ -61,13 +61,18 @@ class PenerimaanTable extends Component
         $penerimaan = Penerimaan::find($id);
 
         if ($penerimaan) {
-            // hapus relasi detail dulu biar aman
+            // update tanggal ke hari ini
+            $penerimaan->tanggal = now();
+            $penerimaan->save();
+
+            // hapus detail & penerimaan
             $penerimaan->details()->delete();
             $penerimaan->delete();
+
             $this->loadData();
 
             session()->flash('message', 'Data penerimaan berhasil dihapus.');
-
+            $this->dispatch('refreshKodepenerimaan');
             $this->dispatch('focus-tanggal');
         }
     }
