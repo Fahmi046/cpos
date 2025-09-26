@@ -39,7 +39,7 @@
             <!-- Detail Obat -->
             <h3 class="font-bold mt-4 mb-2">Detail Obat</h3>
             @foreach ($details as $index => $detail)
-                <div class="grid grid-cols-12 gap-2 mb-2 items-center" wire:key="detail-{{ $index }}">
+                <div class="grid grid-cols-13 gap-2 mb-2 items-center" wire:key="detail-{{ $index }}">
 
                     <!-- Nama Obat AutoComplete -->
                     <div class="relative col-span-4">
@@ -66,16 +66,21 @@
                         @endif
                     </div>
 
-
-
                     <!-- Qty -->
                     <div class="col-span-1">
                         <input type="number" wire:model.live="details.{{ $index }}.qty"
                             x-ref="qty_{{ $index }}"
-                            @keydown.enter.prevent="$refs['checkbox_{{ $index }}']?.focus()" placeholder="Qty"
+                            @keydown.enter.prevent="$refs['isi_{{ $index }}']?.focus()" placeholder="Qty"
                             class="border rounded p-2 w-full text-center" />
                     </div>
 
+                    <!-- Isi Obat -->
+                    <div class="col-span-1">
+                        <input type="number" wire:model.live="details.{{ $index }}.isi_obat"
+                            x-ref="isi_{{ $index }}"
+                            @keydown.enter.prevent="$refs['checkbox_{{ $index }}']?.focus()" placeholder="Isi"
+                            class="border rounded p-2 w-full text-center" />
+                    </div>
 
                     <!-- Harga -->
                     <div class="col-span-2">
@@ -88,7 +93,6 @@
                         <input type="number" wire:model="details.{{ $index }}.jumlah" placeholder="Jumlah"
                             class="border rounded p-2 w-full text-right bg-gray-100" readonly>
                     </div>
-
 
                     <!-- Satuan -->
                     <div class="col-span-1">
@@ -103,7 +107,6 @@
                         <label>Utuh</label>
                     </div>
 
-
                     <!-- Tombol Hapus -->
                     <div class="col-span-1 flex justify-center">
                         <button type="button" wire:click="removeDetail({{ $index }})"
@@ -111,6 +114,7 @@
                     </div>
                 </div>
             @endforeach
+
 
 
             <!-- Tombol Tambah -->

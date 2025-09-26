@@ -28,7 +28,7 @@ class PesananForm extends Component
         $this->tanggal = date('Y-m-d');
         $this->kategori = 'UMUM'; // Default kategori
         $this->details = [
-            ['obat_id' => '', 'qty' => 1, 'harga' => 0, 'jumlah' => 0, 'satuan' => '', 'utuh_satuan' => false]
+            ['obat_id' => '', 'qty' => 1, 'harga' => '', 'jumlah' => '', 'satuan' => '', 'utuh_satuan' => false]
         ];
         $this->obatList = Obat::all();
         $this->no_sp = $this->generateNoSp();
@@ -129,12 +129,10 @@ class PesananForm extends Component
                 if ($this->details[$i]['utuh_satuan']) {
                     // ✅ Kalau centang utuh
                     $this->details[$i]['isi'] = $obat->isi_obat;
-                    $this->details[$i]['qty'] = $obat->isi_obat;
                     $this->details[$i]['satuan'] = $obat->satuan->nama_satuan ?? '';
                 } else {
                     // ✅ Kalau uncheck
                     $this->details[$i]['isi'] = 1;
-                    $this->details[$i]['qty'] = 1;
                     $this->details[$i]['satuan'] = 'PCS';
                 }
             } else {
@@ -292,7 +290,7 @@ class PesananForm extends Component
             $this->details[$index]['obat_id']   = $obat->id;
             $this->details[$index]['nama_obat'] = $obat->nama_obat;
             $this->details[$index]['harga']     = $obat->harga_beli;
-            $this->details[$index]['qty']       = 1;
+            $this->details[$index]['isi_obat']    = $obat->isi_obat;
             $this->details[$index]['jumlah']    = $obat->harga_beli;
 
             // simpan relasi ID
@@ -370,18 +368,19 @@ class PesananForm extends Component
             if (!empty($selected->isi_obat) && $selected->isi_obat > 1) {
                 $this->details[$index]['utuh_satuan'] = true; // ✅ auto-checklist
 
-                // 👉 qty otomatis ikut isi_obat hanya saat pertama kali pilih
-                $this->details[$index]['qty'] = $selected->isi_obat;
+                // 👉 isi_obat otomatis ikut isi_obat hanya saat pertama kali pilih
+                $this->details[$index]['isi_obat'] = $selected->isi_obat;
             } else {
                 $this->details[$index]['utuh_satuan'] = false;
 
-                // qty default 1 kalau tidak ada isi_obat
-                $this->details[$index]['qty'] = 1;
+                // isi_obat default 1 kalau tidak ada isi_obat
+                $this->details[$index]['isi_obat'] = 1;
             }
 
             // hitung jumlah
             $qty = $this->details[$index]['qty'] ?? 1;
-            $this->details[$index]['jumlah'] = $qty * ($this->details[$index]['harga'] ?? 0);
+            $isi_obat = $this->details[$index]['isi_obat'] ?? 1;
+            $this->details[$index]['jumlah'] = ($qty * $isi_obat) * ($this->details[$index]['harga'] ?? 0);
 
             $this->showObatDropdown[$index] = false;
         }
@@ -402,19 +401,20 @@ class PesananForm extends Component
         if (!$obat) return;
 
         if (!empty($detail['utuh_satuan']) && $detail['utuh_satuan']) {
-            $this->details[$index]['qty']       = $obat->isi_obat ?? 1;
+            $this->details[$index]['isi_obat']       = $obat->isi_obat ?? 1;
             $this->details[$index]['satuan_id'] = $obat->satuan_id;
             $this->details[$index]['satuan']    = $obat->satuan->nama_satuan ?? 'SET';
             $this->details[$index]['utuhan']    = true;
         } else {
-            $this->details[$index]['qty']       = 1;
+            $this->details[$index]['isi_obat']       = 1;
             $this->details[$index]['satuan_id'] = $obat->sediaan_id;
             $this->details[$index]['satuan']    = $obat->sediaan->nama_sediaan ?? 'PCS';
             $this->details[$index]['utuhan']    = false;
         }
 
         $qty   = $this->details[$index]['qty'] ?? 1;
+        $isi_obat   = $this->details[$index]['isi_obat'] ?? 1;
         $harga = $this->details[$index]['harga'] ?? 0;
-        $this->details[$index]['jumlah'] = $qty * $harga;
+        $this->details[$index]['jumlah'] = ($qty * $isi_obat) * $harga;
     }
 }
