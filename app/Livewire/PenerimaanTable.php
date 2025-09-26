@@ -34,7 +34,7 @@ class PenerimaanTable extends Component
                         $q->where('nama', 'like', '%' . $this->search . '%');
                     });
             })
-            ->latest('tanggal')
+            ->latest('id')
             ->paginate(10);
 
         return view('livewire.penerimaan-table', [

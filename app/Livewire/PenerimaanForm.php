@@ -295,7 +295,7 @@ class PenerimaanForm extends Component
                 $this->details[$i]['obat_id']   = $obat->id;
                 $this->details[$i]['nama_obat'] = $obat->nama_obat;
                 $this->details[$i]['harga']     = $obat->harga_beli ?? 0;
-                $this->details[$i]['qty']       =  1;
+                $this->details[$i]['qty']       = $d->qty ?? 1;
 
 
                 // relasi

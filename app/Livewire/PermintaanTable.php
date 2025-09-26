@@ -97,7 +97,7 @@ class PermintaanTable extends Component
     public function render()
     {
         $permintaanList = Permintaan::with([
-            'details',   // ambil detail permintaan
+            'details',
             'outlet'
         ])
             ->where(function ($query) {
@@ -107,13 +107,17 @@ class PermintaanTable extends Component
                         $q->where('nama_obat', 'like', '%' . $this->search . '%');
                     });
             })
-            ->latest()
+            // urutkan status pending dulu
+            ->orderByRaw("CASE WHEN status = 'sebagian' OR status = 'pending' THEN 0 ELSE 1 END")
+            // lalu urutkan berdasarkan tanggal dari yang paling lama
+            ->orderBy('tanggal', 'desc')
             ->paginate(5);
 
         return view('livewire.permintaan-table', [
             'permintaanList' => $permintaanList
         ]);
     }
+
 
     public function mount()
     {

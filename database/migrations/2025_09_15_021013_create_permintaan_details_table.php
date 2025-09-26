@@ -17,6 +17,7 @@ return new class extends Migration {
 
             $table->integer('qty_minta')->default(0);   // jumlah diminta
             $table->integer('qty_mutasi')->default(0);  // jumlah yang dipenuhi dari mutasi
+            $table->integer('qty_sisa')->default(0);  // jumlah yang dipenuhi dari sisa
             $table->boolean('utuhan')->default(true);
             $table->string('batch', 100)->nullable();
             $table->date('ed')->nullable();

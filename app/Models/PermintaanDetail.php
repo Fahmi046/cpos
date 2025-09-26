@@ -20,6 +20,7 @@ class PermintaanDetail extends Model
         'pabrik_id',
         'qty_minta',
         'qty_mutasi',
+        'qty_sisa',
         'utuhan',
         'batch',
         'ed',

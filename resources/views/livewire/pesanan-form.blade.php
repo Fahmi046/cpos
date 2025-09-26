@@ -70,8 +70,9 @@
                     <div class="col-span-1">
                         <input type="number" wire:model.live="details.{{ $index }}.qty"
                             x-ref="qty_{{ $index }}"
+                            @input="$wire.details[{{ $index }}].qty = $event.target.value || 0"
                             @keydown.enter.prevent="$refs['isi_{{ $index }}']?.focus()" placeholder="Qty"
-                            class="border rounded p-2 w-full text-center" />
+                            min="0" step="1" class="border rounded p-2 w-full text-center" />
                     </div>
 
                     <!-- Isi Obat -->
