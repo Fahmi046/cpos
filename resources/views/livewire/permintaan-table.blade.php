@@ -25,6 +25,7 @@
                     <th class="px-4 py-3">Outlet</th>
                     <th class="px-4 py-3">Keterangan</th>
                     <th class="px-4 py-3">Detail permintaan</th>
+                    <th class="px-4 py-3">Status</th> <!-- 👈 kolom baru -->
                     <th class="px-4 py-3 text-center">Aksi</th>
                 </tr>
             </thead>
@@ -51,7 +52,6 @@
                             <div class="space-y-2">
                                 @foreach ($permintaan->details as $detail)
                                     <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-                                        <!-- Baris utama -->
                                         <div class="flex justify-between items-center">
                                             <span class="font-semibold text-gray-800">
                                                 {{ $detail->obat->nama_obat ?? '-' }}
@@ -63,8 +63,6 @@
                                                 Rp {{ number_format($detail->harga, 0) }}
                                             </span>
                                         </div>
-
-                                        <!-- Baris tambahan -->
                                         <div class="mt-2 grid grid-cols-3 gap-2 text-xs text-gray-500">
                                             <div>Batch: {{ $detail->batch ?? '-' }}</div>
                                             <div>ED: {{ $detail->ed ?? '-' }}</div>
@@ -77,38 +75,67 @@
                             </div>
                         </td>
 
-                        <!-- Aksi -->
+                        <!-- Status -->
+                        <td class="px-4 py-3">
+                            @if ($permintaan->status === 'pending')
+                                <span
+                                    class="px-2 py-1 text-xs font-semibold text-yellow-700 bg-yellow-100 rounded">Pending</span>
+                            @elseif ($permintaan->status === 'sebagian')
+                                <span
+                                    class="px-2 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded">Sebagian</span>
+                            @elseif ($permintaan->status === 'selesai')
+                                <span
+                                    class="px-2 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded">Selesai</span>
+                            @else
+                                <span class="px-2 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded">-</span>
+                            @endif
+                        </td>
+
                         <!-- Aksi -->
                         <td class="px-4 py-3 flex justify-center space-x-2">
-                            <!-- Tombol Hapus -->
-                            <button wire:click="delete({{ $permintaan->id }})"
-                                class="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition"
-                                title="Hapus">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                            @if ($permintaan->status === 'pending')
+                                <!-- Tombol Hapus -->
+                                <button wire:click="delete({{ $permintaan->id }})"
+                                    class="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition"
+                                    title="Hapus">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
 
-                            <!-- Tombol Tambah Mutasi -->
-                            <a href="{{ route('mutasi.create', ['permintaan_id' => $permintaan->id]) }}"
-                                class="p-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition"
-                                title="Tambahkan Mutasi">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 4v16m8-8H4" />
-                                </svg>
-                            </a>
+                                <!-- Tombol Tambah Mutasi -->
+                                <a href="{{ route('mutasi.create', ['permintaan_id' => $permintaan->id]) }}"
+                                    class="p-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition"
+                                    title="Tambahkan Mutasi">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </a>
+                            @elseif ($permintaan->status === 'sebagian')
+                                <!-- Tombol Tambah Mutasi -->
+                                <a href="{{ route('mutasi.create', ['permintaan_id' => $permintaan->id]) }}"
+                                    class="p-2 bg-blue-100 text-blue-600 rounded-md hover:bg-blue-200 transition"
+                                    title="Tambahkan Mutasi">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </a>
+                            @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-gray-500">Belum ada permintaan stok</td>
+                        <td colspan="8" class="text-center py-4 text-gray-500">Belum ada permintaan stok</td>
                     </tr>
                 @endforelse
             </tbody>
+
         </table>
     </div>
 </div>
