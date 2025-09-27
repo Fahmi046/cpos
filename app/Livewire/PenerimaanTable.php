@@ -35,7 +35,7 @@ class PenerimaanTable extends Component
                     });
             })
             ->latest('id')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('livewire.penerimaan-table', [
             'penerimaanList' => $penerimaanList

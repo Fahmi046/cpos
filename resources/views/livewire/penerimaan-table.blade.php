@@ -106,7 +106,7 @@
     </div>
 
     {{-- Pagination --}}
-    <div class="mt-6">
-        {{ $penerimaanList->links() }}
+    <div class="mt-6 mb-4 flex justify-center">
+        {{ $penerimaanList->links('vendor.pagination.custom') }}
     </div>
 </div>

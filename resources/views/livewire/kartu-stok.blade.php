@@ -160,5 +160,9 @@
                 @endforelse
             </tbody>
         </table>
+        <!-- Tambahkan pagination di sini -->
+        <div class="mt-6 mb-4 flex justify-center">
+            {{ $riwayat->links('vendor.pagination.custom') }}
+        </div>
     </div>
 </div>
