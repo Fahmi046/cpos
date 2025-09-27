@@ -80,7 +80,7 @@
             @forelse ($details as $i => $detail)
                 <div class="grid grid-cols-11 gap-3 items-end border rounded-lg p-3 bg-gray-50">
                     {{-- Obat --}}
-                    <div class="col-span-8 relative">
+                    <div class="col-span-12 relative">
                         <label class="block mb-1 text-xs font-medium text-gray-700">Obat</label>
 
                         <input type="text" placeholder="Cari obat..."
@@ -97,17 +97,18 @@
                                 @foreach ($obatResults[$i] as $index => $ks)
                                     <li wire:click="selectObat({{ $i }}, {{ $ks->obat_id }})"
                                         class="px-2 py-1 cursor-pointer hover:bg-gray-200 {{ $highlightObatIndex[$i] === $index ? 'bg-gray-300' : '' }}">
-                                        {{ $ks->nama_obat ?? '-' }} - Batch: {{ $ks->batch ?? '-' }} -
-                                        ED: {{ $ks->ed ? \Carbon\Carbon::parse($ks->ed)->format('d-m-Y') : '-' }} -
-                                        Stok: {{ $ks->stok ?? '-' }}
+                                        {{ $ks->nama_obat ?? '-' }} –
+                                        Stok: {{ $ks->stok ?? '-' }} –
+                                        {{ $ks->satuan ?? '-' }}
                                     </li>
                                 @endforeach
                             </ul>
                         @endif
+
                     </div>
 
                     {{-- Pabrik --}}
-                    <div class="col-span-2">
+                    <div class="col-span-3">
                         <label class="block mb-1 text-xs font-medium text-gray-700">Pabrik</label>
                         <input type="text" wire:model="details.{{ $i }}.pabrik"
                             class="w-full p-2 border rounded-lg text-center" disabled>
@@ -155,25 +156,6 @@
                             value="{{ number_format($detail['harga'] ?? 0, 0, ',', '.') }}"
                             class="w-full p-2 border rounded-lg text-right" placeholder="0" disabled>
                     </div>
-
-                    {{-- ED --}}
-                    <div class="col-span-2">
-                        <label class="block mb-1 text-xs font-medium text-gray-700">ED</label>
-                        <input type="date" wire:model="details.{{ $i }}.ed"
-                            x-ref="ed_{{ $i }}"
-                            @keydown.enter.prevent="$refs['batch_' + {{ $i }}]?.focus()"
-                            class="w-full p-2 border rounded-lg" disabled>
-                    </div>
-
-                    {{-- Batch --}}
-                    <div class="col-span-2">
-                        <label class="block mb-1 text-xs font-medium text-gray-700">Batch</label>
-                        <input type="text" wire:model="details.{{ $i }}.batch"
-                            x-ref="batch_{{ $i }}"
-                            @keydown.enter.prevent="$refs['qty_' + {{ $i }}]?.focus()"
-                            class="w-full p-2 border rounded-lg" disabled>
-                    </div>
-
                     {{-- Stok --}}
                     <div class="col-span-1">
                         <label class="block mb-1 text-xs font-medium text-gray-700">Stok</label>

@@ -107,16 +107,6 @@ class MutasiForm extends Component
             foreach ($stokList as $stokData) {
                 if ($sisaQty <= 0) break;
 
-                // 🔹 Log debug sementara
-                Log::info('Stok ED terdekat', [
-                    'obat_id' => $obat->id,
-                    'nama_obat' => $obat->nama_obat,
-                    'batch' => $stokData->batch,
-                    'ed' => $stokData->ed,
-                    'stok' => $stokData->stok,
-                    'sisa_qty' => $sisaQty
-                ]);
-
                 $qtyAmbil = min($sisaQty, $stokData->stok);
                 $sisaQty -= $qtyAmbil;
 

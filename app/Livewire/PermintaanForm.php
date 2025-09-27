@@ -278,20 +278,21 @@ class PermintaanForm extends Component
         if ($value) {
             $this->obatResults[$index] = DB::table('kartu_stok as ks')
                 ->join('obat as o', 'ks.obat_id', '=', 'o.id')
+                ->leftJoin('satuan_obat as s', 'o.satuan_id', '=', 's.id')
+                ->leftJoin('bentuk_sediaans as b', 'o.sediaan_id', '=', 'b.id')
                 ->select(
                     'ks.obat_id',
                     'o.nama_obat',
-                    'ks.batch',
-                    'ks.ed',
                     DB::raw("
-            COALESCE(SUM(CASE WHEN ks.jenis = 'masuk' THEN ks.qty ELSE 0 END), 0)
-            - COALESCE(SUM(CASE WHEN ks.jenis = 'keluar' THEN ks.qty ELSE 0 END), 0) as stok
-        ")
+                    COALESCE(SUM(CASE WHEN ks.jenis = 'masuk' THEN ks.qty ELSE 0 END), 0)
+                    - COALESCE(SUM(CASE WHEN ks.jenis = 'keluar' THEN ks.qty ELSE 0 END), 0) as stok
+                "),
+                    DB::raw("COALESCE(s.nama_satuan, b.nama_sediaan) as satuan")
                 )
                 ->where('o.nama_obat', 'like', '%' . $value . '%')
-                ->groupBy('ks.obat_id', 'ks.batch', 'ks.ed', 'o.nama_obat')
+                ->groupBy('ks.obat_id', 'o.nama_obat', 's.nama_satuan', 'b.nama_sediaan')
                 ->having('stok', '>', 0)
-                ->orderBy('ks.ed', 'asc')
+                ->orderBy('o.nama_obat', 'asc')
                 ->limit(10)
                 ->get();
         } else {
@@ -300,6 +301,7 @@ class PermintaanForm extends Component
 
         $this->highlightObatIndex[$index] = 0;
     }
+
 
 
     public function selectObat($index, $obat_id, $batch = null, $ed = null, $stok = 0)
@@ -423,14 +425,14 @@ class PermintaanForm extends Component
 
         $ks = $this->obatResults[$index][$highlight];
 
+        // Panggil selectObat cukup dengan obat_id dan stok total
         $this->selectObat(
             $index,
             $ks->obat_id,
-            $ks->batch,
-            $ks->ed,
-            $ks->stok
+            stok: $ks->stok
         );
     }
+
 
     public function addDetail()
     {
