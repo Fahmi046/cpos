@@ -13,19 +13,21 @@ class PesananTable extends Component
 {
     use WithPagination;
 
-    protected $listeners = ['refreshTable' => 'loadData'];
+    protected $paginationTheme = 'tailwind';
+    protected $listeners = ['refreshTable' => '$refresh'];
 
     public $search = '';
     public $selectedId;
     public $no_sp, $tanggal, $kategori = '';
-    public $details = []; // Tambahkan deklarasi property details
+    public $details = [];
 
-    protected $paginationTheme = 'tailwind';
-
+    // Reset halaman saat search berubah
     public function updatingSearch()
     {
         $this->resetPage();
     }
+
+    // Edit pesanan
     public function edit($id)
     {
         $this->selectedId = $id;
@@ -48,19 +50,19 @@ class PesananTable extends Component
         $this->dispatch('focus-tanggal');
     }
 
-
-
+    // Delete pesanan
     public function delete($id)
     {
         $pesanan = Pesanan::findOrFail($id);
         $pesanan->details()->delete();
         $pesanan->delete();
-        $this->loadData();
-        session()->flash('message', 'Pesanan berhasil dihapus.');
 
+        session()->flash('message', 'Pesanan berhasil dihapus.');
         $this->dispatch('refreshKodepesanan');
         $this->dispatch('focus-tanggal');
     }
+
+    // Export Excel
     public function exportExcel()
     {
         $tanggal = Carbon::today()->format('Y-m-d');
@@ -69,10 +71,11 @@ class PesananTable extends Component
         return Excel::download(new PesananExport($this->search), $fileName);
     }
 
+    // Render tabel dengan pagination
     public function render()
     {
         $pesananList = Pesanan::with(['details.obat'])
-            ->withExists('penerimaan') // otomatis bikin kolom boolean: penerimaan_exists
+            ->withExists('penerimaan')
             ->where(function ($query) {
                 $query->where('no_sp', 'like', '%' . $this->search . '%')
                     ->orWhere('tanggal', 'like', '%' . $this->search . '%')
@@ -88,18 +91,7 @@ class PesananTable extends Component
         ]);
     }
 
-    public function mount()
-    {
-        $this->loadData();
-    }
-
-    public $pesanans;
-
-    public function loadData()
-    {
-        $this->pesanans = Pesanan::orderBy('no_sp')->get();
-    }
-
+    // Print
     public function print($id)
     {
         return redirect()->route('pesanan.print', $id);
