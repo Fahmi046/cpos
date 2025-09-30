@@ -45,7 +45,7 @@ class ObatTable extends Component
                     ->orWhere('nama_obat', 'like', '%' . $this->search . '%');
             })
             ->orderBy('id', 'desc')
-            ->paginate(10);
+            ->paginate(4);
 
         return view('livewire.obat-table', [
             'obats' => $obats,

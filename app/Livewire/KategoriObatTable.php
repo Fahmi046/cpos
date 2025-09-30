@@ -4,10 +4,17 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\KategoriObat;
+use Livewire\WithPagination;
 
 class KategoriObatTable extends Component
 {
     protected $listeners = ['kategori-updated' => '$loadData'];
+
+    use WithPagination;
+
+    // opsional: atur theme pagination (default pakai Tailwind)
+    protected string $paginationTheme = 'tailwind';
+
 
     public function delete($id)
     {
@@ -22,9 +29,10 @@ class KategoriObatTable extends Component
     public function render()
     {
         return view('livewire.kategori-obat-table', [
-            'kategoriObat' => KategoriObat::latest()->get(),
+            'kategoriObat' => \App\Models\KategoriObat::latest()->paginate(10),
         ]);
     }
+
 
     public function mount()
     {
