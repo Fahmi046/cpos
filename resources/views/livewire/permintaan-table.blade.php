@@ -57,18 +57,14 @@
                                                 {{ $detail->obat->nama_obat ?? '-' }}
                                             </span>
                                             <span class="text-sm font-medium text-gray-600">
-                                                Qty: {{ $detail->qty_minta }}
+                                                {{ $detail->qty_minta }}
+                                                {{ $detail->utuhan ? $detail->satuan->nama_satuan ?? '-' : $detail->sediaan->nama_sediaan ?? '-' }}
                                             </span>
                                             <span class="text-sm font-bold text-indigo-600">
                                                 Rp {{ number_format($detail->harga, 0) }}
                                             </span>
                                         </div>
                                         <div class="mt-2 grid grid-cols-3 gap-2 text-xs text-gray-500">
-                                            <div>Batch: {{ $detail->batch ?? '-' }}</div>
-                                            <div>ED: {{ $detail->ed ?? '-' }}</div>
-                                            <div>
-                                                {{ $detail->utuhan ? $detail->satuan->nama_satuan ?? '-' : $detail->sediaan->nama_sediaan ?? '-' }}
-                                            </div>
                                         </div>
                                     </div>
                                 @endforeach
