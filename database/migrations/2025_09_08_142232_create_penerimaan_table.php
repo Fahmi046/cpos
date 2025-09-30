@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('kreditur_id')->constrained('kreditur')->onDelete('cascade');
             $table->date('tanggal');
             $table->string('no_penerimaan')->unique();
-            $table->enum('jenis_bayar', ['Cash', 'Kredit']);
+            $table->enum('jenis_bayar', ['Cash', 'Kredit', 'Konsinyasi']);
             $table->string('no_faktur')->nullable();
             $table->integer('tenor')->nullable();
             $table->date('jatuh_tempo')->nullable();

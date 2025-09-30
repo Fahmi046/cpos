@@ -162,7 +162,7 @@ class PenerimaanForm extends Component
         $this->validate([
             'pesanan_id' => 'required|exists:pesanan,id',
             'tanggal'    => 'required|date',
-            'jenis_bayar' => 'required|in:Cash,Kredit',
+            'jenis_bayar' => 'required|in:Cash,Kredit,Konsinyasi',
 
             'details'                 => 'required|array|min:1',
             'details.*.obat_id'       => 'required|exists:obat,id',
@@ -500,15 +500,23 @@ class PenerimaanForm extends Component
     {
         if ($this->jenis_bayar === 'Kredit') {
             $this->tenor = 30;
-            $this->jatuh_tempo = \Carbon\Carbon::parse($this->tanggal)->addDays(30)->format('Y-m-d');
+            $this->jatuh_tempo = \Carbon\Carbon::parse($this->tanggal)
+                ->addDays(30)
+                ->format('Y-m-d');
         } elseif ($this->jenis_bayar === 'Cash') {
             $this->tenor = 0;
-            $this->jatuh_tempo = \Carbon\Carbon::parse($this->tanggal)->format('Y-m-d');
+            $this->jatuh_tempo = \Carbon\Carbon::parse($this->tanggal)
+                ->format('Y-m-d');
+        } elseif ($this->jenis_bayar === 'Konsinyasi') {
+            // Konsinyasi default tanpa tenor, jatuh tempo bisa diatur manual
+            $this->tenor = null;
+            $this->jatuh_tempo = null;
         } else {
             $this->tenor = null;
             $this->jatuh_tempo = null;
         }
     }
+
     public $dpp = 0, $ppn = 0, $total = 0;
 
     // Dipanggil kalau jenis_ppn berubah

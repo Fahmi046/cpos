@@ -105,6 +105,7 @@
                         <option value="">-- Pilih --</option>
                         <option value="Cash">CASH</option>
                         <option value="Kredit">KREDIT</option>
+                        <option value="Konsinyasi">KONSINYASI</option>
                     </select>
                 </div>
 
