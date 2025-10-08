@@ -3,16 +3,19 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Models\Komposisi;
 
 class KomposisiTable extends Component
 {
-    protected $listeners = ['refreshTable' => 'loadData'];
+    use WithPagination;
+
+    protected $listeners = ['refreshTable' => '$refresh'];
 
     public function delete($id)
     {
-        Komposisi::find($id)->delete();
-        $this->loadData();
+        Komposisi::findOrFail($id)->delete();
+
         session()->flash('message', 'Komposisi berhasil dihapus.');
 
         $this->dispatch('refreshKodeKomposisi');
@@ -21,19 +24,8 @@ class KomposisiTable extends Component
 
     public function render()
     {
-        $komposisis = Komposisi::orderBy('nama_komposisi')->get();
+        $komposisis = Komposisi::orderBy('nama_komposisi')->paginate(10);
+
         return view('livewire.komposisi-table', compact('komposisis'));
-    }
-
-
-    public function mount()
-    {
-        $this->loadData();
-    }
-
-    public $komposisis;
-    public function loadData()
-    {
-        $this->komposisis = Komposisi::orderBy('nama_komposisi')->get();
     }
 }

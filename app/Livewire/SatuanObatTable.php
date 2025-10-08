@@ -4,10 +4,13 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\SatuanObat;
+use Livewire\WithPagination;
 
 class SatuanObatTable extends Component
 {
     protected $listeners = ['refreshTable' => '$refresh'];
+
+    use WithPagination;
 
     public function delete($id)
     {
@@ -21,7 +24,7 @@ class SatuanObatTable extends Component
     public function render()
     {
         return view('livewire.satuan-obat-table', [
-            'satuans' => SatuanObat::orderBy('id', 'desc')->get()
+            'satuans' => SatuanObat::orderBy('id', 'desc')->paginate(10), // tampil 10 per halaman
         ]);
     }
 }

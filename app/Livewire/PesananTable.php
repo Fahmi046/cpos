@@ -2,29 +2,32 @@
 
 namespace App\Livewire;
 
+use Carbon\Carbon;
+use App\Models\Pesanan;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Pesanan;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PesananExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PesananTable extends Component
 {
     use WithPagination;
 
-    protected $listeners = ['refreshTable' => 'loadData'];
+    protected $paginationTheme = 'tailwind';
+    protected $listeners = ['refreshTable' => '$refresh'];
 
     public $search = '';
     public $selectedId;
     public $no_sp, $tanggal, $kategori = '';
-    public $details = []; // Tambahkan deklarasi property details
+    public $details = [];
 
-    protected $paginationTheme = 'tailwind';
-
+    // Reset halaman saat search berubah
     public function updatingSearch()
     {
         $this->resetPage();
     }
+
+    // Edit pesanan
     public function edit($id)
     {
         $this->selectedId = $id;
@@ -47,28 +50,32 @@ class PesananTable extends Component
         $this->dispatch('focus-tanggal');
     }
 
-
-
+    // Delete pesanan
     public function delete($id)
     {
         $pesanan = Pesanan::findOrFail($id);
         $pesanan->details()->delete();
         $pesanan->delete();
-        $this->loadData();
-        session()->flash('message', 'Pesanan berhasil dihapus.');
 
+        session()->flash('message', 'Pesanan berhasil dihapus.');
         $this->dispatch('refreshKodepesanan');
         $this->dispatch('focus-tanggal');
     }
 
+    // Export Excel
     public function exportExcel()
     {
-        return Excel::download(new PesananExport($this->search), 'pesanan.xlsx');
+        $tanggal = Carbon::today()->format('Y-m-d');
+        $fileName = "pesanan_{$tanggal}.xlsx";
+
+        return Excel::download(new PesananExport($this->search), $fileName);
     }
 
+    // Render tabel dengan pagination
     public function render()
     {
-        $pesananList = Pesanan::with('details.obat')
+        $pesananList = Pesanan::with(['details.obat'])
+            ->withExists('penerimaan')
             ->where(function ($query) {
                 $query->where('no_sp', 'like', '%' . $this->search . '%')
                     ->orWhere('tanggal', 'like', '%' . $this->search . '%')
@@ -84,15 +91,9 @@ class PesananTable extends Component
         ]);
     }
 
-    public function mount()
+    // Print
+    public function print($id)
     {
-        $this->loadData();
-    }
-
-    public $pesanans;
-
-    public function loadData()
-    {
-        $this->pesanans = Pesanan::orderBy('no_sp')->get();
+        return redirect()->route('pesanan.print', $id);
     }
 }

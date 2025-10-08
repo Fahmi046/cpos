@@ -29,6 +29,7 @@
             $this->details = [
                 ['obat_id' => '', 'qty' => 1, 'harga' => 0, 'jumlah' => 0]
             ];
+            $this->obatList = Obat::all();
             $this->no_sp = $this->generateNoSp();
         }
 
@@ -88,7 +89,7 @@
 
         public function addDetail()
         {
-            $this->details[] = ['obat_id' => '', 'qty' => '', 'harga' => 0, 'jumlah' => 0];
+            $this->details[] = ['obat_id' => '', 'qty' => 1, 'harga' => 0, 'jumlah' => 0];
             $lastIndex = count($this->details) - 1;
 
             $this->dispatch('focus-row', index: $lastIndex);
@@ -99,10 +100,12 @@
             unset($this->details[$index]);
             $this->details = array_values($this->details);
         }
+
         public function updatedDetails($value, $name)
         {
             foreach ($this->details as $i => $detail) {
 
+                // Jika obat_id berubah → ambil data obat dari DB
                 if (!empty($detail['obat_id'])) {
                     $obat = Obat::find($detail['obat_id']);
                     if ($obat) {
@@ -112,9 +115,10 @@
                     }
                 }
 
-                // Pastikan numeric
-                $qty   = (float)($detail['qty'] ?? 0);
-                $harga = (float)($detail['harga'] ?? 0);
+                // Hitung jumlah otomatis saat qty atau harga berubah
+                $qty = $detail['qty'] ?? 0;
+                $harga = $detail['harga'] ?? 0;
+                $isi = $detail['isi'] ?? 1;
 
                 $this->details[$i]['jumlah'] = $qty * $harga;
             }
@@ -171,7 +175,7 @@
             $this->tanggal = date('Y-m-d');
             $this->kategori = 'UMUM';
             $this->details = [
-                ['obat_id' => '', 'qty' => '', 'harga' => 0, 'jumlah' => 0]
+                ['obat_id' => '', 'qty' => 1, 'harga' => 0, 'jumlah' => 0]
             ];
             $this->no_sp = $this->generateNoSp();
         }
@@ -200,7 +204,7 @@
                     'nama_obat' => $detail->obat->nama_obat ?? '',
                     'qty' => $detail->qty,
                     'harga' => $detail->harga,
-                    'isi' => $detail->obat->isi_obat ?? '',
+                    'isi' => $detail->obat->isi ?? '',
                     'satuan' => $detail->obat->satuan->nama_satuan ?? '',
                     'jumlah' => $detail->jumlah,
                 ];
@@ -286,6 +290,7 @@
 
         public function selectHighlightedObat($index)
         {
+            // Default index ke 0 kalau belum ada
             if (!isset($this->highlightedIndex[$index])) {
                 $this->highlightedIndex[$index] = 0;
             }
@@ -293,16 +298,18 @@
             if (!empty($this->obatSearch[$index])) {
                 $selected = $this->obatSearch[$index][$this->highlightedIndex[$index]];
 
+                // Isi detail obat
                 $this->details[$index]['obat_id'] = $selected->id;
                 $this->details[$index]['nama_obat'] = $selected->nama_obat;
                 $this->details[$index]['harga'] = $selected->harga_jual ?? 0;
                 $this->details[$index]['isi'] = $selected->isi_obat ?? 0;
                 $this->details[$index]['satuan'] = $selected->satuan?->nama_satuan ?? '';
 
-                $qty   = (float)($this->details[$index]['qty'] ?? 0);
-                $harga = (float)($this->details[$index]['harga'] ?? 0);
-                $this->details[$index]['jumlah'] = $qty * $harga;
+                // Hitung jumlah awal (qty * harga)
+                $qty = $this->details[$index]['qty'] ?? 1; // Default 1 kalau kosong
+                $this->details[$index]['jumlah'] = $qty * ($this->details[$index]['harga'] ?? 0);
 
+                // Tutup dropdown
                 $this->showObatDropdown[$index] = false;
             }
         }

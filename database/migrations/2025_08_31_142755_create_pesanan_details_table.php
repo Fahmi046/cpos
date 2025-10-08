@@ -13,12 +13,25 @@ return new class extends Migration
     {
         Schema::create('pesanan_detail', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pesanan_id')->constrained('pesanan')->onDelete('cascade');
-            $table->foreignId('obat_id')->constrained('obat')->onDelete('cascade');
-            $table->integer('qty');
-            $table->integer('harga');
-            $table->integer('jumlah');
+            $table->unsignedBigInteger('pesanan_id');
+            $table->unsignedBigInteger('obat_id');
+            $table->unsignedBigInteger('satuan_id')->nullable();
+            $table->unsignedBigInteger('sediaan_id')->nullable();
+            $table->unsignedBigInteger('pabrik_id')->nullable();
+            $table->unsignedBigInteger('kreditur_id'); // ✅ Tambahan kolom kreditur_id
+            $table->integer('qty')->default(1);
+            $table->decimal('harga', 15, 0)->default(0);
+            $table->decimal('jumlah', 15, 0)->default(0);
+            $table->boolean('utuhan')->default(0); // ✅ ceklist / boolean
             $table->timestamps();
+
+            // foreign key
+            $table->foreign('pesanan_id')->references('id')->on('pesanan')->onDelete('cascade');
+            $table->foreign('obat_id')->references('id')->on('obat')->onDelete('cascade');
+            $table->foreign('satuan_id')->references('id')->on('satuan_obat')->onDelete('set null');
+            $table->foreign('sediaan_id')->references('id')->on('bentuk_sediaans')->onDelete('set null');
+            $table->foreign('pabrik_id')->references('id')->on('pabrik')->onDelete('set null');
+            $table->foreign('kreditur_id')->references('id')->on('kreditur')->onDelete('cascade'); // relasi kreditur
         });
     }
 
@@ -27,6 +40,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pesanan_details');
+        Schema::dropIfExists('pesanan_detail');
     }
 };

@@ -1,6 +1,8 @@
 <?php
 
+use App\Livewire\MutasiForm;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PesananController;
 
 Route::get('/', function () {
     return view('pages.home');
@@ -37,6 +39,32 @@ Route::get('/pesanan', function () {
     return view('pages.pesanan');
 });
 
+<<<<<<< HEAD
 Route::get('/penerimaan', function () {
     return view('pages.penerimaan');
 })->name('penerimaan.index');
+=======
+Route::get('/pesanan/{id}/print', [PesananController::class, 'print'])->name('pesanan.print');
+
+Route::get('/penerimaan', function () {
+    return view('pages.penerimaan');
+});
+
+Route::get('/kartu-stok', function () {
+    return view('pages.kartu-stok');
+});
+
+Route::get('/outlet', function () {
+    return view('pages.outlet');
+});
+
+Route::get('/mutasi', function () {
+    return view('pages.mutasi');
+});
+Route::get('/permintaan', function () {
+    return view('pages.permintaan');
+});
+Route::get('/mutasi/create', function () {
+    return view('pages.mutasi-create');
+})->name('mutasi.create');
+>>>>>>> a6879b3d8a04fa55e917541481729894e862d110

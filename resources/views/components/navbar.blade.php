@@ -73,13 +73,19 @@
                                     class="{{ request()->is('kreditur')
                                         ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Kreditur</a>
+                                <a href="/outlet"
+                                    class="{{ request()->is('outlet')
+                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
+                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                    Outlet
+                                </a>
                             </div>
                         </div>
-                        {{--  Pembelian  --}}
+                        {{--  Penyediaan  --}}
                         <div x-data="{ open: false }" class="relative">
                             <button @click="open = !open"
                                 class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-1">
-                                Pembelian
+                                Penyediaan
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                     stroke-width="1.5" stroke="currentColor" class="size-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
@@ -98,7 +104,29 @@
                                     class="{{ request()->is('penerimaan')
                                         ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+<<<<<<< HEAD
                                     Penerimaan Barang
+=======
+                                    Penerimaan
+                                </a>
+                                <a href="/kartu-stok"
+                                    class="{{ request()->is('kartu-stok')
+                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
+                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                    Kartu Stok
+                                </a>
+                                <a href="/permintaan"
+                                    class="{{ request()->is('permintaan')
+                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
+                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                    Permintaan Outlet
+                                </a>
+                                <a href="/mutasi"
+                                    class="{{ request()->is('mutasi')
+                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
+                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                    Mutasi Stok
+>>>>>>> a6879b3d8a04fa55e917541481729894e862d110
                                 </a>
                             </div>
                         </div>

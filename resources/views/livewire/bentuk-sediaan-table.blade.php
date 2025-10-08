@@ -1,38 +1,79 @@
-<div>
-    {{-- To attain knowledge, add things every day; To attain wisdom, subtract things every day. --}}
-    <div class="p-4 bg-white rounded shadow mt-4">
-        <h2 class="text-lg font-bold mb-2">Daftar Bentuk Sediaan</h2>
-        <table class="w-full border">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="border p-2">Kode</th>
-                    <th class="border p-2">Nama</th>
-                    <th class="border p-2">Deskripsi</th>
-                    <th class="border p-2">Aktif</th>
-                    <th class="border p-2">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($sediaans as $item)
-                    <tr>
-                        <td class="border p-2">{{ $item->kode_sediaan }}</td>
-                        <td class="border p-2">{{ $item->nama_sediaan }}</td>
-                        <td class="border p-2">{{ $item->deskripsi }}</td>
-                        <td class="border p-2">{{ $item->aktif ? 'Ya' : 'Tidak' }}</td>
-                        <td class="border p-2">
-                            <button wire:click="$dispatch('edit-sediaan', { id: {{ $item->id }} })"
-                                class="px-2 py-1 bg-yellow-500 text-white rounded">Edit</button>
-                            <button wire:click="delete({{ $item->id }})"
-                                class="px-2 py-1 bg-red-600 text-white rounded">Hapus</button>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center p-2">Belum ada data</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+<div class="mt-6 bg-white rounded-md shadow-md overflow-x-auto">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4 px-4">💊 Bentuk Sediaan</h2>
 
+    <table class="w-full text-sm text-left border-collapse">
+        <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+            <tr>
+                <th class="px-4 py-3">Kode</th>
+                <th class="px-4 py-3">Nama</th>
+                <th class="px-4 py-3">Deskripsi</th>
+                <th class="px-4 py-3 text-center">Aktif</th>
+                <th class="px-4 py-3 text-center">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($sediaans as $item)
+                <tr class="hover:bg-gray-50 transition">
+                    <!-- Kode -->
+                    <td class="px-4 py-3 font-medium text-gray-800">
+                        {{ $item->kode_sediaan }}
+                    </td>
+
+                    <!-- Nama -->
+                    <td class="px-4 py-3">
+                        {{ $item->nama_sediaan }}
+                    </td>
+
+                    <!-- Deskripsi -->
+                    <td class="px-4 py-3 text-gray-600">
+                        {{ $item->deskripsi }}
+                    </td>
+
+                    <!-- Aktif -->
+                    <td class="px-4 py-3 text-center">
+                        <span
+                            class="px-2 py-1 text-xs rounded-md
+                            {{ $item->aktif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                            {{ $item->aktif ? 'Ya' : 'Tidak' }}
+                        </span>
+                    </td>
+
+                    <!-- Aksi -->
+                    <td class="px-4 py-3 flex justify-center space-x-2">
+                        <!-- Edit -->
+                        <button wire:click="$dispatch('edit-sediaan', { id: {{ $item->id }} })"
+                            class="p-2 bg-yellow-100 text-yellow-600 rounded-md hover:bg-yellow-200 transition"
+                            title="Edit">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-2 2h.01" />
+                            </svg>
+                        </button>
+
+                        <!-- Hapus -->
+                        <button wire:click="delete({{ $item->id }})"
+                            class="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition" title="Hapus">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-gray-500">
+                        Belum ada bentuk sediaan
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="mt-6 mb-4 flex justify-center">
+        {{ $sediaans->links('vendor.pagination.custom') }}
+    </div>
 </div>

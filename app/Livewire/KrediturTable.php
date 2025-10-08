@@ -14,22 +14,22 @@ class KrediturTable extends Component
 
     protected $updatesQueryString = ['search'];
 
+    protected $listeners = ['refreshTable' => '$refresh'];
+
+    // Reset halaman ketika pencarian berubah
     public function updatingSearch()
     {
         $this->resetPage();
     }
 
-    protected $listeners = ['refreshTable' => '$refresh'];
-
     public function render()
     {
-        $krediturs = Kreditur::where('nama', 'like', "%{$this->search}%")
+        $krediturs = Kreditur::query()
+            ->where('nama', 'like', "%{$this->search}%")
             ->orderBy('nama')
             ->paginate(10);
 
-        return view('livewire.kreditur-table', [
-            'krediturs' => $krediturs,
-        ]);
+        return view('livewire.kreditur-table', compact('krediturs'));
     }
 
     public function delete($id)
@@ -38,6 +38,7 @@ class KrediturTable extends Component
 
         session()->flash('message', 'Kreditur berhasil dihapus.');
 
+        // Trigger event agar form tambah/edit update otomatis
         $this->dispatch('refreshKodeKreditur');
         $this->dispatch('focus-nama');
     }
