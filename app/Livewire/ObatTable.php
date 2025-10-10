@@ -40,17 +40,21 @@ class ObatTable extends Component
     public function render()
     {
         $obats = Obat::with(['kategori', 'sediaan', 'komposisi', 'satuan', 'pabrik'])
-            ->where(function ($q) {
-                $q->where('kode_obat', 'like', '%' . $this->search . '%')
-                    ->orWhere('nama_obat', 'like', '%' . $this->search . '%');
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->where('kode_obat', 'like', '%' . $this->search . '%')
+                        ->orWhere('nama_obat', 'like', '%' . $this->search . '%');
+                });
             })
             ->orderBy('id', 'desc')
             ->paginate(4);
+
 
         return view('livewire.obat-table', [
             'obats' => $obats,
         ]);
     }
+
 
 
     public function exportExcel()

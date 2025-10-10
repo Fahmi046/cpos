@@ -18,23 +18,72 @@ class ObatImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
-            $kategori = KategoriObat::where('nama_kategori', $row['kategori'])->first();
-            $sediaan = BentukSediaan::where('nama_sediaan', $row['sediaan'])->first();
-            $komposisi = Komposisi::where('nama_komposisi', $row['komposisi'])->first();
-            $satuan = SatuanObat::where('nama_satuan', $row['satuan'])->first();
-            $pabrik = Pabrik::where('nama_pabrik', $row['pabrik'])->first();
-            $kreditur = Kreditur::where('nama', $row['kreditur'])->first();
 
+            // 🔹 Kategori
+            $kategori = KategoriObat::firstOrCreate(
+                ['nama_kategori' => trim($row['kategori'] ?? '-')],
+                [
+                    'kode_kategori' => $this->generateKodeKategori(),
+                    'aktif' => 1,
+                ]
+            );
+
+            // 🔹 Sediaan
+            $sediaan = BentukSediaan::firstOrCreate(
+                ['nama_sediaan' => trim($row['sediaan'] ?? '-')],
+                [
+                    'kode_sediaan' => $this->generateKodeSediaan(),
+                    'aktif' => 1,
+                ]
+            );
+
+            // 🔹 Komposisi
+            $komposisi = Komposisi::firstOrCreate(
+                ['nama_komposisi' => trim($row['komposisi'] ?? '-')],
+                [
+                    'kode_komposisi' => $this->generateKodeKomposisi(),
+                    'aktif' => 1,
+                ]
+            );
+
+            // 🔹 Satuan
+            $satuan = SatuanObat::firstOrCreate(
+                ['nama_satuan' => trim($row['satuan'] ?? '-')],
+                [
+                    'kode_satuan' => $this->generateKodeSatuan(),
+                    'aktif' => 1,
+                ]
+            );
+
+            // 🔹 Pabrik
+            $pabrik = Pabrik::firstOrCreate(
+                ['nama_pabrik' => trim($row['pabrik'] ?? '-')],
+                [
+                    'kode_pabrik' => $this->generateKodePabrik(),
+                    'aktif' => 1,
+                ]
+            );
+
+            // 🔹 Kreditur
+            $kreditur = Kreditur::firstOrCreate(
+                ['nama' => trim($row['kreditur'] ?? '-')],
+                [
+                    'kode_kreditur' => $this->generateKodeKreditur(),
+                    'aktif' => 1,
+                ]
+            );
+
+            // 🔹 Simpan / update data obat
             Obat::updateOrCreate(
                 ['kode_obat' => $row['kode_obat'] ?? $this->generateKodeObat()],
                 [
-                    'nama_obat'    => $row['nama_obat'],
-                    'kategori_id'  => $kategori?->id,
-                    'sediaan_id'   => $sediaan?->id,
-                    'komposisi_id' => $komposisi?->id,
-                    'satuan_id'    => $satuan?->id,
-                    'pabrik_id'    => $pabrik?->id,
-                    'kreditur_id'  => $kreditur?->id,
+                    'nama_obat'    => trim($row['nama_obat']),
+                    'kategori_id'  => $kategori->id,
+                    'sediaan_id'   => $sediaan->id,
+                    'komposisi_id' => $komposisi->id,
+                    'satuan_id'    => $satuan->id,
+                    'pabrik_id'    => $pabrik->id,
+                    'kreditur_id'  => $kreditur->id,
                     'harga_beli'   => $row['harga_beli'] ?? 0,
                     'harga_jual'   => $row['harga_jual'] ?? 0,
                     'isi_obat'     => $row['isi_obat'] ?? null,
@@ -49,10 +98,55 @@ class ObatImport implements ToCollection, WithHeadingRow
         }
     }
 
+    // =========================
+    // 🔹 Kode Generator Section
+    // =========================
     private function generateKodeObat(): string
     {
         $last = Obat::orderBy('id', 'desc')->first();
-        $nextNumber = $last ? intval(substr($last->kode_obat, 4)) + 1 : 1;
-        return '0010' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+        $next = $last ? intval(substr($last->kode_obat, 4)) + 1 : 1;
+        return 'OBT' . str_pad($next, 6, '0', STR_PAD_LEFT);
+    }
+
+    private function generateKodeKategori(): string
+    {
+        $last = KategoriObat::orderBy('id', 'desc')->first();
+        $next = $last ? intval(substr($last->kode_kategori, 3)) + 1 : 1;
+        return 'KAT' . str_pad($next, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function generateKodeSediaan(): string
+    {
+        $last = BentukSediaan::orderBy('id', 'desc')->first();
+        $next = $last ? intval(substr($last->kode_sediaan, 3)) + 1 : 1;
+        return 'SED' . str_pad($next, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function generateKodeKomposisi(): string
+    {
+        $last = Komposisi::orderBy('id', 'desc')->first();
+        $next = $last ? intval(substr($last->kode_komposisi, 3)) + 1 : 1;
+        return 'KOM' . str_pad($next, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function generateKodeSatuan(): string
+    {
+        $last = SatuanObat::orderBy('id', 'desc')->first();
+        $next = $last ? intval(substr($last->kode_satuan, 3)) + 1 : 1;
+        return 'SAT' . str_pad($next, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function generateKodePabrik(): string
+    {
+        $last = Pabrik::orderBy('id', 'desc')->first();
+        $next = $last ? intval(substr($last->kode_pabrik, 3)) + 1 : 1;
+        return 'PAB' . str_pad($next, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function generateKodeKreditur(): string
+    {
+        $last = Kreditur::orderBy('id', 'desc')->first();
+        $next = $last ? intval(substr($last->kode_kreditur, 3)) + 1 : 1;
+        return 'KRD' . str_pad($next, 4, '0', STR_PAD_LEFT);
     }
 }
