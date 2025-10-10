@@ -69,12 +69,12 @@ class PenerimaanDetail extends Model
                 'sediaan_id'           => $detail->sediaan_id,
                 'pabrik_id'            => $detail->pabrik_id,
                 'penerimaan_id'        => $detail->penerimaan_id,
-                'penerimaan_detail_id' => $detail->id, // tambahkan ini
+                'penerimaan_detail_id' => $detail->id,
                 'mutasi_id'            => null,
                 'mutasi_detail_id'     => null,
                 'jenis'                => 'masuk',
                 'qty'                  => $detail->qty,
-                'utuhan'               => $detail->utuhan,
+                'utuhan'               => $detail->utuhan ?? 0, // ✅ default jika null
                 'ed'                   => $detail->ed,
                 'batch'                => $detail->batch,
                 'tanggal'              => $detail->penerimaan->tanggal,
@@ -91,7 +91,7 @@ class PenerimaanDetail extends Model
                     'sediaan_id' => $detail->sediaan_id,
                     'pabrik_id'  => $detail->pabrik_id,
                     'qty'        => $detail->qty,
-                    'utuhan'     => $detail->utuhan,
+                    'utuhan'     => $detail->utuhan ?? 0, // ✅ default juga di update
                     'ed'         => $detail->ed,
                     'batch'      => $detail->batch,
                     'tanggal'    => $detail->penerimaan->tanggal,

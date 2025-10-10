@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Carbon\Carbon;
 use App\Models\Pesanan;
 use Livewire\Component;
+use App\Models\Kreditur;
 use App\Models\Penerimaan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,7 +42,7 @@ class PenerimaanForm extends Component
         $this->highlightObatIndex = [0];
 
         // reset search pesanan
-        $this->search = '';
+        $this->no_sp = '';
         $this->pesananList = [];
         $this->highlightIndex = 0;
 
@@ -156,11 +157,10 @@ class PenerimaanForm extends Component
     }
 
 
-
     public function save()
     {
         $this->validate([
-            'pesanan_id' => 'required|exists:pesanan,id',
+            'pesanan_id' => 'nullable|exists:pesanan,id',
             'tanggal'    => 'required|date',
             'jenis_bayar' => 'required|in:Cash,Kredit,Konsinyasi',
 
@@ -168,7 +168,7 @@ class PenerimaanForm extends Component
             'details.*.obat_id'       => 'required|exists:obat,id',
             'details.*.pabrik_id'     => 'nullable|exists:pabrik,id',
             'details.*.satuan_id'     => 'required|exists:satuan_obat,id',
-            'details.*.sediaan_id'    => 'nullable|exists:bentuk_sediaans,id', // ✅ perbaikan
+            'details.*.sediaan_id'    => 'nullable|exists:bentuk_sediaans,id',
             'details.*.qty'           => 'required|numeric|min:1',
             'details.*.ed'            => 'nullable|date',
             'details.*.batch'         => 'nullable|string|max:50',
@@ -179,11 +179,29 @@ class PenerimaanForm extends Component
         ]);
 
         try {
+            // 🔍 Debug awal
+            Log::info('Data sebelum simpan:', [
+                'header' => [
+                    'pesanan_id'   => $this->pesanan_id,
+                    'tanggal'      => $this->tanggal,
+                    'jenis_bayar'  => $this->jenis_bayar,
+                    'kreditur_id'  => $this->kreditur_id,
+                    'no_faktur'    => $this->no_faktur,
+                    'tenor'        => $this->tenor,
+                    'jatuh_tempo'  => $this->jatuh_tempo,
+                    'jenis_ppn'    => $this->jenis_ppn,
+                    'dpp'          => $this->dpp,
+                    'ppn'          => $this->ppn,
+                    'total'        => $this->total,
+                ],
+                'details' => $this->details,
+            ]);
+
             DB::transaction(function () {
                 $penerimaan = Penerimaan::updateOrCreate(
                     ['id' => $this->penerimaan_id],
                     [
-                        'pesanan_id'    => $this->pesanan_id,
+                        'pesanan_id' => $this->pesanan_id ?: null,
                         'tanggal'       => $this->tanggal,
                         'no_penerimaan' => $this->no_penerimaan,
                         'jenis_bayar'   => $this->jenis_bayar,
@@ -199,25 +217,33 @@ class PenerimaanForm extends Component
                 );
 
                 foreach ($this->details as $row) {
+                    // 🔍 Debug per detail
+                    Log::info('Simpan detail penerimaan:', $row);
+
                     $penerimaan->details()->updateOrCreate(
-                        ['id' => $row['id'] ?? 0],
+                        ['id' => $row['id'] ?? null],
                         [
                             'obat_id'    => $row['obat_id'],
-                            'pabrik_id'  => $row['pabrik_id'] ?? null,
-                            'satuan_id'  => $row['satuan_id'] ?? null,
-                            'sediaan_id' => $row['sediaan_id'] ?? null,
+                            'pabrik_id'  => $row['pabrik_id'] ?: null,
+                            'satuan_id'  => $row['satuan_id'] ?: null,
+                            'sediaan_id' => $row['sediaan_id'] ?: null,
                             'qty'        => $row['qty'] ?? 0,
-                            'ed'         => $row['ed'] ?? null,
-                            'batch'      => $row['batch'] ?? null,
+                            'ed'         => $row['ed'] ?: null,
+                            'batch'      => $row['batch'] ?: null,
                             'disc1'      => $row['disc1'] ?? 0,
                             'disc2'      => $row['disc2'] ?? 0,
                             'disc3'      => $row['disc3'] ?? 0,
                             'harga'      => $row['harga'] ?? 0,
                             'subtotal'   => $row['subtotal'] ?? 0,
-                            'utuhan' => (bool) ($row['utuh'] ?? false),
-
+                            'utuh'       => (bool) ($row['utuh'] ?? false),
                         ]
                     );
+                }
+
+                // ✅ Update status pesanan menjadi 'diterima'
+                if ($this->pesanan_id) {
+                    \App\Models\Pesanan::where('id', $this->pesanan_id)
+                        ->update(['status' => 'diterima']);
                 }
             });
 
@@ -225,12 +251,15 @@ class PenerimaanForm extends Component
             $this->resetForm();
             $this->dispatch('refreshTable');
             $this->dispatch('focus-nosp');
-            return redirect()->route('penerimaan.index');
+            return $this->redirectRoute('penerimaan.index');
         } catch (\Throwable $e) {
-            Log::error('Gagal simpan penerimaan: ' . $e->getMessage());
+            Log::error('Gagal simpan penerimaan: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
             session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
         }
     }
+
 
 
 
@@ -256,7 +285,7 @@ class PenerimaanForm extends Component
                     ->orWhere('tanggal', 'like', "%{$this->search}%");
             })
                 ->whereNotIn('id', function ($q2) {
-                    $q2->select('pesanan_id')->from('penerimaan');
+                    $q2->select('pesanan_id')->from('penerimaan')->whereNotNull('pesanan_id');
                 })
                 ->orderBy('tanggal', 'desc')
                 ->limit(5)
@@ -268,75 +297,7 @@ class PenerimaanForm extends Component
         $this->highlightIndex = 0; // reset highlight saat search berubah
     }
 
-    public function selectPesanan($id)
-    {
-        $pesanan = Pesanan::with(['details.obat.satuan', 'details.obat.sediaan', 'details.obat.pabrik', 'details.kreditur'])
-            ->whereNotIn('id', function ($q) {
-                $q->select('pesanan_id')->from('penerimaan');
-            })
-            ->find($id);
 
-
-        if (!$pesanan) return;
-
-        $this->pesanan_id = $pesanan->id;
-        $this->search = $pesanan->no_sp . ' - ' . $pesanan->tanggal;
-
-        // reset details & search
-        $this->details = [];
-        $this->obatSearch = [];
-        $this->obatResults = [];
-        $this->highlightObatIndex = [];
-
-        foreach ($pesanan->details as $i => $d) {
-            $obat = $d->obat;
-
-            if ($obat) {
-                $this->details[$i]['obat_id']   = $obat->id;
-                $this->details[$i]['nama_obat'] = $obat->nama_obat;
-                $this->details[$i]['harga']     = $obat->harga_beli ?? 0;
-                $this->details[$i]['qty']       = $d->qty ?? 1;
-
-
-                // relasi
-                $this->details[$i]['pabrik_id']  = $obat->pabrik_id;
-                $this->details[$i]['pabrik']     = $obat->pabrik->nama_pabrik ?? '';
-
-                $this->details[$i]['satuan_id']  = $obat->satuan_id;
-                $this->details[$i]['satuan']     = $obat->satuan->nama_satuan ?? '';
-
-                $this->details[$i]['sediaan_id'] = $obat->sediaan_id;
-                $this->details[$i]['sediaan']    = $obat->sediaan->nama_sediaan ?? '';
-
-                // default utuh true kalau isi_obat > 1
-                $this->details[$i]['utuh'] = ($obat->isi_obat ?? 1) > 1 ? true : false;
-                $this->details[$i]['isi_obat']   = $obat->isi_obat ?? 1;
-                $this->details[$i]['ed'] = Carbon::now()->format('Y-m-d');
-
-
-                // 🔹 ambil kreditur dari detail pertama jika ada
-                $firstDetail = $pesanan->details->first();
-                if ($firstDetail) {
-                    $this->kreditur_id   = $firstDetail->kreditur_id;
-                    $this->kreditur_nama = $firstDetail->kreditur->nama ?? '';
-                } else {
-                    $this->kreditur_id   = null;
-                    $this->kreditur_nama = '';
-                }
-
-                // reset search box untuk row ini
-                $this->obatSearch[$i]        = $obat->nama_obat;
-                $this->obatResults[$i]       = [];
-                $this->highlightObatIndex[$i] = 0;
-
-                $this->hitungRingkasan();
-            }
-        }
-
-        // sembunyikan list pencarian
-        $this->pesananList = [];
-        $this->highlightIndex = 0;
-    }
 
 
     // navigasi keyboard
@@ -407,6 +368,7 @@ class PenerimaanForm extends Component
             $this->obatSearch[$index] = $obat->nama_obat;
             $this->obatResults[$index] = [];
             $this->highlightObatIndex[$index] = 0;
+            $this->hitungRingkasan();
         }
     }
 
@@ -708,5 +670,172 @@ class PenerimaanForm extends Component
 
         // Hitung ulang total
         $this->hitungRingkasan();
+    }
+
+    public $krediturSearch = [];
+    public $showKrediturDropdown = false;
+    public $highlightedKrediturIndex = 0;
+
+    public function searchKreditur($value)
+    {
+        $this->krediturSearch = Kreditur::where('nama', 'like', "%{$value}%")
+            ->limit(10)
+            ->get();
+    }
+
+    public function resetKrediturHighlight()
+    {
+        $this->highlightedKrediturIndex = 0;
+    }
+
+    public function incrementKrediturHighlight()
+    {
+        if ($this->highlightedKrediturIndex < count($this->krediturSearch) - 1) {
+            $this->highlightedKrediturIndex++;
+        }
+    }
+
+    public function decrementKrediturHighlight()
+    {
+        if ($this->highlightedKrediturIndex > 0) {
+            $this->highlightedKrediturIndex--;
+        }
+    }
+
+    public function selectHighlightedKreditur()
+    {
+        $kreditur = $this->krediturSearch[$this->highlightedKrediturIndex] ?? null;
+        if ($kreditur) {
+            $this->selectKreditur($kreditur->id);
+        }
+    }
+
+    public function selectKreditur($id)
+    {
+        $kreditur = Kreditur::find($id);
+        if ($kreditur) {
+            $this->kreditur_id   = $kreditur->id;
+            $this->kreditur_nama = $kreditur->nama;
+            $this->showKrediturDropdown = false;
+        }
+    }
+
+    // 🧩 Properti untuk autocomplete pesanan
+    public $no_sp;
+    public $pesananSearch = [];
+    public $showPesananDropdown = false;
+    public $highlightedPesananIndex = 0;
+
+    // 🔍 Fungsi pencarian
+    public function searchPesanan($query)
+    {
+        $this->pesananSearch = \App\Models\Pesanan::query()
+            ->where('status', 'pending')
+            ->where(function ($q) use ($query) {
+                $q->where('no_sp', 'like', "%{$query}%")
+                    ->orWhereDate('tanggal', 'like', "%{$query}%");
+            })
+            ->orderByDesc('tanggal')
+            ->limit(10)
+            ->get();
+    }
+
+
+    // 🔹 Reset highlight
+    public function resetPesananHighlight()
+    {
+        $this->highlightedPesananIndex = 0;
+    }
+
+    // ⬇ Navigasi keyboard
+    public function incrementPesananHighlight()
+    {
+        if ($this->highlightedPesananIndex < count($this->pesananSearch) - 1) {
+            $this->highlightedPesananIndex++;
+        }
+    }
+
+    public function decrementPesananHighlight()
+    {
+        if ($this->highlightedPesananIndex > 0) {
+            $this->highlightedPesananIndex--;
+        }
+    }
+
+    // ✅ Pilih pesanan
+    public function selectHighlightedPesanan()
+    {
+        if (!empty($this->pesananSearch)) {
+            $selected = $this->pesananSearch[$this->highlightedPesananIndex];
+            $this->selectPesanan($selected->id);
+        }
+    }
+
+    public function selectPesanan($id)
+    {
+        $pesanan = \App\Models\Pesanan::where('id', $id)
+            ->where('status', 'pending')
+            ->first();
+
+
+        if (!$pesanan) return;
+
+        $this->pesanan_id = $pesanan->id;
+        $this->no_sp = $pesanan->no_sp . ' - ' . $pesanan->tanggal;
+
+        // reset details & search
+        $this->details = [];
+        $this->obatSearch = [];
+        $this->obatResults = [];
+        $this->highlightObatIndex = [];
+
+        foreach ($pesanan->details as $i => $d) {
+            $obat = $d->obat;
+
+            if ($obat) {
+                $this->details[$i]['obat_id']   = $obat->id;
+                $this->details[$i]['nama_obat'] = $obat->nama_obat;
+                $this->details[$i]['harga']     = $obat->harga_beli ?? 0;
+                $this->details[$i]['qty']       = $d->qty ?? 1;
+
+
+                // relasi
+                $this->details[$i]['pabrik_id']  = $obat->pabrik_id;
+                $this->details[$i]['pabrik']     = $obat->pabrik->nama_pabrik ?? '';
+
+                $this->details[$i]['satuan_id']  = $obat->satuan_id;
+                $this->details[$i]['satuan']     = $obat->satuan->nama_satuan ?? '';
+
+                $this->details[$i]['sediaan_id'] = $obat->sediaan_id;
+                $this->details[$i]['sediaan']    = $obat->sediaan->nama_sediaan ?? '';
+
+                // default utuh true kalau isi_obat > 1
+                $this->details[$i]['utuh'] = ($obat->isi_obat ?? 1) > 1 ? true : false;
+                $this->details[$i]['isi_obat']   = $obat->isi_obat ?? 1;
+                $this->details[$i]['ed'] = Carbon::now()->format('Y-m-d');
+
+
+                // 🔹 ambil kreditur dari detail pertama jika ada
+                $firstDetail = $pesanan->details->first();
+                if ($firstDetail) {
+                    $this->kreditur_id   = $firstDetail->kreditur_id;
+                    $this->kreditur_nama = $firstDetail->kreditur->nama ?? '';
+                } else {
+                    $this->kreditur_id   = null;
+                    $this->kreditur_nama = '';
+                }
+
+                // reset search box untuk row ini
+                $this->obatSearch[$i]        = $obat->nama_obat;
+                $this->obatResults[$i]       = [];
+                $this->highlightObatIndex[$i] = 0;
+
+                $this->hitungRingkasan();
+            }
+        }
+
+        // sembunyikan list pencarian
+        $this->pesananList = [];
+        $this->highlightIndex = 0;
     }
 }

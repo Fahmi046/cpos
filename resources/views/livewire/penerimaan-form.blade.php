@@ -37,7 +37,7 @@
                 </div>
 
                 {{-- Pesanan --}}
-                <div class="col-span-5 relative" x-data="{ open: @entangle('pesananList').defer.length > 0 }" x-on:focus-nosp.window="$refs.no_sp.focus()"
+                {{--  <div class="col-span-5 relative" x-data="{ open: @entangle('pesananList').defer.length > 0 }" x-on:focus-nosp.window="$refs.no_sp.focus()"
                     x-init="$refs.no_sp.focus()">
                     <label class="block mb-2 text-sm font-medium text-gray-900">Pesanan</label>
 
@@ -60,7 +60,38 @@
                             @endforeach
                         </ul>
                     @endif
+                </div>  --}}
+
+                <div class="col-span-5 relative">
+                    <label class="block mb-2 text-sm font-medium text-gray-900">Pesanan (No SP)</label>
+                    <input type="text"
+                        class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Cari No SP ..." wire:model.defer="no_sp"
+                        wire:input="searchPesanan($event.target.value); resetPesananHighlight()"
+                        @focus="$wire.showPesananDropdown = true"
+                        @keydown.arrow-down.prevent="$wire.incrementPesananHighlight()"
+                        @keydown.arrow-up.prevent="$wire.decrementPesananHighlight()"
+                        @keydown.enter.prevent="
+            $wire.selectHighlightedPesanan();
+            $wire.showPesananDropdown = false;
+            $refs['kreditur_id']?.focus();
+        "
+                        x-ref="no_sp">
+
+                    @if (!empty($pesananSearch) && ($showPesananDropdown ?? false))
+                        <div
+                            class="absolute p-2.5 bg-white border rounded-lg shadow-md mt-1 max-h-60 overflow-y-auto w-full z-50">
+                            @foreach ($pesananSearch as $i => $pesanan)
+                                <div class="px-3 py-1 text-sm cursor-pointer {{ ($highlightedPesananIndex ?? 0) === $i ? 'bg-blue-500 text-white' : 'hover:bg-blue-100' }}"
+                                    wire:click="selectPesanan({{ $pesanan->id }})"
+                                    @click="$refs['kreditur_id']?.focus()">
+                                    <span class="font-semibold">{{ $pesanan->no_sp }}
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
+
 
 
 
@@ -86,16 +117,41 @@
                 <div class="col-span-3">
                     <label class="block mb-2 text-sm font-medium text-gray-900">No Faktur</label>
                     <input type="text" wire:model="no_faktur" x-ref="no_faktur"
-                        @keydown.enter.prevent="$refs.jenis_bayar.focus()"
+                        @keydown.enter.prevent="$refs.kreditur_id.focus()"
                         class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
                 </div>
 
-                <div class="col-span-3">
+                <div class="col-span-3 relative">
                     <label class="block mb-2 text-sm font-medium text-gray-900">Kreditur</label>
-                    <input type="text" wire:model="kreditur_nama"
-                        class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500 rounded"
-                        readonly>
+                    <input type="text"
+                        class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Cari kreditur..." wire:model.defer="kreditur_nama"
+                        wire:input="searchKreditur($event.target.value); resetKrediturHighlight()"
+                        @focus="$wire.showKrediturDropdown = true"
+                        @keydown.arrow-down.prevent="$wire.incrementKrediturHighlight()"
+                        @keydown.arrow-up.prevent="$wire.decrementKrediturHighlight()"
+                        @keydown.enter.prevent="
+            $wire.selectHighlightedKreditur();
+            $wire.showKrediturDropdown = false;
+            $refs['jenis_bayar']?.focus();
+        "
+                        x-ref="kreditur_id">
+
+                    @if (!empty($krediturSearch) && ($showKrediturDropdown ?? false))
+                        <div
+                            class="absolute p-2.5 bg-white border rounded-lg shadow-md mt-1 max-h-60 overflow-y-auto w-full">
+                            @foreach ($krediturSearch as $i => $kreditur)
+                                <div class="px-3 py-1 text-sm cursor-pointer {{ ($highlightedKrediturIndex ?? 0) === $i ? 'bg-blue-500 text-white' : 'hover:bg-blue-100' }}"
+                                    wire:click="selectKreditur({{ $kreditur->id }})"
+                                    @click="$refs['jenis_bayar']?.focus()">
+                                    {{ $kreditur->nama }}
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
+
+
 
                 <div class="col-span-2">
                     <label class="block mb-2 text-sm font-medium text-gray-900">Jenis Bayar</label>
