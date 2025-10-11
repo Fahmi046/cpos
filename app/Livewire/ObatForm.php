@@ -146,11 +146,9 @@ class ObatForm extends Component
         $obat = Obat::with(['kategori', 'satuan', 'sediaan', 'pabrik', 'komposisi'])
             ->findOrFail($id);
 
-        // isi field bawaan tabel obat (kode, nama, harga, dll.)
         $this->fill($obat->toArray());
         $this->obat_id = $id;
 
-        // isi input pencarian autocomplete
         $this->searchKategori   = $obat->kategori->nama_kategori   ?? '';
         $this->kategori_id      = $obat->kategori_id;
 
@@ -166,11 +164,16 @@ class ObatForm extends Component
         $this->searchkomposisi  = $obat->komposisi->nama_komposisi ?? '';
         $this->komposisi_id     = $obat->komposisi_id;
 
-        $this->searchkreditur  = $obat->kreditur->nama ?? '';
-        $this->kreditur_id     = $obat->kreditur_id;
+        $this->searchkreditur   = $obat->kreditur->nama ?? '';
+        $this->kreditur_id      = $obat->kreditur_id;
+
+        // ✅ Konversi kolom boolean agar checkbox aktif
+        $this->utuh_satuan   = (bool) $obat->utuh_satuan;
+        $this->prekursor     = (bool) $obat->prekursor;
+        $this->psikotropika  = (bool) $obat->psikotropika;
+        $this->resep_active  = (bool) $obat->resep_active;
+        $this->aktif         = (bool) $obat->aktif;
     }
-
-
 
     public function resetForm()
     {

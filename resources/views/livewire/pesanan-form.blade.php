@@ -56,13 +56,15 @@
                         <div class="relative col-span-4">
                             <input type="text"
                                 class="w-full rounded border-gray-300 focus:ring-blue-500 focus:border-blue-500 px-2 py-1"
-                                placeholder="Cari obat..." wire:model.defer="details.{{ $index }}.nama_obat"
-                                wire:input="searchObat({{ $index }}, $event.target.value); resetHighlight({{ $index }})"
+                                placeholder="Cari obat..."
+                                wire:model.debounce.300ms="details.{{ $index }}.nama_obat"
+                                wire:input="searchObat({{ $index }}); resetHighlight({{ $index }})"
                                 @focus="$wire.showObatDropdown[{{ $index }}] = true"
                                 @keydown.arrow-down.prevent="$wire.incrementHighlight({{ $index }})"
                                 @keydown.arrow-up.prevent="$wire.decrementHighlight({{ $index }})"
                                 @keydown.enter.prevent="$wire.selectHighlightedObat({{ $index }}); $wire.showObatDropdown[{{ $index }}] = false; $refs['qty_{{ $index }}']?.focus();"
                                 x-ref="obat_id_{{ $index }}">
+
 
                             @if (!empty($obatSearch[$index]) && ($showObatDropdown[$index] ?? false))
                                 <div
@@ -116,6 +118,7 @@
                         <!-- Utuh -->
                         <div class="flex items-center gap-1">
                             <input type="checkbox" wire:model="details.{{ $index }}.utuh_satuan"
+                                wire:change="toggleUtuhSatuan({{ $index }})"
                                 x-ref="checkbox_{{ $index }}" @keydown.enter.prevent="$refs.addDetail?.focus()"
                                 class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                             <span class="text-xs">Utuh</span>

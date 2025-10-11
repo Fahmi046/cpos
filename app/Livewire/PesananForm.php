@@ -273,14 +273,22 @@ class PesananForm extends Component
     public $obatSearch = [];          // Hasil pencarian per index row
     public $showObatDropdown = [];    // Status dropdown per index row
 
-    public function searchObat($index, $query)
+    public function searchObat($index)
     {
-        $this->obatSearch[$index] = Obat::where('nama_obat', 'like', "%{$query}%")
-            ->limit(10)
-            ->get();
+        $query = $this->details[$index]['nama_obat'] ?? '';
 
-        $this->showObatDropdown[$index] = true;
+        if (strlen($query) < 2) {
+            $this->obatSearch[$index] = [];
+            return;
+        }
+
+        $this->obatSearch[$index] = \App\Models\Obat::select('id', 'nama_obat')
+            ->where('nama_obat', 'like', "%{$query}%")
+            ->orderBy('nama_obat')
+            ->limit(10) // ⚡ penting supaya ringan
+            ->get();
     }
+
 
     public function selectObat($index, $obatId)
     {
