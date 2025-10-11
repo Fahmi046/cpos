@@ -31,6 +31,7 @@ class ObatExport implements FromCollection, WithHeadings
                     'psikotropika' => $obat->psikotropika,
                     'resep_active' => $obat->resep_active,
                     'aktif'        => $obat->aktif,
+                    'stok_awal'        => $obat->stok_awal,
                 ];
             });
     }

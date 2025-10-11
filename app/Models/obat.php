@@ -24,7 +24,8 @@ class Obat extends Model
         'prekursor',
         'psikotropika',
         'resep_active',
-        'aktif'
+        'aktif',
+        'stok_awal',
     ];
 
     public function kategori()

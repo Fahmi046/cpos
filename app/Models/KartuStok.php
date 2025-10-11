@@ -23,6 +23,7 @@ class KartuStok extends Model
         'ed',
         'batch',
         'tanggal',
+        'keterangan',
     ];
 
     // Relasi utama
