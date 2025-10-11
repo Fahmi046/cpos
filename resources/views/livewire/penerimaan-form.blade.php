@@ -37,31 +37,6 @@
                 </div>
 
                 {{-- Pesanan --}}
-                {{--  <div class="col-span-5 relative" x-data="{ open: @entangle('pesananList').defer.length > 0 }" x-on:focus-nosp.window="$refs.no_sp.focus()"
-                    x-init="$refs.no_sp.focus()">
-                    <label class="block mb-2 text-sm font-medium text-gray-900">Pesanan</label>
-
-                    <input type="text" placeholder="Cari No SP / Tanggal..." wire:model.debounce.300ms="search"
-                        wire:keydown.arrow-down.prevent="highlightNext" wire:keydown.arrow-up.prevent="highlightPrev"
-                        wire:keydown.enter.prevent="selectHighlighted"
-                        @keydown.enter.prevent="$wire.selectHighlighted; $wire.showDropdown = false; $refs.tanggal.focus();"
-                        class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500"
-                        @focus="open = true" @click.outside="open = false" x-ref="no_sp">
-
-                    @if (!empty($pesananList))
-                        <ul
-                            class="absolute z-10 w-full bg-white border rounded-lg shadow-md mt-1 max-h-60 overflow-y-auto">
-                            @foreach ($pesananList as $index => $pesanan)
-                                <li wire:click="selectPesanan({{ $pesanan->id }})"
-                                    class="px-4 py-2 cursor-pointer hover:bg-gray-200
-                           {{ $highlightIndex === $index ? 'bg-gray-300' : '' }}">
-                                    {{ $pesanan->no_sp }} - {{ $pesanan->tanggal }}
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
-                </div>  --}}
-
                 <div class="col-span-5 relative">
                     <label class="block mb-2 text-sm font-medium text-gray-900">Pesanan (No SP)</label>
                     <input type="text"
@@ -74,7 +49,7 @@
                         @keydown.enter.prevent="
             $wire.selectHighlightedPesanan();
             $wire.showPesananDropdown = false;
-            $refs['kreditur_id']?.focus();
+            $refs['no_faktur']?.focus();
         "
                         x-ref="no_sp">
 
@@ -84,7 +59,7 @@
                             @foreach ($pesananSearch as $i => $pesanan)
                                 <div class="px-3 py-1 text-sm cursor-pointer {{ ($highlightedPesananIndex ?? 0) === $i ? 'bg-blue-500 text-white' : 'hover:bg-blue-100' }}"
                                     wire:click="selectPesanan({{ $pesanan->id }})"
-                                    @click="$refs['kreditur_id']?.focus()">
+                                    @click="$refs['no_faktur']?.focus()">
                                     <span class="font-semibold">{{ $pesanan->no_sp }}
                                 </div>
                             @endforeach

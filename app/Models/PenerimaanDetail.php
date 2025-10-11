@@ -74,10 +74,11 @@ class PenerimaanDetail extends Model
                 'mutasi_detail_id'     => null,
                 'jenis'                => 'masuk',
                 'qty'                  => $detail->qty,
-                'utuhan'               => $detail->utuhan ?? 0, // ✅ default jika null
+                'utuhan'               => $detail->utuhan ?? 0, // default kalau null
                 'ed'                   => $detail->ed,
                 'batch'                => $detail->batch,
                 'tanggal'              => $detail->penerimaan->tanggal,
+                'keterangan'           => 'Penerimaan', // ✅ otomatis isi
             ]);
         });
 
@@ -91,10 +92,11 @@ class PenerimaanDetail extends Model
                     'sediaan_id' => $detail->sediaan_id,
                     'pabrik_id'  => $detail->pabrik_id,
                     'qty'        => $detail->qty,
-                    'utuhan'     => $detail->utuhan ?? 0, // ✅ default juga di update
+                    'utuhan'     => $detail->utuhan ?? 0,
                     'ed'         => $detail->ed,
                     'batch'      => $detail->batch,
                     'tanggal'    => $detail->penerimaan->tanggal,
+                    'keterangan' => 'Penerimaan', // ✅ tetap terjaga jika diupdate
                 ]);
             }
         });
