@@ -24,6 +24,8 @@ class KartuStok extends Model
         'batch',
         'tanggal',
         'keterangan',
+        'stok_awal',     // tambahkan ini
+        'saldo_akhir',   // tambahkan ini
     ];
 
     // Relasi utama

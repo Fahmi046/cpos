@@ -107,16 +107,21 @@ class ObatImport implements ToCollection, WithHeadingRow
                         ->exists();
 
                     if (!$stokSudahAda) {
+                        $stokAwal = 0; // karena stok awal diimpor pertama kali
+                        $saldoAkhir = $row['stok_awal'];
+
                         KartuStok::create([
-                            'obat_id'    => $obat->id,
-                            'satuan_id'  => $satuan->id,
-                            'sediaan_id' => $sediaan->id,
-                            'pabrik_id'  => $pabrik->id,
-                            'jenis'      => 'masuk',
-                            'keterangan' => 'Stok Awal',
-                            'qty'        => $row['stok_awal'],
-                            'utuhan'     => true,
-                            'tanggal'    => now()->toDateString(),
+                            'obat_id'     => $obat->id,
+                            'satuan_id'   => $satuan->id,
+                            'sediaan_id'  => $sediaan->id,
+                            'pabrik_id'   => $pabrik->id,
+                            'jenis'       => 'masuk',
+                            'qty'         => $row['stok_awal'],
+                            'stok_awal'   => $stokAwal,
+                            'saldo_akhir' => $saldoAkhir,
+                            'utuhan'      => true,
+                            'tanggal'     => now()->toDateString(),
+                            'keterangan'  => 'Stok Awal',
                         ]);
                     }
                 }
