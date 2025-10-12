@@ -104,9 +104,6 @@
                                     class="{{ request()->is('penerimaan')
                                         ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
-<<<<<<< HEAD
-                                    Penerimaan Barang
-=======
                                     Penerimaan
                                 </a>
                                 <a href="/kartu-stok"
@@ -126,7 +123,6 @@
                                         ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold font'
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
                                     Mutasi Stok
->>>>>>> a6879b3d8a04fa55e917541481729894e862d110
                                 </a>
                             </div>
                         </div>

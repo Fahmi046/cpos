@@ -39,11 +39,6 @@ Route::get('/pesanan', function () {
     return view('pages.pesanan');
 });
 
-<<<<<<< HEAD
-Route::get('/penerimaan', function () {
-    return view('pages.penerimaan');
-})->name('penerimaan.index');
-=======
 Route::get('/pesanan/{id}/print', [PesananController::class, 'print'])->name('pesanan.print');
 
 Route::get('/penerimaan', function () {
@@ -67,4 +62,3 @@ Route::get('/permintaan', function () {
 Route::get('/mutasi/create', function () {
     return view('pages.mutasi-create');
 })->name('mutasi.create');
->>>>>>> a6879b3d8a04fa55e917541481729894e862d110
