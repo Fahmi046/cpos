@@ -25,7 +25,8 @@ class ObatTemplateExport implements WithHeadings, ShouldAutoSize
             'prekursor',
             'psikotropika',
             'resep_active',
-            'aktif'
+            'aktif',
+            'stok_awal',
         ];
     }
 }
