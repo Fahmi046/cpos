@@ -17,15 +17,16 @@ class KartuStok extends Model
         'penerimaan_detail_id',
         'mutasi_id',
         'mutasi_detail_id',
-        'jenis',
+        'masuk',
+        'keluar',
         'qty',
         'utuhan',
         'ed',
         'batch',
         'tanggal',
         'keterangan',
-        'stok_awal',     // tambahkan ini
-        'saldo_akhir',   // tambahkan ini
+        'stok_awal',
+        'saldo_akhir',
     ];
 
     // Relasi utama

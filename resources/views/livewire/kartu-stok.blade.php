@@ -86,10 +86,10 @@
                     <th class="px-4 py-3">Tanggal</th>
                     <th class="px-4 py-3">Obat</th>
                     <th class="px-4 py-3">Batch / ED</th>
-                    <th class="px-4 py-3">Jenis</th>
+                    <th class="px-4 py-3 text-center">Stok Awal</th>
                     <th class="px-4 py-3 text-center">Masuk</th>
                     <th class="px-4 py-3 text-center">Keluar</th>
-                    <th class="px-4 py-3 text-center">Saldo</th>
+                    <th class="px-4 py-3 text-center">Saldo Akhir</th>
                     <th class="px-4 py-3">Keterangan</th>
                 </tr>
             </thead>
@@ -106,16 +106,23 @@
                                 </span>
                             </div>
                         </td>
-                        <td class="px-4 py-3 capitalize">{{ $row->jenis ?? '-' }}</td>
+
+                        <td class="px-4 py-3 text-center text-gray-600">
+                            {{ number_format($row->stok_awal ?? 0, 0, ',', '.') }}
+                        </td>
+
                         <td class="px-4 py-3 text-center text-green-600 font-semibold">
-                            {{ $row->jenis === 'masuk' ? $row->qty : '-' }}
+                            {{ number_format($row->masuk ?? 0, 0, ',', '.') }}
                         </td>
+
                         <td class="px-4 py-3 text-center text-red-600 font-semibold">
-                            {{ $row->jenis === 'keluar' ? $row->qty : '-' }}
+                            {{ number_format($row->keluar ?? 0, 0, ',', '.') }}
                         </td>
+
                         <td class="px-4 py-3 text-center font-bold text-gray-900">
-                            {{ $row->stok_akhir }}
+                            {{ number_format($row->saldo_akhir ?? 0, 0, ',', '.') }}
                         </td>
+
                         <td class="px-4 py-3 text-gray-600 text-sm">
                             {{ $row->keterangan ?? '-' }}
                         </td>
@@ -134,4 +141,5 @@
             {{ $riwayat->links('vendor.pagination.custom') }}
         </div>
     </div>
+
 </div>

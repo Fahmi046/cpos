@@ -106,10 +106,57 @@ class KartuStok extends Component
         );
     }
 
+    // public function render()
+    // {
+    //     $obatList = Obat::orderBy('nama_obat')->get();
+
+    //     $query = KartuStokModel::with([
+    //         'obat',
+    //         'penerimaan',
+    //         'mutasi',
+    //         'penerimaanDetail.satuan',
+    //         'penerimaanDetail.penerimaan.kreditur',
+    //         'pabrik',
+    //         'sediaan',
+    //         'satuan',
+    //         'obat.kategori',
+    //     ]);
+
+    //     if ($this->obat_id) {
+    //         $query->where('obat_id', $this->obat_id);
+    //     }
+
+    //     if ($this->start_date && $this->end_date) {
+    //         $query->whereBetween('tanggal', [$this->start_date, $this->end_date]);
+    //     }
+
+    //     // Pagination 15 baris per halaman
+    //     $riwayat = $query->orderBy('tanggal')
+    //         ->orderBy('id')
+    //         ->paginate(10);
+
+    //     // Hitung stok akhir berjalan per obat+batch+ed
+    //     $saldoPerObat = [];
+    //     foreach ($riwayat as $row) {
+    //         $key = $row->obat_id . '-' . $row->batch . '-' . $row->ed;
+    //         if (!isset($saldoPerObat[$key])) {
+    //             $saldoPerObat[$key] = 0;
+    //         }
+    //         $saldoPerObat[$key] += ($row->jenis === 'masuk' ? $row->qty : -$row->qty);
+    //         $row->stok_akhir = $saldoPerObat[$key];
+    //     }
+
+    //     return view('livewire.kartu-stok', [
+    //         'obatList' => $obatList,
+    //         'riwayat'  => $riwayat,
+    //     ]);
+    // }
+
     public function render()
     {
         $obatList = Obat::orderBy('nama_obat')->get();
 
+        // Query utama ambil semua kolom kartu stok dengan relasi
         $query = KartuStokModel::with([
             'obat',
             'penerimaan',
@@ -122,29 +169,20 @@ class KartuStok extends Component
             'obat.kategori',
         ]);
 
+        // Filter berdasarkan obat
         if ($this->obat_id) {
             $query->where('obat_id', $this->obat_id);
         }
 
+        // Filter tanggal
         if ($this->start_date && $this->end_date) {
             $query->whereBetween('tanggal', [$this->start_date, $this->end_date]);
         }
 
-        // Pagination 15 baris per halaman
+        // Urutkan berdasarkan tanggal dan id
         $riwayat = $query->orderBy('tanggal')
             ->orderBy('id')
-            ->paginate(10);
-
-        // Hitung stok akhir berjalan per obat+batch+ed
-        $saldoPerObat = [];
-        foreach ($riwayat as $row) {
-            $key = $row->obat_id . '-' . $row->batch . '-' . $row->ed;
-            if (!isset($saldoPerObat[$key])) {
-                $saldoPerObat[$key] = 0;
-            }
-            $saldoPerObat[$key] += ($row->jenis === 'masuk' ? $row->qty : -$row->qty);
-            $row->stok_akhir = $saldoPerObat[$key];
-        }
+            ->paginate(15);
 
         return view('livewire.kartu-stok', [
             'obatList' => $obatList,

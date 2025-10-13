@@ -100,16 +100,23 @@ class ObatImport implements ToCollection, WithHeadingRow
                     ]
                 );
 
-                // 🔹 Jika stok_awal > 0 → masukkan ke kartu_stok
                 if (!empty($row['stok_awal']) && $row['stok_awal'] > 0) {
-                    $stokSudahAda = KartuStok::where('obat_id', $obat->id)
+                    $stokAwalExist = KartuStok::where('obat_id', $obat->id)
                         ->where('keterangan', 'Stok Awal')
-                        ->exists();
+                        ->first();
 
-                    if (!$stokSudahAda) {
-                        $stokAwal = 0; // karena stok awal diimpor pertama kali
-                        $saldoAkhir = $row['stok_awal'];
-
+                    if ($stokAwalExist) {
+                        // Jika sudah ada stok awal → update datanya
+                        $stokAwalExist->update([
+                            'stok_awal'   => $row['stok_awal'],
+                            'qty'         => $row['stok_awal'],
+                            'masuk'       => $row['stok_awal'],
+                            'keluar'      => 0,
+                            'saldo_akhir' => $row['stok_awal'],
+                            'tanggal'     => now()->toDateString(),
+                        ]);
+                    } else {
+                        // Jika belum ada → buat baru
                         KartuStok::create([
                             'obat_id'     => $obat->id,
                             'satuan_id'   => $satuan->id,
@@ -117,8 +124,10 @@ class ObatImport implements ToCollection, WithHeadingRow
                             'pabrik_id'   => $pabrik->id,
                             'jenis'       => 'masuk',
                             'qty'         => $row['stok_awal'],
-                            'stok_awal'   => $stokAwal,
-                            'saldo_akhir' => $saldoAkhir,
+                            'stok_awal'   => $row['stok_awal'],
+                            'masuk'       => $row['stok_awal'],
+                            'keluar'      => 0,
+                            'saldo_akhir' => $row['stok_awal'],
                             'utuhan'      => true,
                             'tanggal'     => now()->toDateString(),
                             'keterangan'  => 'Stok Awal',
