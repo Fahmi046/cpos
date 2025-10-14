@@ -63,6 +63,15 @@ class PenerimaanDetail extends Model
     {
         // CREATE
         static::created(function ($detail) {
+            // Ambil saldo terakhir obat yang sama (berdasarkan obat_id)
+            $saldoSebelumnya = KartuStok::where('obat_id', $detail->obat_id)
+                ->latest('id')
+                ->value('saldo_akhir') ?? 0;
+
+            // Hitung saldo akhir baru
+            $saldoAkhirBaru = $saldoSebelumnya + $detail->qty;
+
+            // Simpan ke tabel kartu_stok
             KartuStok::create([
                 'obat_id'              => $detail->obat_id,
                 'satuan_id'            => $detail->satuan_id,
@@ -73,12 +82,15 @@ class PenerimaanDetail extends Model
                 'mutasi_id'            => null,
                 'mutasi_detail_id'     => null,
                 'jenis'                => 'masuk',
-                'qty'                  => $detail->qty,
-                'utuhan'               => $detail->utuhan ?? 0, // default kalau null
+                'masuk'                => $detail->qty, // ✅ kolom masuk
+                'keluar'               => 0,            // ✅ default
+                'stok_awal'           => 0,
+                'saldo_akhir'          => $saldoAkhirBaru,
+                'utuhan'               => $detail->utuhan ?? 0,
                 'ed'                   => $detail->ed,
                 'batch'                => $detail->batch,
                 'tanggal'              => $detail->penerimaan->tanggal,
-                'keterangan'           => 'Penerimaan', // ✅ otomatis isi
+                'keterangan'           => 'Penerimaan',
             ]);
         });
 
@@ -87,16 +99,27 @@ class PenerimaanDetail extends Model
             $stok = KartuStok::where('penerimaan_detail_id', $detail->id)->first();
 
             if ($stok) {
+                // Hitung ulang saldo akhir dari saldo awal
+                $saldoSebelumnya = KartuStok::where('obat_id', $detail->obat_id)
+                    ->where('id', '<', $stok->id)
+                    ->latest('id')
+                    ->value('saldo_akhir') ?? 0;
+
+                $saldoAkhirBaru = $saldoSebelumnya + $detail->qty;
+
                 $stok->update([
                     'satuan_id'  => $detail->satuan_id,
                     'sediaan_id' => $detail->sediaan_id,
                     'pabrik_id'  => $detail->pabrik_id,
-                    'qty'        => $detail->qty,
+                    'masuk'      => $detail->qty,
+                    'keluar'     => 0,
+                    'stok_awal' => 0,
+                    'saldo_akhir' => $saldoAkhirBaru,
                     'utuhan'     => $detail->utuhan ?? 0,
                     'ed'         => $detail->ed,
                     'batch'      => $detail->batch,
                     'tanggal'    => $detail->penerimaan->tanggal,
-                    'keterangan' => 'Penerimaan', // ✅ tetap terjaga jika diupdate
+                    'keterangan' => 'Penerimaan',
                 ]);
             }
         });

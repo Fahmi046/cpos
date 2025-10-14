@@ -18,4 +18,19 @@ class Pesanan extends Model
     {
         return $this->hasOne(Penerimaan::class);
     }
+
+    public function pabrik()
+    {
+        return $this->belongsTo(Pabrik::class);
+    }
+
+    public function satuan()
+    {
+        return $this->belongsTo(SatuanObat::class, 'satuan_id');
+    }
+
+    public function sediaan()
+    {
+        return $this->belongsTo(BentukSediaan::class, 'sediaan_id');
+    }
 }

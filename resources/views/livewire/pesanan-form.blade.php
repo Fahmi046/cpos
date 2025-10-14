@@ -58,7 +58,7 @@
                                 class="w-full rounded border-gray-300 focus:ring-blue-500 focus:border-blue-500 px-2 py-1"
                                 placeholder="Cari obat..."
                                 wire:model.debounce.300ms="details.{{ $index }}.nama_obat"
-                                wire:input="searchObat({{ $index }}); resetHighlight({{ $index }})"
+                                wire:input="searchObat({{ $index }}, $event.target.value); resetHighlight({{ $index }})"
                                 @focus="$wire.showObatDropdown[{{ $index }}] = true"
                                 @keydown.arrow-down.prevent="$wire.incrementHighlight({{ $index }})"
                                 @keydown.arrow-up.prevent="$wire.decrementHighlight({{ $index }})"
@@ -98,16 +98,27 @@
                         </div>
 
                         <!-- Harga -->
-                        <div class="col-span-2">
-                            <input type="number" wire:model="details.{{ $index }}.harga"
+                        <div class="col-span-2" x-data="{
+                            harga: @entangle('details.' . $index . '.harga'),
+                            formatHarga() {
+                                return new Intl.NumberFormat('id-ID').format(this.harga || 0);
+                            }
+                        }" x-init="$watch('harga', value => $refs.harga_{{ $index }}.value = new Intl.NumberFormat('id-ID').format(value || 0))">
+                            <input type="text" x-ref="harga_{{ $index }}" x-bind:value="formatHarga()"
                                 class="w-full rounded border-gray-200 bg-gray-100 px-2 py-1 text-right" readonly />
                         </div>
 
                         <!-- Jumlah -->
-                        <div class="col-span-2">
-                            <input type="number" wire:model="details.{{ $index }}.jumlah"
+                        <div class="col-span-2" x-data="{
+                            jumlah: @entangle('details.' . $index . '.jumlah'),
+                            formatJumlah() {
+                                return new Intl.NumberFormat('id-ID').format(this.jumlah || 0);
+                            }
+                        }" x-init="$watch('jumlah', value => $refs.jumlah_{{ $index }}.value = new Intl.NumberFormat('id-ID').format(value || 0))">
+                            <input type="text" x-ref="jumlah_{{ $index }}" x-bind:value="formatJumlah()"
                                 class="w-full rounded border-gray-200 bg-gray-100 px-2 py-1 text-right" readonly />
                         </div>
+
 
                         <!-- Satuan -->
                         <div class="col-span-1">

@@ -61,12 +61,15 @@
 
                                         <!-- Baris tambahan -->
                                         <div class="mt-2 grid grid-cols-3 gap-2 text-xs text-gray-500">
-                                            <div>🏭 {{ $detail->pabrik->nama_pabrik ?? '-' }}</div>
-                                            <div>👤 {{ $detail->kreditur->nama ?? '-' }}</div>
+                                            <div>🏭 {{ $detail->obat->pabrik->nama_pabrik ?? '-' }}</div>
+                                            <div>👤 {{ $detail->obat->kreditur->nama ?? '-' }}</div>
                                             <div>📦
-                                                {{ $detail->utuhan ? $detail->satuan->nama_satuan ?? '-' : $detail->sediaan->nama_sediaan ?? '-' }}
+                                                {{ $detail->utuhan == 1
+                                                    ? $detail->obat->satuan->nama_satuan ?? '-'
+                                                    : $detail->obat->sediaan->nama_sediaan ?? '-' }}
                                             </div>
                                         </div>
+
                                     </div>
                                 @endforeach
                             </div>
