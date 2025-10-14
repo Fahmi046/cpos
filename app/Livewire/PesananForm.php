@@ -43,19 +43,30 @@ class PesananForm extends Component
     public function generateNoSp()
     {
         $tanggal = Carbon::parse($this->tanggal);
-        $year = $tanggal->format('Y');
-        $month = $this->monthToRoman((int)$tanggal->format('n'));
+        $year    = $tanggal->format('Y');
+        $month   = $this->monthToRoman((int)$tanggal->format('n'));
 
         // Ambil kode kategori dari mapping
         $kategoriCode = $this->kategoriCodes[$this->kategori] ?? $this->kategori;
 
-        // Hitung urutan SP tahun ini
+        // Mulai hitung urutan SP tahun ini
         $count = Pesanan::whereYear('tanggal', $year)->count() + 1;
-        $seq = str_pad($count, 4, '0', STR_PAD_LEFT);
 
-        // Format SP
-        return "SP-{$seq}/{$this->branchCode}/{$kategoriCode}/{$month}/{$year}";
+        do {
+            $seq = str_pad($count, 4, '0', STR_PAD_LEFT);
+            $noSp = "SP-{$seq}/{$this->branchCode}/{$kategoriCode}/{$month}/{$year}";
+
+            // Cek apakah sudah ada di database
+            $exists = Pesanan::where('no_sp', $noSp)->exists();
+
+            if ($exists) {
+                $count++; // Jika ada, naikkan urutan
+            }
+        } while ($exists);
+
+        return $noSp;
     }
+
 
 
     private function monthToRoman($month)
