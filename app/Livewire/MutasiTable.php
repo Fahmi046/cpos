@@ -64,14 +64,35 @@ class MutasiTable extends Component
     public function delete($id)
     {
         $mutasi = Mutasi::findOrFail($id);
+
+        // Hapus detail mutasi
         $mutasi->details()->delete();
+
+        // Hapus kartu stok terkait mutasi
+        \App\Models\KartuStok::where('mutasi_id', $mutasi->id)->delete();
+
+        // Hapus stok outlet terkait mutasi (jika ada)
+        \App\Models\StokOutlet::where('mutasi_id', $mutasi->id)->delete();
+
+        // Hapus permintaan terkait jika ada
+        if ($mutasi->permintaan_id) {
+            $permintaan = \App\Models\Permintaan::find($mutasi->permintaan_id);
+            if ($permintaan) {
+                $permintaan->details()->delete();
+                $permintaan->delete();
+            }
+        }
+
+        // Hapus mutasi
         $mutasi->delete();
+
         $this->loadData();
-        session()->flash('message', 'Mutasi berhasil dihapus.');
+        session()->flash('message', 'Mutasi dan permintaan terkait berhasil dihapus.');
 
         $this->dispatch('refreshKodeMutasi');
         $this->dispatch('focus-tanggal');
     }
+
 
     public function exportExcelDetailed()
     {

@@ -283,11 +283,8 @@ class PermintaanForm extends Component
                 ->select(
                     'ks.obat_id',
                     'o.nama_obat',
-                    DB::raw("
-                    COALESCE(SUM(CASE WHEN ks.jenis = 'masuk' THEN ks.qty ELSE 0 END), 0)
-                    - COALESCE(SUM(CASE WHEN ks.jenis = 'keluar' THEN ks.qty ELSE 0 END), 0) as stok
-                "),
-                    DB::raw("COALESCE(s.nama_satuan, b.nama_sediaan) as satuan")
+                    DB::raw('MAX(ks.saldo_akhir) as stok'),
+                    DB::raw('COALESCE(s.nama_satuan, b.nama_sediaan) as satuan')
                 )
                 ->where('o.nama_obat', 'like', '%' . $value . '%')
                 ->groupBy('ks.obat_id', 'o.nama_obat', 's.nama_satuan', 'b.nama_sediaan')

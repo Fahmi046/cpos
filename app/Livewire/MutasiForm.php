@@ -86,15 +86,12 @@ class MutasiForm extends Component
 
             $sisaQty = $qtyMinta;
 
-            // 🔎 Ambil stok batch urut ED terdekat
+            // ✅ Ambil stok batch urut ED terdekat (PAKAI kolom masuk & keluar)
             $stokList = DB::table('kartu_stok as ks')
                 ->select(
                     'ks.batch',
                     'ks.ed',
-                    DB::raw("
-                    SUM(CASE WHEN ks.jenis = 'masuk' THEN ks.qty ELSE 0 END) -
-                    SUM(CASE WHEN ks.jenis = 'keluar' THEN ks.qty ELSE 0 END)
-                as stok")
+                    DB::raw('SUM(ks.masuk) - SUM(ks.keluar) AS stok')
                 )
                 ->where('ks.obat_id', $obat->id)
                 ->whereDate('ks.ed', '>=', now())   // hanya batch yg belum expired
@@ -122,8 +119,8 @@ class MutasiForm extends Component
                     'harga'     => $detail->harga ?? 0,
                     'ed'        => $stokData->ed,
                     'batch'     => $stokData->batch,
-                    'stok'      => $stokData->stok,
-                    'qty'       => $qtyAmbil,
+                    'stok'      => (int) $stokData->stok,
+                    'qty'       => (int) $qtyAmbil,
                     'permintaan_detail_id' => $detail->id,
                 ];
 
@@ -154,12 +151,6 @@ class MutasiForm extends Component
         }
     }
 
-
-
-
-
-
-
     protected function emptyDetailRow(): array
     {
         return [
@@ -181,83 +172,78 @@ class MutasiForm extends Component
         }
 
         $this->validate([
-            'no_mutasi'   => 'required|unique:mutasi,no_mutasi,' . ($this->mutasi_id ?? 'NULL') . ',id',
-            'tanggal'     => 'required|date',
-            'outlet_id'   => 'required|exists:outlets,id',
+            'no_mutasi'         => 'required|unique:mutasi,no_mutasi,' . ($this->mutasi_id ?? 'NULL') . ',id',
+            'tanggal'           => 'required|date',
+            'outlet_id'         => 'required|exists:outlets,id',
             'details.*.obat_id' => 'required|exists:obat,id',
-            'details.*.qty'     => 'required|numeric|min:1',
+            'details.*.qty'     => 'required|integer|min:1',
         ]);
 
         DB::transaction(function () {
+
             // =====================
-            // JIKA MUTASI DARI PERMINTAAN
+            // Jika Mutasi dari Permintaan
             // =====================
             if ($this->permintaan_id) {
                 $permintaan = \App\Models\Permintaan::with('details')->find($this->permintaan_id);
 
                 foreach ($this->details as $d) {
                     $pd = $permintaan->details->firstWhere('obat_id', $d['obat_id']);
-                    if ($pd) {
-                        $stok = \App\Models\KartuStok::where('obat_id', $d['obat_id'])
-                            ->sum(DB::raw("CASE WHEN jenis = 'masuk' THEN qty ELSE -qty END"));
+                    if (!$pd) continue;
 
-                        if ($stok >= $pd->qty_minta) {
-                            $pd->qty_mutasi = $pd->qty_minta;
-                            $pd->qty_sisa   = 0;
-                            $pd->status     = 'selesai';
-                        } elseif ($stok > 0 && $stok < $pd->qty_minta) {
-                            $pd->qty_mutasi = $stok;
-                            $pd->qty_sisa   = $pd->qty_minta - $stok;
-                            $pd->status     = 'pending';
-                        } else {
-                            $pd->qty_mutasi = 0;
-                            $pd->qty_sisa   = $pd->qty_minta;
-                            $pd->status     = 'pending';
-                        }
+                    $stok = (int) \App\Models\KartuStok::where('obat_id', $d['obat_id'])
+                        ->sum(DB::raw("masuk - keluar"));
 
-                        $pd->save();
+                    $qtyMinta = (int) ($d['qty'] ?? 1);
+
+                    if ($stok >= $qtyMinta) {
+                        $pd->qty_mutasi = $qtyMinta;
+                        $pd->qty_sisa   = 0;
+                        $pd->status     = 'selesai';
+                    } elseif ($stok > 0) {
+                        $pd->qty_mutasi = $stok;
+                        $pd->qty_sisa   = $qtyMinta - $stok;
+                        $pd->status     = 'pending';
+                    } else {
+                        $pd->qty_mutasi = 0;
+                        $pd->qty_sisa   = $qtyMinta;
+                        $pd->status     = 'pending';
                     }
+
+                    $pd->save();
                 }
 
                 $semuaTerpenuhi = $permintaan->details->every(fn($det) => $det->status === 'selesai');
                 $adaTerpenuhi   = $permintaan->details->contains(fn($det) => $det->status === 'pending');
-
-                $permintaan->status = $semuaTerpenuhi ? 'selesai'
-                    : ($adaTerpenuhi ? 'sebagian' : 'baru');
-
+                $permintaan->status = $semuaTerpenuhi ? 'selesai' : ($adaTerpenuhi ? 'sebagian' : 'baru');
                 $permintaan->save();
             }
 
             // =====================
-            // CEK ADA DETAIL VALID ?
+            // Cek ada stok valid
             // =====================
             $adaStokValid = false;
             foreach ($this->details as $d) {
-                $stok = \App\Models\KartuStok::where('obat_id', $d['obat_id'])
-                    ->sum(DB::raw("CASE WHEN jenis = 'masuk' THEN qty ELSE -qty END"));
+                $stok = (int) \App\Models\KartuStok::where('obat_id', $d['obat_id'])
+                    ->sum(DB::raw("masuk - keluar"));
 
-                $qtyMinta  = $d['qty'] ?? 1;
-                $qtySimpan = $stok >= $qtyMinta ? $qtyMinta : $stok;
-
-                if ($qtySimpan > 0) {
+                if ($stok > 0) {
                     $adaStokValid = true;
                     break;
                 }
             }
 
-            if (! $adaStokValid) {
-                // batalkan transaksi tanpa throw error
+            if (!$adaStokValid) {
                 DB::rollBack();
                 session()->flash('error', 'Semua stok kosong, mutasi tidak dibuat.');
                 return;
             }
 
             // =====================
-            // CREATE / UPDATE MUTASI
+            // Create / Update Mutasi
             // =====================
             if ($this->mutasi_id) {
                 $mutasi = \App\Models\Mutasi::findOrFail($this->mutasi_id);
-
                 \App\Models\StokOutlet::where('mutasi_id', $mutasi->id)->delete();
                 \App\Models\KartuStok::where('mutasi_id', $mutasi->id)->delete();
                 $mutasi->details()->delete();
@@ -280,21 +266,17 @@ class MutasiForm extends Component
             }
 
             // =====================
-            // SIMPAN DETAIL & STOK
+            // Simpan Detail & KartuStok
             // =====================
             foreach ($this->details as $d) {
                 $obat = \App\Models\Obat::find($d['obat_id']);
-                if (! $obat) continue;
+                if (!$obat) continue;
 
-                $stok = \App\Models\KartuStok::where('obat_id', $obat->id)
-                    ->sum(DB::raw("CASE WHEN jenis = 'masuk' THEN qty ELSE -qty END"));
+                $stok = (int) \App\Models\KartuStok::where('obat_id', $obat->id)
+                    ->sum(DB::raw("masuk - keluar"));
 
-                $qtyMinta  = $d['qty'] ?? 1;
-                $qtySimpan = $stok >= $qtyMinta ? $qtyMinta : $stok;
-
-                if ($qtySimpan <= 0) {
-                    continue;
-                }
+                $qtySimpan = min($stok, (int)($d['qty'] ?? 1));
+                if ($qtySimpan <= 0) continue;
 
                 $detail = $mutasi->details()->create([
                     'obat_id'    => $obat->id,
@@ -306,11 +288,16 @@ class MutasiForm extends Component
                     'batch'      => $d['batch'] ?? null,
                     'ed'         => $d['ed'] ?? null,
                     'jumlah'     => $qtySimpan * ($d['harga'] ?? 0),
-                    'utuhan'     => isset($d['utuh']) && $d['utuh'] ? 1 : 0,
+                    'utuhan'     => $d['utuh'] ?? 0,
                     'permintaan_detail_id' => $d['permintaan_detail_id'] ?? null,
                 ]);
 
-                \App\Models\KartuStok::create([
+                // =====================
+                // Buat KartuStok keluar & hitung saldo_akhir
+                // =====================
+                $saldoAkhir = $stok - $qtySimpan;
+
+                $kartu = \App\Models\KartuStok::create([
                     'obat_id'          => $obat->id,
                     'satuan_id'        => $obat->satuan_id ?? 1,
                     'sediaan_id'       => $obat->sediaan_id ?? 1,
@@ -318,12 +305,18 @@ class MutasiForm extends Component
                     'mutasi_id'        => $mutasi->id,
                     'mutasi_detail_id' => $detail->id,
                     'jenis'            => 'keluar',
-                    'qty'              => $qtySimpan,
+                    'masuk'            => 0,
+                    'keluar'           => $qtySimpan,
                     'batch'            => $detail->batch,
                     'ed'               => $detail->ed,
                     'tanggal'          => $mutasi->tanggal,
+                    'keterangan'       => 'Mutasi',
+                    'saldo_akhir'      => $saldoAkhir,
                 ]);
 
+                // =====================
+                // Stok outlet masuk
+                // =====================
                 if ($mutasi->outlet_id) {
                     \App\Models\StokOutlet::recordMovement([
                         'outlet_id'        => $mutasi->outlet_id,
@@ -338,6 +331,7 @@ class MutasiForm extends Component
                         'pabrik_id'        => $obat->pabrik_id ?? 1,
                         'mutasi_id'        => $mutasi->id,
                         'mutasi_detail_id' => $detail->id,
+                        'keterangan'       => 'Mutasi',
                     ]);
                 }
             }
@@ -353,7 +347,6 @@ class MutasiForm extends Component
             return redirect('/permintaan');
         }
     }
-
 
 
     protected $listeners = [

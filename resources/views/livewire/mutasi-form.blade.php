@@ -174,12 +174,11 @@
                             @keydown.enter.prevent="$refs['qty_' + {{ $i }}]?.focus()"
                             class="w-full p-2 border rounded-lg" disabled>
                     </div>
-
                     {{-- Stok --}}
                     <div class="col-span-1">
                         <label class="block mb-1 text-xs font-medium text-gray-700">Stok</label>
-                        <input type="number" min="0" wire:model.lazy="details.{{ $i }}.stok"
-                            x-ref="stok_{{ $i }}"
+                        <input type="number" min="0" step="1"
+                            wire:model.lazy="details.{{ $i }}.stok" x-ref="stok_{{ $i }}"
                             @keydown.enter.prevent="$refs['qty_' + {{ $i }}]?.focus()"
                             class="w-full p-2 border rounded-lg text-center" disabled>
                     </div>
@@ -187,15 +186,16 @@
                     {{-- Qty --}}
                     <div class="col-span-1">
                         <label class="block mb-1 text-xs font-medium text-gray-700">Qty</label>
-                        <input type="number" min="0" wire:model.lazy="details.{{ $i }}.qty"
-                            x-ref="qty_{{ $i }}"
+                        <input type="number" min="0" step="1"
+                            wire:model.lazy="details.{{ $i }}.qty" x-ref="qty_{{ $i }}"
                             @keydown.enter.prevent="
-                                @if ($i + 1 < count($details)) $refs['nama_obat_' + {{ $i + 1 }}]?.focus();
-                                @else
-                                    $refs.addDetail?.focus(); @endif
-                            "
+            @if ($i + 1 < count($details)) $refs['nama_obat_' + {{ $i + 1 }}]?.focus();
+            @else
+                $refs.addDetail?.focus(); @endif
+        "
                             class="w-full p-2 border rounded-lg text-center">
                     </div>
+
 
                     {{-- Hapus --}}
                     <div class="col-span-1 flex items-center justify-center mt-5">
