@@ -109,7 +109,6 @@ class ObatImport implements ToCollection, WithHeadingRow
                         // Jika sudah ada stok awal → update datanya
                         $stokAwalExist->update([
                             'stok_awal'   => $row['stok_awal'],
-                            'qty'         => $row['stok_awal'],
                             'masuk'       => $row['stok_awal'],
                             'keluar'      => 0,
                             'saldo_akhir' => $row['stok_awal'],
@@ -123,7 +122,6 @@ class ObatImport implements ToCollection, WithHeadingRow
                             'sediaan_id'  => $sediaan->id,
                             'pabrik_id'   => $pabrik->id,
                             'jenis'       => 'masuk',
-                            'qty'         => $row['stok_awal'],
                             'stok_awal'   => $row['stok_awal'],
                             'masuk'       => $row['stok_awal'],
                             'keluar'      => 0,

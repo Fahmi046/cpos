@@ -109,6 +109,7 @@ class ObatForm extends Component
                 'psikotropika'    => $this->psikotropika,
                 'kreditur_id'    => $this->kreditur_id,
                 'resep_active'    => $this->resep_active,
+                'stok_awal'    => $this->stok_awal,
             ]);
             session()->flash('message', 'Data berhasil diperbarui.');
         } else {

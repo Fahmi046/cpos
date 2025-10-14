@@ -117,7 +117,7 @@
         </div>
 
         <!-- Baris 4: Isi, Dosis, Harga Beli, Harga Jual -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
             <div>
                 <label class="block mb-1">Isi Obat</label>
                 <input type="text" wire:model="isi_obat" x-ref="isi_obat"
@@ -139,6 +139,12 @@
             <div>
                 <label class="block mb-1">Harga Jual + PPN 11%</label>
                 <input type="text" wire:model="harga_jual" x-ref="harga_jual"
+                    @keydown.enter.prevent="$refs.stok_awal.focus()"
+                    class="w-full rounded border-gray-300 focus:ring-blue-500 focus:border-blue-500 px-2 py-1 format-rupiah" />
+            </div>
+            <div>
+                <label class="block mb-1">Stok Awal</label>
+                <input type="text" wire:model="stok_awal" x-ref="stok_awal"
                     @keydown.enter.prevent="$refs.pabrik.focus()"
                     class="w-full rounded border-gray-300 focus:ring-blue-500 focus:border-blue-500 px-2 py-1 format-rupiah" />
             </div>

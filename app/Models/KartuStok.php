@@ -19,7 +19,6 @@ class KartuStok extends Model
         'mutasi_detail_id',
         'masuk',
         'keluar',
-        'qty',
         'utuhan',
         'ed',
         'batch',
