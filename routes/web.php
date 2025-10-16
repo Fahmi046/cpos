@@ -46,6 +46,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/outlet', function () {
         return view('pages.outlet');
     });
+    Route::get('/users', function () {
+        return view('pages.users');
+    });
 
     // Penyediaan
     Route::get('/pesanan', function () {

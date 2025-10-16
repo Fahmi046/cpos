@@ -79,6 +79,12 @@
                                         : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
                                     Outlet
                                 </a>
+                                <a href="/users"
+                                    class="{{ request()->is('users')
+                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
+                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                    Akun User
+                                </a>
                             </div>
                         </div>
 
@@ -145,8 +151,8 @@
                         <button type="submit"
                             class="relative p-1 text-gray-400 rounded-full hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                             title="Logout">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                stroke="currentColor" class="size-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor" class="size-6">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3-3H9m9 0-3-3m3 3-3 3" />
                             </svg>
