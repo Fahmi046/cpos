@@ -3,8 +3,9 @@
 <nav class="relative bg-gray-800">
     <div class="px-2 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div class="relative flex items-center justify-between h-16">
+
+            <!-- Mobile menu button-->
             <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
-                <!-- Mobile menu button-->
                 <button type="button" command="--toggle" commandfor="mobile-menu"
                     class="relative inline-flex items-center justify-center p-2 text-gray-400 rounded-md hover:bg-white/5 hover:text-white focus:outline-2 focus:-outline-offset-1 focus:outline-indigo-500">
                     <span class="absolute -inset-0.5"></span>
@@ -20,119 +21,86 @@
                     </svg>
                 </button>
             </div>
+
             <div class="flex items-center justify-center flex-1 sm:items-stretch sm:justify-start">
                 <div class="flex items-center shrink-0">
                     <img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
                         alt="Your Company" class="w-auto h-8" />
                 </div>
+
+                <!-- Menu utama -->
                 <div class="hidden sm:ml-6 sm:block">
                     <div class="flex space-x-4">
-                        <!-- Master Data Dropdown -->
-                        <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open"
-                                class="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-white/5 hover:text-white">
-                                Master Data
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
-                                </svg>
-                            </button>
+                        {{-- Hanya tampil untuk user bukan outlet --}}
+                        @if (Auth::user()->role !== 'outlet')
+                            <!-- Master Data Dropdown -->
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = !open"
+                                    class="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-white/5 hover:text-white">
+                                    Master Data
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                                    </svg>
+                                </button>
 
-                            <div x-show="open" @click.outside="open = false"
-                                class="absolute z-50 w-48 py-1 mt-2 bg-white rounded-md shadow-lg">
-                                <a href="/obat"
-                                    class="{{ request()->is('obat')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
-                                    Obat
-                                </a>
-                                <a href="/kategori-obat"
-                                    class="{{ request()->is('kategori-obat')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Kategori
-                                    Obat</a>
-                                <a href="/satuan-obat"
-                                    class="{{ request()->is('satuan-obat')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Satuan
-                                    Obat</a>
-                                <a href="/bentuk-sediaan"
-                                    class="{{ request()->is('bentuk-sediaan')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Bentuk
-                                    Sediaan</a>
-                                <a href="/pabrik"
-                                    class="{{ request()->is('pabrik')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Pabrik</a>
-                                <a href="/komposisi"
-                                    class="{{ request()->is('komposisi')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Komposisi</a>
-                                <a href="/kreditur"
-                                    class="{{ request()->is('kreditur')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Kreditur</a>
-                                <a href="/outlet"
-                                    class="{{ request()->is('outlet')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
-                                    Outlet
-                                </a>
-                                <a href="/users"
-                                    class="{{ request()->is('users')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
-                                    Akun User
-                                </a>
+                                <div x-show="open" @click.outside="open = false"
+                                    class="absolute z-50 w-48 py-1 mt-2 bg-white rounded-md shadow-lg">
+                                    <a href="/obat"
+                                        class="{{ request()->is('obat') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Obat</a>
+                                    <a href="/kategori-obat"
+                                        class="{{ request()->is('kategori-obat') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Kategori
+                                        Obat</a>
+                                    <a href="/satuan-obat"
+                                        class="{{ request()->is('satuan-obat') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Satuan
+                                        Obat</a>
+                                    <a href="/bentuk-sediaan"
+                                        class="{{ request()->is('bentuk-sediaan') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Bentuk
+                                        Sediaan</a>
+                                    <a href="/pabrik"
+                                        class="{{ request()->is('pabrik') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Pabrik</a>
+                                    <a href="/komposisi"
+                                        class="{{ request()->is('komposisi') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Komposisi</a>
+                                    <a href="/kreditur"
+                                        class="{{ request()->is('kreditur') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Kreditur</a>
+                                    <a href="/outlet"
+                                        class="{{ request()->is('outlet') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Outlet</a>
+                                    <a href="/users"
+                                        class="{{ request()->is('users') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Akun
+                                        User</a>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Penyediaan Dropdown -->
-                        <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open"
-                                class="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-white/5 hover:text-white">
-                                Penyediaan
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
-                                </svg>
-                            </button>
+                            <!-- Penyediaan Dropdown -->
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = !open"
+                                    class="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-white/5 hover:text-white">
+                                    Penyediaan
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                                    </svg>
+                                </button>
 
-                            <div x-show="open" @click.outside="open = false"
-                                class="absolute z-50 w-48 py-1 mt-2 bg-white rounded-md shadow-lg">
-                                <a href="/pesanan"
-                                    class="{{ request()->is('pesanan')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
-                                    Surat Pesanan
-                                </a>
-                                <a href="/penerimaan"
-                                    class="{{ request()->is('penerimaan')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
-                                    Penerimaan
-                                </a>
-                                <a href="/kartu-stok"
-                                    class="{{ request()->is('kartu-stok')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
-                                    Kartu Stok
-                                </a>
-                                <a href="/permintaan"
-                                    class="{{ request()->is('permintaan')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
-                                    Permintaan Outlet
-                                </a>
-                                <a href="/mutasi"
-                                    class="{{ request()->is('mutasi')
-                                        ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold'
-                                        : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
-                                    Mutasi Stok
-                                </a>
+                                <div x-show="open" @click.outside="open = false"
+                                    class="absolute z-50 w-48 py-1 mt-2 bg-white rounded-md shadow-lg">
+                                    <a href="/pesanan"
+                                        class="{{ request()->is('pesanan') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Surat
+                                        Pesanan</a>
+                                    <a href="/penerimaan"
+                                        class="{{ request()->is('penerimaan') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Penerimaan</a>
+                                    <a href="/kartu-stok"
+                                        class="{{ request()->is('kartu-stok') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Kartu
+                                        Stok</a>
+                                    <a href="/permintaan"
+                                        class="{{ request()->is('permintaan') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Permintaan
+                                        Outlet</a>
+                                    <a href="/mutasi"
+                                        class="{{ request()->is('mutasi') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Mutasi
+                                        Stok</a>
+                                </div>
                             </div>
-                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -160,7 +128,6 @@
                     </form>
                 @endauth
             </div>
-
 
         </div>
     </div>

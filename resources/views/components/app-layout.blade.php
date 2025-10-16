@@ -10,7 +10,9 @@
 
 <body class="bg-gray-100">
 
-    <x-navbar />
+    @auth
+        <x-navbar />
+    @endauth
 
     <main class="p-6">
         {{ $slot }}

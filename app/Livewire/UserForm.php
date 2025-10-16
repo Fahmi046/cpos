@@ -13,22 +13,26 @@ class UserForm extends Component
     public $username;
     public $email;
     public $password;
-    public $role = 'user';
+    public $role = 'outlet'; // default role
     public $aktif = true;
-
-    protected $rules = [
-        'name'     => 'required|string|max:100',
-        'username' => 'required|string|max:50|unique:users,username',
-        'email'    => 'required|email|unique:users,email',
-        'password' => 'nullable|string|min:6',
-        'role'     => 'required|string|in:admin,user,manager',
-        'aktif'    => 'boolean',
-    ];
 
     protected $listeners = [
         'editUser' => 'edit',
         'refreshForm' => '$refresh',
     ];
+
+    // Rules dinamis
+    protected function rules()
+    {
+        return [
+            'name'     => 'required|string|max:100',
+            'username' => 'required|string|max:50|unique:users,username,' . $this->user_id,
+            'email'    => 'required|email|unique:users,email,' . $this->user_id,
+            'password' => 'nullable|string|min:6',
+            'role'     => 'required|string|in:admin,gudang,outlet',
+            'aktif'    => 'sometimes|boolean',
+        ];
+    }
 
     public function render()
     {
@@ -39,16 +43,20 @@ class UserForm extends Component
     {
         $validatedData = $this->validate();
 
-        if (empty($validatedData['password'])) {
-            unset($validatedData['password']);
-        } else {
+        // Hanya simpan password jika diisi
+        if (!empty($validatedData['password'])) {
             $validatedData['password'] = Hash::make($validatedData['password']);
+        } else {
+            unset($validatedData['password']);
         }
 
-        User::updateOrCreate(
-            ['id' => $this->user_id],
-            $validatedData
-        );
+        // Jika edit, update hanya field yang diubah
+        $user = User::find($this->user_id);
+        if ($user) {
+            $user->update($validatedData);
+        } else {
+            User::create($validatedData);
+        }
 
         $this->dispatch('user-saved');
         $this->resetForm();
