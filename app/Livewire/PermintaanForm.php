@@ -347,9 +347,6 @@ class PermintaanForm extends Component
         $this->highlightObatIndex[$index] = 0;
     }
 
-
-
-
     public function toggleUtuhSatuan($index)
     {
         if (!isset($this->details[$index])) return;

@@ -101,6 +101,26 @@
                                 </div>
                             </div>
                         @endif
+                        <!-- Pengadaan Dropdown -->
+                        <div x-data="{ open: false }" class="relative">
+                            <button @click="open = !open"
+                                class="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-white/5 hover:text-white">
+                                Pengadaan
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                                </svg>
+                            </button>
+
+                            <div x-show="open" @click.outside="open = false"
+                                class="absolute z-50 w-48 py-1 mt-2 bg-white rounded-md shadow-lg">
+                                <a href="/po"
+                                    class="{{ request()->is('po') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Permintaan</a>
+                                <a href="/stok-outlet"
+                                    class="{{ request()->is('stok-outlet') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">Stok
+                                    Outlet</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
