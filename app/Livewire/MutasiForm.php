@@ -31,6 +31,7 @@ class MutasiForm extends Component
     public $ed;
     public $permintaan_id;
     public $permintaan;
+    public $searchOutlet;
 
 
     public $outlets = [];
@@ -69,7 +70,7 @@ class MutasiForm extends Component
         $this->tanggal      = $this->permintaan->tanggal;
         $this->outlet_id    = $this->permintaan->outlet_id;
         $this->keterangan   = $this->permintaan->keterangan;
-        $this->searchoutlet = $this->permintaan->outlet->nama_outlet ?? '';
+        $this->searchOutlet = $this->permintaan->outlet->nama_outlet ?? '';
 
         // Reset
         $this->details = [];
@@ -85,15 +86,12 @@ class MutasiForm extends Component
 
             $sisaQty = $qtyMinta;
 
-            // ✅ Ambil stok tiap batch dari kartu_stok — stok = total(masuk) - total(keluar)
+            // Ambil stok tiap batch dari kartu_stok — stok = total(masuk) - total(keluar)
             $stokList = DB::table('kartu_stok')
                 ->select(
                     'batch',
                     'ed',
-                    DB::raw('
-                    COALESCE(SUM(CAST(masuk AS SIGNED)), 0)
-                    - COALESCE(SUM(CAST(keluar AS SIGNED)), 0) AS stok
-                ')
+                    DB::raw('COALESCE(SUM(CAST(masuk AS SIGNED)), 0) - COALESCE(SUM(CAST(keluar AS SIGNED)), 0) AS stok')
                 )
                 ->where('obat_id', $obat->id)
                 ->where(function ($q) {
@@ -101,11 +99,11 @@ class MutasiForm extends Component
                 })
                 ->groupBy('batch', 'ed')
                 ->havingRaw('stok > 0')
-                ->orderByRaw('ISNULL(ed), ed ASC') // batch tanpa ED di akhir
+                ->orderByRaw('ISNULL(ed), ed ASC')
                 ->get();
 
+            // Jika tidak ada stok → buat detail pending langsung
             if ($stokList->isEmpty()) {
-                // ❌ Tidak ada stok → buat detail pending langsung
                 $this->details[] = [
                     'obat_id'   => $obat->id,
                     'pabrik'    => $obat->pabrik->nama_pabrik ?? '',
@@ -120,11 +118,11 @@ class MutasiForm extends Component
                     'qty'       => $sisaQty,
                     'permintaan_detail_id' => $detail->id,
                 ];
-                $this->obatSearch[] = $obat->nama_obat;
+                $this->obatSearch[count($this->details) - 1] = $obat->nama_obat;
                 continue;
             }
 
-            // ✅ Distribusi stok sesuai batch
+            // Distribusi stok sesuai batch
             foreach ($stokList as $stokData) {
                 if ($sisaQty <= 0) break;
 
@@ -145,6 +143,7 @@ class MutasiForm extends Component
                     'qty'       => (int) $qtyAmbil,
                     'permintaan_detail_id' => $detail->id,
                 ];
+                $this->obatSearch[count($this->details) - 1] = $obat->nama_obat;
             }
 
             // Jika masih ada sisa yang belum bisa dipenuhi
@@ -163,11 +162,11 @@ class MutasiForm extends Component
                     'qty'       => $sisaQty,
                     'permintaan_detail_id' => $detail->id,
                 ];
+                $this->obatSearch[count($this->details) - 1] = $obat->nama_obat;
             }
-
-            $this->obatSearch[] = $obat->nama_obat;
         }
     }
+
 
 
     protected function emptyDetailRow(): array

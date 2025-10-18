@@ -52,5 +52,6 @@ Route::middleware('auth')->group(function () {
     // =========================================================
     Route::middleware('checkRole:outlet')->group(function () {
         Route::get('/po', fn() => view('pages.po'))->name('po.index');
+        Route::get('/stok-outlet', fn() => view('pages.stok-outlet'))->name('stok-outlet.index');
     });
 });
