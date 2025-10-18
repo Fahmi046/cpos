@@ -10,6 +10,8 @@ use App\Models\Permintaan;
 use Illuminate\Validation\Rule;
 use App\Models\PermintaanDetail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+
 
 class PermintaanForm extends Component
 {
@@ -51,6 +53,10 @@ class PermintaanForm extends Component
         $this->details = [$this->emptyDetailRow()];
         $this->outlets = \App\Models\Outlet::all();
         $this->no_permintaan = $this->generateNoMO();
+
+        if (Auth::check()) {
+            $this->outlet_id = Auth::user()->outlet_id;
+        }
     }
 
     protected function emptyDetailRow(): array
@@ -68,6 +74,15 @@ class PermintaanForm extends Component
     }
     public function save()
     {
+        // ambil outlet_id dari user login dulu (sebelum validasi)
+        $this->outlet_id = optional(Auth::user())->outlet_id;
+
+        // jika perlu, hentikan ketika user tidak punya outlet (mis. admin)
+        if (! $this->outlet_id) {
+            session()->flash('error', 'Akun ini tidak memiliki outlet. Hubungi admin sistem atau pilih outlet terlebih dahulu.');
+            return;
+        }
+
         // tambahkan baris terakhir bila user mengetik di input utama tanpa klik "Tambah"
         if ($this->obat_id) {
             $this->addDetail();
@@ -77,6 +92,7 @@ class PermintaanForm extends Component
         $validated = $this->validate();
 
         DB::transaction(function () {
+            // sekarang aman menggunakan $this->outlet_id karena sudah di-set
             if ($this->permintaan_id) {
                 $permintaan = Permintaan::findOrFail($this->permintaan_id);
 
@@ -126,8 +142,6 @@ class PermintaanForm extends Component
         $this->resetForm();
         $this->dispatch('refreshTable');
     }
-
-
 
 
     private function resetForm()
@@ -346,6 +360,9 @@ class PermintaanForm extends Component
         $this->obatResults[$index] = [];
         $this->highlightObatIndex[$index] = 0;
     }
+
+
+
 
     public function toggleUtuhSatuan($index)
     {

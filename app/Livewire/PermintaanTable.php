@@ -10,6 +10,8 @@ use App\Exports\PermintaanExport;
 use App\Exports\PermintaanExportSummary;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PermintaanExportDetailed;
+use Illuminate\Support\Facades\Auth;
+
 
 class PermintaanTable extends Component
 {
@@ -93,23 +95,25 @@ class PermintaanTable extends Component
         return Excel::download(new PermintaanExportSummary($this->search, $this->start_date, $this->end_date), $fileName);
     }
 
-
     public function render()
     {
-        $permintaanList = Permintaan::with([
-            'details',
-            'outlet'
-        ])
+        $query = Permintaan::with(['details', 'outlet'])
             ->where(function ($query) {
                 $query->where('no_permintaan', 'like', '%' . $this->search . '%')
                     ->orWhere('tanggal', 'like', '%' . $this->search . '%')
                     ->orWhereHas('details.obat', function ($q) {
                         $q->where('nama_obat', 'like', '%' . $this->search . '%');
                     });
-            })
-            // urutkan status pending dulu
+            });
+
+        // 🔒 Filter otomatis jika user adalah outlet
+        if (Auth::check() && Auth::user()->role === 'outlet') {
+            $query->where('outlet_id', Auth::user()->outlet_id);
+        }
+
+        // Urutkan: pending/sebagian dulu, lalu tanggal terbaru
+        $permintaanList = $query
             ->orderByRaw("CASE WHEN status = 'sebagian' OR status = 'pending' THEN 0 ELSE 1 END")
-            // lalu urutkan berdasarkan tanggal dari yang paling lama
             ->orderBy('tanggal', 'desc')
             ->paginate(5);
 
@@ -117,7 +121,6 @@ class PermintaanTable extends Component
             'permintaanList' => $permintaanList
         ]);
     }
-
 
     public function mount()
     {

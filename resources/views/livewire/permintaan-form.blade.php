@@ -7,7 +7,7 @@
     "
     class="p-6 bg-white rounded-lg shadow">
 
-    <h2 class="text-xl font-bold mb-4">Input permintaan Stok</h2>
+    <h2 class="mb-4 text-xl font-bold">Input permintaan Stok</h2>
 
     {{-- Form --}}
     <form wire:submit.prevent="save" class="space-y-6" x-data x-init="$nextTick(() => $refs.tanggal.focus())"
@@ -33,40 +33,21 @@
             <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">Tanggal</label>
                 <input type="date" wire:model="tanggal" x-ref="tanggal"
-                    @keydown.enter.prevent="$refs.searchoutlet.focus()"
+                    @keydown.enter.prevent="$refs.keterangan.focus()"
                     class="block w-full rounded-lg border-gray-300 text-sm p-2.5 focus:ring-blue-500 focus:border-blue-500">
             </div>
         </div>
 
         {{-- Outlet + Keterangan --}}
         <div class="grid grid-cols-2 gap-4">
-            <div class="relative">
+            {{-- Outlet otomatis dari user login --}}
+            <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">Outlet</label>
-                <input type="text" wire:model.debounce.300ms="searchoutlet" x-ref="searchoutlet"
-                    @keydown.enter.prevent="$refs.keterangan.focus()"
-                    wire:keydown.arrow-down.prevent="incrementHighlight"
-                    wire:keydown.arrow-up.prevent="decrementHighlight"
-                    wire:keydown.enter.prevent="selectHighlighted(); $dispatch('focus-start')"
-                    placeholder="Cari outlet..."
-                    class="block w-full rounded-lg border-gray-300 p-2.5 text-sm focus:ring-blue-500 focus:border-blue-500">
-
-                {{-- Dropdown hasil pencarian --}}
-                @if (!empty($outletResults))
-                    <div
-                        class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
-                        <ul class="divide-y divide-gray-100">
-                            @foreach ($outletResults as $i => $item)
-                                <li wire:click="selectoutlet({{ $item['id'] }})"
-                                    class="px-4 py-2 cursor-pointer text-sm
-                                    {{ $highlightIndex === $i ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-50' }}">
-                                    {{ $item['nama_outlet'] }}
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+                <input type="text" value="{{ auth()->user()->outlet->nama_outlet ?? '-' }}" readonly
+                    class="block w-full rounded-lg border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-600">
             </div>
 
+            {{-- Keterangan --}}
             <div>
                 <label class="block mb-2 text-sm font-medium text-gray-700">Keterangan</label>
                 <input type="text" wire:model="keterangan" x-ref="keterangan"
@@ -75,12 +56,13 @@
             </div>
         </div>
 
+
         {{-- Detail --}}
         <div class="space-y-3">
             @forelse ($details as $i => $detail)
-                <div class="grid grid-cols-11 gap-3 items-end border rounded-lg p-3 bg-gray-50">
+                <div class="grid items-end grid-cols-11 gap-3 p-3 border rounded-lg bg-gray-50">
                     {{-- Obat --}}
-                    <div class="col-span-12 relative">
+                    <div class="relative col-span-12">
                         <label class="block mb-1 text-xs font-medium text-gray-700">Obat</label>
 
                         <input type="text" placeholder="Cari obat..."
@@ -93,7 +75,7 @@
                             class="w-full p-2 border rounded-lg">
 
                         @if (!empty($obatResults[$i]))
-                            <ul class="absolute z-10 w-full bg-white border rounded shadow-md max-h-40 overflow-y-auto">
+                            <ul class="absolute z-10 w-full overflow-y-auto bg-white border rounded shadow-md max-h-40">
                                 @foreach ($obatResults[$i] as $index => $ks)
                                     <li wire:click="selectObat({{ $i }}, {{ $ks->obat_id }})"
                                         class="px-2 py-1 cursor-pointer hover:bg-gray-200 {{ $highlightObatIndex[$i] === $index ? 'bg-gray-300' : '' }}">
@@ -111,18 +93,18 @@
                     <div class="col-span-3">
                         <label class="block mb-1 text-xs font-medium text-gray-700">Pabrik</label>
                         <input type="text" wire:model="details.{{ $i }}.pabrik"
-                            class="w-full p-2 border rounded-lg text-center" disabled>
+                            class="w-full p-2 text-center border rounded-lg" disabled>
                     </div>
 
                     {{-- Utuhan --}}
-                    <div class="col-span-1 flex flex-col items-center justify-center h-full">
+                    <div class="flex flex-col items-center justify-center h-full col-span-1">
                         <label class="flex flex-col items-center cursor-pointer">
                             <span class="mb-1 text-sm font-medium text-gray-500">Utuhan</span>
                             <div class="relative">
                                 <input type="checkbox" wire:model="details.{{ $i }}.utuh"
                                     class="sr-only peer" disabled>
                                 <div
-                                    class="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors duration-300">
+                                    class="h-6 transition-colors duration-300 bg-gray-300 rounded-full w-11 peer-checked:bg-green-500">
                                 </div>
                                 <div
                                     class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-md peer-checked:translate-x-5 transform transition-transform duration-300">
@@ -138,14 +120,14 @@
                     <div class="col-span-1">
                         <label class="block mb-1 text-xs font-medium text-gray-700">Satuan</label>
                         <input type="text" wire:model="details.{{ $i }}.satuan"
-                            class="w-full p-2 border rounded-lg text-center" disabled>
+                            class="w-full p-2 text-center border rounded-lg" disabled>
                     </div>
 
                     {{-- Isi Obat --}}
                     <div class="col-span-1">
                         <label class="block mb-1 text-xs font-medium text-gray-700">Isi Obat</label>
                         <input type="number" min="0" wire:model="details.{{ $i }}.isi_obat"
-                            class="w-full p-2 border rounded-lg text-center" disabled>
+                            class="w-full p-2 text-center border rounded-lg" disabled>
                     </div>
 
                     {{-- Harga --}}
@@ -154,7 +136,7 @@
                         <input type="text" x-ref="harga_{{ $i }}"
                             @keydown.enter.prevent="$refs['ed_' + {{ $i }}]?.focus()"
                             value="{{ number_format($detail['harga'] ?? 0, 0, ',', '.') }}"
-                            class="w-full p-2 border rounded-lg text-right" placeholder="0" disabled>
+                            class="w-full p-2 text-right border rounded-lg" placeholder="0" disabled>
                     </div>
                     {{-- Stok --}}
                     <div class="col-span-1">
@@ -162,7 +144,7 @@
                         <input type="number" min="0" wire:model.lazy="details.{{ $i }}.stok"
                             x-ref="stok_{{ $i }}"
                             @keydown.enter.prevent="$refs['qty_' + {{ $i }}]?.focus()"
-                            class="w-full p-2 border rounded-lg text-center" disabled>
+                            class="w-full p-2 text-center border rounded-lg" disabled>
                     </div>
 
                     {{-- Qty --}}
@@ -175,11 +157,11 @@
                                 @else
                                     $refs.addDetail?.focus(); @endif
                             "
-                            class="w-full p-2 border rounded-lg text-center">
+                            class="w-full p-2 text-center border rounded-lg">
                     </div>
 
                     {{-- Hapus --}}
-                    <div class="col-span-1 flex items-center justify-center mt-5">
+                    <div class="flex items-center justify-center col-span-1 mt-5">
                         <button type="button" wire:click="removeDetail({{ $i }})"
                             class="px-2 py-1 text-xs text-white bg-red-500 rounded-lg hover:bg-red-600">
                             ✕
@@ -193,12 +175,12 @@
 
         <div class="mt-3">
             <button type="button" wire:click="addDetail" x-ref="addDetail"
-                class="bg-blue-500 text-white px-4 py-1 rounded mb-4">
+                class="px-4 py-1 mb-4 text-white bg-blue-500 rounded">
                 + Tambah Baris
             </button>
         </div>
 
         {{-- Tombol Simpan --}}
-        <button type="submit" id="btnSave" class="bg-green-600 text-white px-4 py-2 rounded">Simpan (F10)</button>
+        <button type="submit" id="btnSave" class="px-4 py-2 text-white bg-green-600 rounded">Simpan (F10)</button>
     </form>
 </div>
