@@ -43,14 +43,26 @@ class UserForm extends Component
     {
         $validatedData = $this->validate();
 
-        // Hanya simpan password jika diisi
+        // Jika role outlet, wajib punya outlet_id
+        if ($this->role === 'outlet') {
+            if (!$this->outlet_id) {
+                $this->addError('outlet_id', 'Outlet harus dipilih untuk role Outlet.');
+                return;
+            }
+            $validatedData['outlet_id'] = $this->outlet_id;
+        } else {
+            // Untuk admin/gudang, kosongkan outlet_id
+            $validatedData['outlet_id'] = null;
+        }
+
+        // Proses password
         if (!empty($validatedData['password'])) {
             $validatedData['password'] = Hash::make($validatedData['password']);
         } else {
             unset($validatedData['password']);
         }
 
-        // Jika edit, update hanya field yang diubah
+        // Simpan (update atau create)
         $user = User::find($this->user_id);
         if ($user) {
             $user->update($validatedData);
@@ -58,8 +70,11 @@ class UserForm extends Component
             User::create($validatedData);
         }
 
+        // Event & reset form
         $this->dispatch('user-saved');
         $this->resetForm();
+        $this->role = 'outlet';
+        $this->aktif = true;
         $this->dispatch('focus-name');
         $this->dispatch('refreshUserTable');
     }
@@ -87,6 +102,72 @@ class UserForm extends Component
             'password',
             'role',
             'aktif',
+            'searchOutlet',
+            'outlet_id',
+            'outlet_nama',
+            'outletResults',
+            'highlightIndexOutlet',
         ]);
+    }
+
+
+    //nama outlet
+
+    public $searchOutlet = '';
+    public $outletResults = [];
+    public $highlightIndexOutlet = 0;
+    public $outlet_id;
+    public $outlet_nama;
+
+    // Search outlet untuk autocomplete
+    public function updatedSearchOutlet()
+    {
+        if (strlen($this->searchOutlet) > 1) {
+            $this->outletResults = \App\Models\Outlet::where('nama_outlet', 'like', '%' . $this->searchOutlet . '%')
+                ->limit(10)
+                ->get()
+                ->toArray();
+            $this->highlightIndexOutlet = 0;
+        } else {
+            $this->outletResults = [];
+            $this->highlightIndexOutlet = 0;
+        }
+    }
+
+    public function incrementHighlightOutlet()
+    {
+        if (count($this->outletResults) === 0) return;
+        $this->highlightIndexOutlet++;
+        if ($this->highlightIndexOutlet >= count($this->outletResults)) {
+            $this->highlightIndexOutlet = 0;
+        }
+    }
+
+    public function decrementHighlightOutlet()
+    {
+        if (count($this->outletResults) === 0) return;
+        $this->highlightIndexOutlet--;
+        if ($this->highlightIndexOutlet < 0) {
+            $this->highlightIndexOutlet = count($this->outletResults) - 1;
+        }
+    }
+
+    public function selectHighlightedOutlet()
+    {
+        if (isset($this->outletResults[$this->highlightIndexOutlet])) {
+            $this->selectOutlet($this->outletResults[$this->highlightIndexOutlet]['id']);
+        }
+    }
+
+    public function selectOutlet($id)
+    {
+        $outlet = \App\Models\Outlet::find($id);
+        if ($outlet) {
+            $this->outlet_id = $outlet->id;
+            $this->outlet_nama = $outlet->nama_outlet;
+            $this->searchOutlet = $outlet->nama_outlet;
+            $this->outletResults = [];
+            $this->highlightIndexOutlet = 0;
+        }
     }
 }

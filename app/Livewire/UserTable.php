@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class UserTable extends Component
 {
@@ -26,10 +27,17 @@ class UserTable extends Component
 
     public function delete($id)
     {
+        // Cegah user menghapus dirinya sendiri
+        if ($id == Auth::id()) {
+            session()->flash('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+            return;
+        }
+
+        // Hapus user lain
         User::findOrFail($id)->delete();
 
-        // Flash message jika perlu
-        session()->flash('message', 'User berhasil dihapus');
+        // Flash message
+        session()->flash('message', 'User berhasil dihapus.');
 
         // Refresh tabel
         $this->dispatch('refreshUserTable');
