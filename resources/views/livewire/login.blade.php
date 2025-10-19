@@ -1,10 +1,21 @@
 <div class="flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
-        <h2 class="mb-6 text-2xl font-bold text-center text-gray-800">Login</h2>
+    <div class="w-full max-w-md p-8 text-center bg-white rounded-lg shadow-lg">
+        <!-- Logo Apotek -->
+        <div class="flex justify-center mb-4">
+            <img src="{{ asset('images/logo.png') }}" alt="Apotek Sahabat Logo" class="w-40 h-40">
+        </div>
+
+        <!-- Teks Selamat Datang -->
+        <h1 class="mb-4 text-xl font-bold text-gray-800">
+            Sistem Informasi Apotek Sahabat
+        </h1>
+
+        <!-- Judul Login -->
+        <h2 class="mb-6 text-2xl font-bold text-gray-800">Silahkan Login</h2>
 
         <form wire:submit.prevent="login">
             <!-- Username -->
-            <div class="mb-4">
+            <div class="mb-4 text-left">
                 <label for="username" class="block mb-2 font-medium text-gray-700">Username</label>
                 <input type="text" wire:model.defer="username" id="username" autofocus
                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
@@ -14,7 +25,7 @@
             </div>
 
             <!-- Password -->
-            <div class="mb-6">
+            <div class="mb-6 text-left">
                 <label for="password" class="block mb-2 font-medium text-gray-700">Password</label>
                 <input type="password" wire:model.defer="password" id="password"
                     class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
@@ -34,9 +45,5 @@
                 Login
             </button>
         </form>
-
-        <p class="mt-4 text-center text-gray-600">
-            Belum punya akun? <a href="/register" class="text-indigo-600 hover:underline">Daftar</a>
-        </p>
     </div>
 </div>
