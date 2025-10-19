@@ -51,7 +51,7 @@
     <table width="100%" class="no-border" style="vertical-align: top; font-size: 12px; line-height: 1.4;">
         <tr>
             <!-- KOLOM KIRI -->
-            <td width="45%" style="vertical-align: top; padding-right: 10px;">
+            <td width="60%" style="vertical-align: top; padding-right: 10px;">
                 <b style="font-size: 14px;">GUDANG SAHABAT</b><br>
                 Jl. Palang Merah Ind No. 16 A-B-C<br>
                 Telp: 0812 5758 6688<br>
@@ -59,7 +59,7 @@
             </td>
 
             <!-- KOLOM KANAN -->
-            <td width="55%" style="vertical-align: top;">
+            <td width="40%" style="vertical-align: top;">
                 <table class="no-border" style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="width: 20%; white-space: nowrap; vertical-align: top;">Kepada Yth</td>

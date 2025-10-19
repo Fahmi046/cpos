@@ -217,28 +217,29 @@ class PenerimaanForm extends Component
                 );
 
                 foreach ($this->details as $row) {
-                    // 🔍 Debug per detail
-                    Log::info('Simpan detail penerimaan:', $row);
+                    $subtotal = $row['subtotal'] ?? ($row['jumlah'] ?? 0);
 
                     $penerimaan->details()->updateOrCreate(
                         ['id' => $row['id'] ?? null],
                         [
                             'obat_id'    => $row['obat_id'],
-                            'pabrik_id'  => $row['pabrik_id'] ?: null,
-                            'satuan_id'  => $row['satuan_id'] ?: null,
-                            'sediaan_id' => $row['sediaan_id'] ?: null,
+                            'pabrik_id'  => $row['pabrik_id'] ?? null,
+                            'satuan_id'  => $row['satuan_id'] ?? null,
+                            'sediaan_id' => $row['sediaan_id'] ?? null,
                             'qty'        => $row['qty'] ?? 0,
-                            'ed'         => $row['ed'] ?: null,
-                            'batch'      => $row['batch'] ?: null,
+                            'ed'         => $row['ed'] ?? null,
+                            'batch'      => $row['batch'] ?? null,
                             'disc1'      => $row['disc1'] ?? 0,
                             'disc2'      => $row['disc2'] ?? 0,
                             'disc3'      => $row['disc3'] ?? 0,
                             'harga'      => $row['harga'] ?? 0,
-                            'subtotal'   => $row['subtotal'] ?? 0,
+                            'subtotal'   => $subtotal,
                             'utuh'       => (bool) ($row['utuh'] ?? false),
                         ]
                     );
                 }
+
+
 
                 // ✅ Update status pesanan menjadi 'diterima'
                 if ($this->pesanan_id) {
