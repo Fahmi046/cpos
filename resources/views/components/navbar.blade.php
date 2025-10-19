@@ -24,9 +24,12 @@
 
             <div class="flex items-center justify-center flex-1 sm:items-stretch sm:justify-start">
                 <div class="flex items-center shrink-0">
-                    <img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-                        alt="Your Company" class="w-auto h-8" />
+                    <a href="/dashboard">
+                        <img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
+                            alt="Your Company" class="w-auto h-8" />
+                    </a>
                 </div>
+
 
                 <!-- Menu utama -->
                 <div class="hidden sm:ml-6 sm:block">
