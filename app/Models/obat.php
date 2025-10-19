@@ -18,6 +18,7 @@ class Obat extends Model
         'komposisi_id',
         'harga_beli',
         'harga_jual',
+        'het', // ← tambahkan di sini
         'isi_obat',
         'dosis',
         'utuh_satuan',
@@ -27,6 +28,7 @@ class Obat extends Model
         'aktif',
         'stok_awal',
     ];
+
 
     public function kategori()
     {

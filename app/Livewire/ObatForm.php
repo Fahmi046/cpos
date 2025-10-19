@@ -18,7 +18,8 @@ class ObatForm extends Component
     public $kode_obat, $nama_obat;
     public $isi_obat, $dosis;
     public $kategori_id, $satuan_id, $sediaan_id, $komposisi_id, $kreditur_id, $pabrik_id;
-    public $harga_beli, $harga_jual;
+    public $harga_beli, $harga_jual, $het;
+    public $stok_awal; // tambah stok_awal
 
     public $prekursor = 0;
     public $psikotropika = 0;
@@ -77,6 +78,7 @@ class ObatForm extends Component
         $this->validate([
             'nama_obat' => 'required|string|max:150',
             'harga_jual' => 'required|numeric|min:0',
+            'het' => 'required|numeric|min:0', // ✅ validasi HET
             'kategori_id' => 'required',
             'satuan_id' => 'required',
             'sediaan_id' => 'required',
@@ -99,6 +101,7 @@ class ObatForm extends Component
                 'komposisi_id'    => $this->komposisi_id,
                 'harga_beli'   => $this->harga_beli,
                 'harga_jual'   => $this->harga_jual,
+                'het'   => $this->het,
                 'satuan_id'    => $this->satuan_id,
                 'pabrik_id'    => $this->pabrik_id,
                 'aktif'    => $this->aktif,
@@ -109,7 +112,7 @@ class ObatForm extends Component
                 'psikotropika'    => $this->psikotropika,
                 'kreditur_id'    => $this->kreditur_id,
                 'resep_active'    => $this->resep_active,
-                'stok_awal'    => $this->stok_awal,
+                'stok_awal'    => $this->stok_awal ?? 0,
             ]);
             session()->flash('message', 'Data berhasil diperbarui.');
         } else {
@@ -121,6 +124,7 @@ class ObatForm extends Component
                 'komposisi_id'    => $this->komposisi_id,
                 'harga_beli' => str_replace(['.', ','], '', $this->harga_beli),
                 'harga_jual' => str_replace(['.', ','], '', $this->harga_jual),
+                'het' => str_replace(['.', ','], '', $this->het),
                 'satuan_id'    => $this->satuan_id,
                 'pabrik_id'    => $this->pabrik_id,
                 'aktif'    => $this->aktif,
@@ -131,6 +135,7 @@ class ObatForm extends Component
                 'psikotropika'    => $this->psikotropika,
                 'kreditur_id'    => $this->kreditur_id,
                 'resep_active'    => $this->resep_active,
+                'stok_awal'    => $this->stok_awal ?? 0,
             ]);
             session()->flash('message', 'Data berhasil ditambahkan.');
         }
@@ -144,37 +149,44 @@ class ObatForm extends Component
 
     public function edit($id)
     {
-        $obat = Obat::with(['kategori', 'satuan', 'sediaan', 'pabrik', 'komposisi'])
+        $obat = Obat::with(['kategori', 'satuan', 'sediaan', 'pabrik', 'komposisi', 'kreditur'])
             ->findOrFail($id);
 
-        $this->fill($obat->toArray());
         $this->obat_id = $id;
 
-        $this->searchKategori   = $obat->kategori->nama_kategori   ?? '';
-        $this->kategori_id      = $obat->kategori_id;
+        // --- harga jangan pake ,00 ---
+        $this->harga_beli = (int) $obat->harga_beli;
+        $this->harga_jual = (int) $obat->harga_jual;
+        $this->het        = (int) $obat->het; // jika pakai HET
 
-        $this->searchsatuan     = $obat->satuan->nama_satuan       ?? '';
-        $this->satuan_id        = $obat->satuan_id;
+        $this->fill([
+            'kode_obat'   => $obat->kode_obat,
+            'nama_obat'   => $obat->nama_obat,
+            'isi_obat'    => $obat->isi_obat,
+            'dosis'       => $obat->dosis,
+            'kategori_id' => $obat->kategori_id,
+            'satuan_id'   => $obat->satuan_id,
+            'sediaan_id'  => $obat->sediaan_id,
+            'komposisi_id' => $obat->komposisi_id,
+            'pabrik_id'   => $obat->pabrik_id,
+            'kreditur_id' => $obat->kreditur_id,
+            'stok_awal'   => $obat->stok_awal,
+            'aktif'       => (bool) $obat->aktif,
+            'utuh_satuan' => (bool) $obat->utuh_satuan,
+            'prekursor'   => (bool) $obat->prekursor,
+            'psikotropika' => (bool) $obat->psikotropika,
+            'resep_active' => (bool) $obat->resep_active,
+        ]);
 
-        $this->searchsediaan    = $obat->sediaan->nama_sediaan     ?? '';
-        $this->sediaan_id       = $obat->sediaan_id;
-
-        $this->searchpabrik     = $obat->pabrik->nama_pabrik       ?? '';
-        $this->pabrik_id        = $obat->pabrik_id;
-
-        $this->searchkomposisi  = $obat->komposisi->nama_komposisi ?? '';
-        $this->komposisi_id     = $obat->komposisi_id;
-
-        $this->searchkreditur   = $obat->kreditur->nama ?? '';
-        $this->kreditur_id      = $obat->kreditur_id;
-
-        // ✅ Konversi kolom boolean agar checkbox aktif
-        $this->utuh_satuan   = (bool) $obat->utuh_satuan;
-        $this->prekursor     = (bool) $obat->prekursor;
-        $this->psikotropika  = (bool) $obat->psikotropika;
-        $this->resep_active  = (bool) $obat->resep_active;
-        $this->aktif         = (bool) $obat->aktif;
+        // autocomplete search fields
+        $this->searchKategori  = $obat->kategori->nama_kategori   ?? '';
+        $this->searchsatuan    = $obat->satuan->nama_satuan       ?? '';
+        $this->searchsediaan   = $obat->sediaan->nama_sediaan     ?? '';
+        $this->searchpabrik    = $obat->pabrik->nama_pabrik       ?? '';
+        $this->searchkomposisi = $obat->komposisi->nama_komposisi ?? '';
+        $this->searchkreditur  = $obat->kreditur->nama            ?? '';
     }
+
 
     public function resetForm()
     {
@@ -188,10 +200,10 @@ class ObatForm extends Component
             'komposisi_id',
             'harga_beli',
             'harga_jual',
+            'het',
             'satuan_id',
             'pabrik_id',
             'kreditur_id',
-            // untuk input pencarian autocomplete
             'searchKategori',
             'searchsatuan',
             'searchsediaan',
@@ -203,6 +215,7 @@ class ObatForm extends Component
             'prekursor',
             'psikotropika',
             'resep_active',
+            'stok_awal',
         ]);
 
         // Generate kode obat baru

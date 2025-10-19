@@ -18,15 +18,33 @@ class ObatTable extends Component
     protected $paginationTheme = 'tailwind';
 
     public $search = '';
-
+    public $results = []; // untuk autocomplete
     public $file; // untuk upload file
     protected $updatesQueryString = ['search'];
-
     protected $listeners = ['refreshTable' => '$refresh'];
 
     public function updatingSearch()
     {
         $this->resetPage();
+        $this->autocomplete();
+    }
+
+    // autocomplete nama obat
+    public function autocomplete()
+    {
+        if (strlen($this->search) > 1) {
+            $this->results = Obat::where('nama_obat', 'like', '%' . $this->search . '%')
+                ->take(10)
+                ->get();
+        } else {
+            $this->results = [];
+        }
+    }
+
+    public function selectObat($nama)
+    {
+        $this->search = $nama;
+        $this->results = [];
     }
 
     public function delete($id)
@@ -41,21 +59,15 @@ class ObatTable extends Component
     {
         $obats = Obat::with(['kategori', 'sediaan', 'komposisi', 'satuan', 'pabrik'])
             ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('kode_obat', 'like', '%' . $this->search . '%')
-                        ->orWhere('nama_obat', 'like', '%' . $this->search . '%');
-                });
+                $query->where('nama_obat', 'like', '%' . $this->search . '%');
             })
             ->orderBy('id', 'desc')
             ->paginate(4);
-
 
         return view('livewire.obat-table', [
             'obats' => $obats,
         ]);
     }
-
-
 
     public function exportExcel()
     {

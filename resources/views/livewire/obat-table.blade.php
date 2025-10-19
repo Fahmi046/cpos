@@ -1,32 +1,46 @@
-<div class="p-6 bg-gray-50 min-h-screen">
+<div class="min-h-screen p-6 bg-gray-50">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <input type="text" wire:model.live="search" placeholder="Cari kode / nama obat"
-            class="border border-gray-300 rounded-md px-4 py-2 w-full md:w-1/3 focus:ring-2 focus:ring-indigo-300 focus:outline-none transition">
+    <div class="flex flex-col items-start justify-between gap-4 mb-6 md:flex-row md:items-center">
+        <div class="relative mb-4 md:w-1/3">
+            <input type="text" wire:model.live="search" placeholder="Cari nama obat"
+                class="w-full px-4 py-2 transition border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-300 focus:outline-none">
+
+            @if (!empty($results))
+                <ul
+                    class="absolute z-10 w-full mt-1 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg max-h-60">
+                    @foreach ($results as $item)
+                        <li wire:click="selectObat('{{ $item->nama_obat }}')"
+                            class="px-4 py-2 cursor-pointer hover:bg-indigo-100">
+                            {{ $item->nama_obat }}
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
 
         <div class="flex space-x-2">
             <button wire:click="exportExcel"
-                class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-md transition">
+                class="flex items-center gap-2 px-4 py-2 text-white transition bg-green-600 rounded-md shadow-md hover:bg-green-700">
                 Export
             </button>
             <button wire:click="downloadTemplate"
-                class="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md shadow-md transition">
+                class="flex items-center gap-2 px-4 py-2 text-white transition bg-gray-600 rounded-md shadow-md hover:bg-gray-700">
                 Template
             </button>
-            <input type="file" wire:model="file" accept=".xlsx,.xls,.csv" class="border rounded px-2 py-1">
+            <input type="file" wire:model="file" accept=".xlsx,.xls,.csv" class="px-2 py-1 border rounded">
             <button wire:click="importExcel"
-                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-md transition">
+                class="flex items-center gap-2 px-4 py-2 text-white transition bg-blue-600 rounded-md shadow-md hover:bg-blue-700">
                 Upload
             </button>
         </div>
     </div>
 
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">💊 Daftar Obat</h2>
+    <h2 class="mb-4 text-2xl font-bold text-gray-800">💊 Daftar Obat</h2>
 
     <!-- Tabel -->
     <div class="overflow-x-auto bg-white rounded-md shadow-md">
         <table class="w-full text-sm text-left border-collapse">
-            <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
                 <tr>
                     <th class="px-4 py-3 text-center">No</th>
                     <th class="px-4 py-3">Kode</th>
@@ -39,7 +53,7 @@
             </thead>
             <tbody>
                 @forelse($obats as $obat)
-                    <tr class="hover:bg-gray-50 transition">
+                    <tr class="transition hover:bg-gray-50">
                         <td class="px-4 py-3 text-center">{{ $loop->iteration }}</td>
                         <td class="px-4 py-3 font-medium">{{ $obat->kode_obat }}</td>
                         <td class="px-4 py-3">{{ $obat->nama_obat }}</td>
@@ -48,9 +62,9 @@
                         <td class="px-4 py-3">{{ $obat->satuan->nama_satuan ?? '-' }}</td>
 
                         <!-- Aksi -->
-                        <td class="px-4 py-3 flex justify-center space-x-2">
+                        <td class="flex justify-center px-4 py-3 space-x-2">
                             <button wire:click="$dispatch('edit-obat', { id: {{ $obat->id }} })"
-                                class="p-2 bg-yellow-100 text-yellow-600 rounded-md hover:bg-yellow-200 transition"
+                                class="p-2 text-yellow-600 transition bg-yellow-100 rounded-md hover:bg-yellow-200"
                                 title="Edit">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -60,7 +74,7 @@
                             </button>
 
                             <button wire:click="delete({{ $obat->id }})"
-                                class="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition"
+                                class="p-2 text-red-600 transition bg-red-100 rounded-md hover:bg-red-200"
                                 title="Hapus">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -75,7 +89,7 @@
                     <tr>
                         <td colspan="7" class="px-4 py-3">
                             <div
-                                class="p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm grid grid-cols-3 gap-2 text-xs text-gray-500">
+                                class="grid grid-cols-3 gap-2 p-3 text-xs text-gray-500 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
                                 <div>💊 Komposisi: {{ $obat->komposisi->nama_komposisi ?? '-' }}</div>
                                 <div>🏭 Pabrik: {{ $obat->pabrik->nama_pabrik ?? '-' }}</div>
                                 <div>💰 Harga: Rp {{ number_format($obat->harga_jual, 0) }}</div>
@@ -84,14 +98,14 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-gray-500">Belum ada data obat</td>
+                        <td colspan="7" class="py-4 text-center text-gray-500">Belum ada data obat</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
 
         <!-- Pagination -->
-        <div class="mt-6 mb-4 flex justify-center">
+        <div class="flex justify-center mt-6 mb-4">
             {{ $obats->links('vendor.pagination.custom') }}
         </div>
     </div>
