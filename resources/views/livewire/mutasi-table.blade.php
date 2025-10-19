@@ -1,23 +1,45 @@
-<div class="p-6 bg-gray-50 min-h-screen">
+<div class="min-h-screen p-6 bg-gray-50">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <input type="text" wire:model.debounce.300ms="search" placeholder="Cari No Mutasi atau Keterangan"
-            class="border border-gray-300 rounded-md px-4 py-2 w-full md:w-1/3 focus:ring-2 focus:ring-indigo-300 focus:outline-none transition">
+    <div class="flex flex-col justify-between gap-4 mb-6 md:flex-row md:items-center">
 
-        <div class="flex gap-2 mb-4">
-            <button wire:click="exportExcelDetailed" class="px-3 py-2 bg-indigo-600 text-white rounded">Export
-                (Detail)</button>
-            <button wire:click="exportExcelSummary" class="px-3 py-2 bg-gray-600 text-white rounded">Export
-                (Ringkas)</button>
+        <!-- Bagian Kiri: Pencarian + Filter Tanggal -->
+        <div class="flex flex-col w-full gap-2 md:flex-row md:items-center md:w-2/3">
+
+            <!-- Input Pencarian -->
+            <input type="text" wire:model.debounce.300ms="search" placeholder="Cari No Mutasi atau Keterangan"
+                class="w-full px-4 py-2 transition border border-gray-300 rounded-md md:w-1/2 focus:ring-2 focus:ring-indigo-300 focus:outline-none">
+
+            <!-- Tanggal Awal -->
+            <input type="date" wire:model="start_date"
+                class="w-full px-4 py-2 transition border border-gray-300 rounded-md md:w-1/4 focus:ring-2 focus:ring-indigo-300 focus:outline-none">
+
+            <!-- Tanggal Akhir -->
+            <input type="date" wire:model="end_date"
+                class="w-full px-4 py-2 transition border border-gray-300 rounded-md md:w-1/4 focus:ring-2 focus:ring-indigo-300 focus:outline-none">
+        </div>
+
+        <!-- Bagian Kanan: Tombol Export -->
+        <div class="flex flex-wrap gap-2 md:justify-end">
+            <button wire:click="exportExcelDetailed"
+                class="px-4 py-2 text-white transition bg-indigo-600 rounded-md hover:bg-indigo-700">
+                Export (Detail)
+            </button>
+
+            <button wire:click="exportExcelSummary"
+                class="px-4 py-2 text-white transition bg-gray-600 rounded-md hover:bg-gray-700">
+                Export (Ringkas)
+            </button>
         </div>
     </div>
 
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">📦 Daftar Mutasi Stok</h2>
+
+
+    <h2 class="mb-4 text-2xl font-bold text-gray-800">📦 Daftar Mutasi Stok</h2>
 
     <!-- Tabel -->
     <div class="overflow-x-auto bg-white rounded-md shadow-md">
         <table class="w-full text-sm text-left border-collapse">
-            <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
                 <tr>
                     <th class="px-4 py-3 text-center">No</th>
                     <th class="px-4 py-3">No Mutasi</th>
@@ -30,7 +52,7 @@
             </thead>
             <tbody>
                 @forelse($mutasiList as $mutasi)
-                    <tr class="hover:bg-gray-50 transition">
+                    <tr class="transition hover:bg-gray-50">
                         <!-- No -->
                         <td class="px-4 py-3 text-center">{{ $loop->iteration }}</td>
 
@@ -50,9 +72,9 @@
                         <td class="px-4 py-3">
                             <div class="space-y-2">
                                 @foreach ($mutasi->details as $detail)
-                                    <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                    <div class="p-3 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
                                         <!-- Baris utama -->
-                                        <div class="flex justify-between items-center">
+                                        <div class="flex items-center justify-between">
                                             <span class="font-semibold text-gray-800">
                                                 {{ $detail->obat->nama_obat ?? '-' }}
                                             </span>
@@ -66,7 +88,7 @@
                                         </div>
 
                                         <!-- Baris tambahan -->
-                                        <div class="mt-2 grid grid-cols-3 gap-2 text-xs text-gray-500">
+                                        <div class="grid grid-cols-3 gap-2 mt-2 text-xs text-gray-500">
                                             <div>Batch: {{ $detail->batch ?? '-' }}</div>
                                             <div>ED: {{ \Carbon\Carbon::parse($detail->ed)->format('d-m-Y') }}
                                             </div>
@@ -77,9 +99,9 @@
                         </td>
 
                         <!-- Aksi -->
-                        <td class="px-4 py-3 flex justify-center space-x-2">
+                        <td class="flex justify-center px-4 py-3 space-x-2">
                             <button wire:click="delete({{ $mutasi->id }})"
-                                class="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition"
+                                class="p-2 text-red-600 transition bg-red-100 rounded-md hover:bg-red-200"
                                 title="Hapus">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -93,13 +115,13 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center py-4 text-gray-500">Belum ada mutasi stok</td>
+                        <td colspan="7" class="py-4 text-center text-gray-500">Belum ada mutasi stok</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
         <!-- Tambahkan pagination di sini -->
-        <div class="mt-6 mb-4 flex justify-center">
+        <div class="flex justify-center mt-6 mb-4">
             {{ $mutasiList->links('vendor.pagination.custom') }}
         </div>
     </div>

@@ -6,15 +6,15 @@ use Carbon\Carbon;
 use App\Models\Mutasi;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Exports\MutasiExport;
-use App\Exports\MutasiExportSummary;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MutasiExportSummary;
 use App\Exports\MutasiExportDetailed;
 
 class MutasiTable extends Component
 {
     use WithPagination;
 
+    protected $paginationTheme = 'tailwind';
     protected $listeners = ['refreshTable' => 'loadData'];
 
     public $search = '';
@@ -23,9 +23,20 @@ class MutasiTable extends Component
     public $details = [];
     public $start_date;
     public $end_date;
+    public $mutasis;
 
+    public function mount()
+    {
+        $this->loadData();
+    }
 
-    protected $paginationTheme = 'tailwind';
+    public function loadData()
+    {
+        $this->mutasis = Mutasi::orderBy('no_mutasi')->get();
+        $this->search = '';
+        $this->start_date = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $this->end_date   = Carbon::now()->endOfMonth()->format('Y-m-d');
+    }
 
     public function updatingSearch()
     {
@@ -93,13 +104,12 @@ class MutasiTable extends Component
         $this->dispatch('focus-tanggal');
     }
 
-
     public function exportExcelDetailed()
     {
         $tanggal = Carbon::now()->format('Y-m-d');
         $fileName = $this->start_date && $this->end_date
-            ? "mutasi_{$this->start_date}_sd_{$this->end_date}.xlsx"
-            : "mutasi_{$tanggal}.xlsx";
+            ? "mutasi_detail_{$this->start_date}_sd_{$this->end_date}.xlsx"
+            : "mutasi_detail_{$tanggal}.xlsx";
 
         return Excel::download(new MutasiExportDetailed($this->search, $this->start_date, $this->end_date), $fileName);
     }
@@ -114,42 +124,24 @@ class MutasiTable extends Component
         return Excel::download(new MutasiExportSummary($this->search, $this->start_date, $this->end_date), $fileName);
     }
 
-
     public function render()
     {
-        $mutasiList = Mutasi::with([
-            'details.obat',
-            'details.penerimaanDetail',
-            'outlet'
-        ])
-            ->where(function ($query) {
-                $query->where('no_mutasi', 'like', '%' . $this->search . '%')
-                    ->orWhere('tanggal', 'like', '%' . $this->search . '%')
+        $mutasiList = Mutasi::with(['details.obat', 'details.penerimaanDetail', 'outlet'])
+            ->when($this->search, function ($query) {
+                $query->where('no_mutasi', 'like', "%{$this->search}%")
+                    ->orWhere('tanggal', 'like', "%{$this->search}%")
                     ->orWhereHas('details.obat', function ($q) {
-                        $q->where('nama_obat', 'like', '%' . $this->search . '%');
+                        $q->where('nama_obat', 'like', "%{$this->search}%");
                     });
             })
-            ->latest()
+            ->when($this->start_date, fn($q) => $q->whereDate('tanggal', '>=', $this->start_date))
+            ->when($this->end_date, fn($q) => $q->whereDate('tanggal', '<=', $this->end_date))
+            ->orderBy('tanggal', 'desc')
             ->paginate(5);
 
         return view('livewire.mutasi-table', [
             'mutasiList' => $mutasiList
         ]);
-    }
-
-    public function mount()
-    {
-        $this->loadData();
-    }
-
-    public $mutasis;
-
-    public function loadData()
-    {
-        $this->mutasis = Mutasi::orderBy('no_mutasi')->get();
-        $this->search = '';
-        $this->start_date = \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d');
-        $this->end_date   = \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d');
     }
 
     public function print($id)

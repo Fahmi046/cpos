@@ -290,19 +290,26 @@ class PermintaanForm extends Component
     public function updatedObatSearch($value, $index)
     {
         if ($value) {
-            $this->obatResults[$index] = DB::table('kartu_stok as ks')
-                ->join('obat as o', 'ks.obat_id', '=', 'o.id')
+            $this->obatResults[$index] = DB::table('obat as o')
                 ->leftJoin('satuan_obat as s', 'o.satuan_id', '=', 's.id')
                 ->leftJoin('bentuk_sediaans as b', 'o.sediaan_id', '=', 'b.id')
+                ->join(DB::raw('(
+                SELECT ks1.obat_id, ks1.saldo_akhir
+                FROM kartu_stok ks1
+                INNER JOIN (
+                    SELECT obat_id, MAX(id) AS max_id
+                    FROM kartu_stok
+                    GROUP BY obat_id
+                ) ks2 ON ks1.id = ks2.max_id
+            ) as ks'), 'o.id', '=', 'ks.obat_id')
                 ->select(
-                    'ks.obat_id',
+                    'o.id as obat_id',
                     'o.nama_obat',
-                    DB::raw('MAX(ks.saldo_akhir) as stok'),
+                    'ks.saldo_akhir as stok',
                     DB::raw('COALESCE(s.nama_satuan, b.nama_sediaan) as satuan')
                 )
                 ->where('o.nama_obat', 'like', '%' . $value . '%')
-                ->groupBy('ks.obat_id', 'o.nama_obat', 's.nama_satuan', 'b.nama_sediaan')
-                ->having('stok', '>', 0)
+                ->where('ks.saldo_akhir', '>', 0)
                 ->orderBy('o.nama_obat', 'asc')
                 ->limit(10)
                 ->get();
@@ -312,6 +319,7 @@ class PermintaanForm extends Component
 
         $this->highlightObatIndex[$index] = 0;
     }
+
 
 
 
