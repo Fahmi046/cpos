@@ -17,8 +17,9 @@ class ObatTemplateExport implements WithHeadings, ShouldAutoSize
             'pabrik',
             'komposisi',
             'kreditur',
-            'harga_beli',
-            'harga_jual',
+            'hna',
+            'hppn',
+            'het',
             'isi_obat',
             'dosis',
             'utuh_satuan',
@@ -27,6 +28,7 @@ class ObatTemplateExport implements WithHeadings, ShouldAutoSize
             'resep_active',
             'aktif',
             'stok_awal',
+            'dosis',
         ];
     }
 }

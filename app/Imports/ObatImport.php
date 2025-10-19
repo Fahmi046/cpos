@@ -87,8 +87,9 @@ class ObatImport implements ToCollection, WithHeadingRow
                         'satuan_id'    => $satuan->id,
                         'pabrik_id'    => $pabrik->id,
                         'kreditur_id'  => $kreditur->id,
-                        'harga_beli'   => $row['harga_beli'] ?? 0,
-                        'harga_jual'   => $row['harga_jual'] ?? 0,
+                        'harga_beli'   => $row['hna'] ?? 0,
+                        'harga_jual'   => $row['hppn'] ?? 0,
+                        'het'   => $row['het'] ?? 0,
                         'isi_obat'     => $row['isi_obat'] ?? null,
                         'dosis'        => $row['dosis'] ?? null,
                         'utuh_satuan'  => $row['utuh_satuan'] ?? null,
@@ -97,6 +98,7 @@ class ObatImport implements ToCollection, WithHeadingRow
                         'resep_active' => $row['resep_active'] ?? 0,
                         'aktif'        => $row['aktif'] ?? 1,
                         'stok_awal'    => $row['stok_awal'] ?? 0,
+                        'dosis'    => $row['dosis'] ?? 0,
                     ]
                 );
 

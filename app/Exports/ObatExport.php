@@ -10,28 +10,20 @@ class ObatExport implements FromCollection, WithHeadings
 {
     public function collection()
     {
-        return Obat::with(['kategori', 'sediaan', 'komposisi', 'satuan', 'pabrik', 'kreditur'])
+        return Obat::with(['pabrik', 'sediaan', 'satuan', 'komposisi', 'kreditur'])
             ->get()
             ->map(function ($obat) {
                 return [
                     'kode_obat'    => $obat->kode_obat,
                     'nama_obat'    => $obat->nama_obat,
-                    'kategori'     => $obat->kategori?->nama_kategori, // Pastikan nama kolomnya benar
-                    'sediaan'      => $obat->sediaan?->nama_sediaan,
-                    'komposisi'    => $obat->komposisi?->nama_komposisi,
-                    'satuan'       => $obat->satuan?->nama_satuan,
                     'pabrik'       => $obat->pabrik?->nama_pabrik,
-                    'kreditur'     => $obat->kreditur?->nama_kreditur,
-                    'harga_beli'   => $obat->harga_beli,
-                    'harga_jual'   => $obat->harga_jual,
+                    'sediaan'      => $obat->sediaan?->nama_sediaan,    // Nama kemasan
+                    'satuan'       => $obat->satuan?->nama_satuan,      // Nama satuan
                     'isi_obat'     => $obat->isi_obat,
-                    'dosis'        => $obat->dosis,
-                    'utuh_satuan'  => $obat->utuh_satuan,
-                    'prekursor'    => $obat->prekursor,
-                    'psikotropika' => $obat->psikotropika,
-                    'resep_active' => $obat->resep_active,
-                    'aktif'        => $obat->aktif,
-                    'stok_awal'        => $obat->stok_awal,
+                    'komposisi'    => $obat->komposisi?->nama_komposisi, // Nama komposisi
+                    'hna'          => $obat->harga_beli,
+                    'het'          => $obat->het,
+                    'kreditur'     => $obat->kreditur?->nama,
                 ];
             });
     }
@@ -41,21 +33,14 @@ class ObatExport implements FromCollection, WithHeadings
         return [
             'Kode Obat',
             'Nama Obat',
-            'Kategori',
-            'Sediaan',
-            'Komposisi',
-            'Satuan',
             'Pabrik',
-            'Kreditur',
-            'Harga Beli',
-            'Harga Jual',
-            'Isi Obat',
-            'Dosis',
-            'Utuh Satuan',
-            'Prekursor',
-            'Psikotropika',
-            'Resep Active',
-            'Aktif'
+            'Kemasan',    // kolom sediaan
+            'Satuan',
+            'Isi',
+            'Komposisi',
+            'HNA',
+            'HET',
+            'Kreditur'
         ];
     }
 }
