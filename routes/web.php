@@ -1,9 +1,10 @@
 <?php
 
+use App\Livewire\PermintaanForm;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PesananController;
-use App\Livewire\PermintaanForm;
+use App\Http\Controllers\PenerimaanController;
 
 // -------------------------
 // Halaman Login (Publik)
@@ -41,6 +42,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/pesanan', fn() => view('pages.pesanan'))->name('pesanan.index');
         Route::get('/pesanan/{id}/print', [PesananController::class, 'print'])->name('pesanan.print');
         Route::get('/penerimaan', fn() => view('pages.penerimaan'))->name('penerimaan.index');
+        Route::get('/penerimaan/{id}/print', [PenerimaanController::class, 'print'])->name('penerimaan.print');
         Route::get('/kartu-stok', fn() => view('pages.kartu-stok'))->name('kartu-stok.index');
         Route::get('/permintaan', fn() => view('pages.permintaan'))->name('permintaan.index');
         Route::get('/mutasi', fn() => view('pages.mutasi'))->name('mutasi.index');
