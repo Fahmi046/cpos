@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
     // Dashboard (semua role bisa)
     Route::get('/', fn() => view('pages.dashboard'))->name('home');
     Route::get('/dashboard', fn() => view('pages.dashboard'))->name('dashboard');
+    Route::get('/penerimaan/{id}/print', [PenerimaanController::class, 'print'])->name('penerimaan.print');
 
     // =========================================================
     // 🔒 HANYA UNTUK ADMIN / ROLE SELAIN OUTLET
@@ -42,7 +43,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/pesanan', fn() => view('pages.pesanan'))->name('pesanan.index');
         Route::get('/pesanan/{id}/print', [PesananController::class, 'print'])->name('pesanan.print');
         Route::get('/penerimaan', fn() => view('pages.penerimaan'))->name('penerimaan.index');
-        Route::get('/penerimaan/{id}/print', [PenerimaanController::class, 'print'])->name('penerimaan.print');
         Route::get('/kartu-stok', fn() => view('pages.kartu-stok'))->name('kartu-stok.index');
         Route::get('/permintaan', fn() => view('pages.permintaan'))->name('permintaan.index');
         Route::get('/mutasi', fn() => view('pages.mutasi'))->name('mutasi.index');

@@ -7,16 +7,15 @@ use Illuminate\Http\Request;
 
 class PenerimaanController extends Controller
 {
-    public function cetak($id)
-    {
-        $penerimaan = Penerimaan::with(['supplier', 'details.obat', 'details.satuan'])
-            ->findOrFail($id);
-
-        return view('penerimaan.print', compact('penerimaan'));
-    }
-
+    /**
+     * Tampilkan halaman cetak penerimaan.
+     */
     public function print($id)
     {
-        return redirect()->route('penerimaan.print', $id);
+        $penerimaan = Penerimaan::with(['kreditur', 'details.obat', 'details.satuan'])
+            ->findOrFail($id);
+
+        // arahkan ke folder 'pages'
+        return view('pages.print-penerimaan', compact('penerimaan'));
     }
 }
