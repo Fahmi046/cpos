@@ -8,10 +8,9 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Exports\PermintaanExport;
 use App\Exports\PermintaanExportSummary;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PermintaanExportDetailed;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
-
 
 class PermintaanTable extends Component
 {
@@ -26,8 +25,20 @@ class PermintaanTable extends Component
     public $start_date;
     public $end_date;
 
-
     protected $paginationTheme = 'tailwind';
+
+    public function mount()
+    {
+        $this->resetFilters();
+        $this->loadData();
+    }
+
+    public function resetFilters()
+    {
+        $this->start_date = Carbon::now()->startOfMonth()->format('Y-m-d'); // tanggal 1
+        $this->end_date   = Carbon::now()->endOfMonth()->format('Y-m-d');   // akhir bulan
+        $this->search = '';
+    }
 
     public function updatingSearch()
     {
@@ -40,9 +51,9 @@ class PermintaanTable extends Component
         $permintaan = Permintaan::with('details.obat')->findOrFail($id);
 
         $this->no_permintaan  = $permintaan->no_permintaan;
-        $this->tanggal    = $permintaan->tanggal;
-        $this->outlet_id  = $permintaan->outlet_id;
-        $this->keterangan = $permintaan->keterangan;
+        $this->tanggal        = $permintaan->tanggal;
+        $this->outlet_id      = $permintaan->outlet_id;
+        $this->keterangan     = $permintaan->keterangan;
 
         $this->details = $permintaan->details->map(function ($detail) {
             return [
@@ -69,7 +80,7 @@ class PermintaanTable extends Component
         $permintaan->details()->delete();
         $permintaan->delete();
         $this->loadData();
-        session()->flash('message', 'permintaan berhasil dihapus.');
+        session()->flash('message', 'Permintaan berhasil dihapus.');
 
         $this->dispatch('refreshKodepermintaan');
         $this->dispatch('focus-tanggal');
@@ -77,23 +88,10 @@ class PermintaanTable extends Component
 
     public function exportExcelDetailed()
     {
-        $tanggal = Carbon::now()->format('Y-m-d');
-        $fileName = $this->start_date && $this->end_date
-            ? "permintaan_{$this->start_date}_sd_{$this->end_date}.xlsx"
-            : "permintaan_{$tanggal}.xlsx";
-
-        return Excel::download(new PermintaanExportDetailed($this->search, $this->start_date, $this->end_date), $fileName);
+        $fileName = "permintaan_{$this->start_date}_sd_{$this->end_date}.xlsx";
+        return Excel::download(new \App\Exports\PermintaanExportDetailed($this->search, $this->start_date, $this->end_date), $fileName);
     }
 
-    public function exportExcelSummary()
-    {
-        $tanggal = Carbon::now()->format('Y-m-d');
-        $fileName = $this->start_date && $this->end_date
-            ? "permintaan_{$this->start_date}_sd_{$this->end_date}.xlsx"
-            : "permintaan_{$tanggal}.xlsx";
-
-        return Excel::download(new PermintaanExportSummary($this->search, $this->start_date, $this->end_date), $fileName);
-    }
 
     public function render()
     {
@@ -104,14 +102,13 @@ class PermintaanTable extends Component
                     ->orWhereHas('details.obat', function ($q) {
                         $q->where('nama_obat', 'like', '%' . $this->search . '%');
                     });
-            });
+            })
+            ->whereBetween('tanggal', [$this->start_date, $this->end_date]); // filter tanggal
 
-        // 🔒 Filter otomatis jika user adalah outlet
         if (Auth::check() && Auth::user()->role === 'outlet') {
             $query->where('outlet_id', Auth::user()->outlet_id);
         }
 
-        // Urutkan: pending/sebagian dulu, lalu tanggal terbaru
         $permintaanList = $query
             ->orderByRaw("CASE WHEN status = 'sebagian' OR status = 'pending' THEN 0 ELSE 1 END")
             ->orderBy('tanggal', 'desc')
@@ -122,19 +119,11 @@ class PermintaanTable extends Component
         ]);
     }
 
-    public function mount()
-    {
-        $this->loadData();
-    }
-
     public $permintaans;
 
     public function loadData()
     {
         $this->permintaans = Permintaan::orderBy('no_permintaan')->get();
-        $this->search = '';
-        $this->start_date = \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d');
-        $this->end_date   = \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d');
     }
 
     public function print($id)
