@@ -1,9 +1,9 @@
 <div class="flex items-center justify-center min-h-screen bg-gray-100">
     <div class="w-full max-w-md p-8 text-center bg-white rounded-lg shadow-lg">
-        <!-- Logo Apotek -->
+        {{--  <!-- Logo Apotek -->
         <div class="flex justify-center mb-4">
             <img src="{{ asset('images/logo.png') }}" alt="Apotek Sahabat Logo" class="w-40 h-40">
-        </div>
+        </div>  --}}
 
         <!-- Teks Selamat Datang -->
         <h1 class="mb-4 text-xl font-bold text-gray-800">

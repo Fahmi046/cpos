@@ -132,7 +132,6 @@ class PesananForm extends Component
         }
     }
 
-
     public function save()
     {
         $this->validate([
@@ -163,7 +162,10 @@ class PesananForm extends Component
                     'qty'         => $detail['qty'],
                     'harga'       => $detail['harga'],
                     'jumlah'      => $detail['jumlah'],
-                    'kreditur_id' => $obat->kreditur_id ?? null, // ambil dari obat
+                    'kreditur_id' => $obat->kreditur_id ?? null,
+                    'pabrik_id'   => $obat->pabrik_id ?? null,
+                    'satuan_id'   => $obat->satuan_id ?? null,
+                    'sediaan_id'  => $obat->sediaan_id ?? null,
                 ]);
             }
 
@@ -184,7 +186,10 @@ class PesananForm extends Component
                     'qty'         => $detail['qty'],
                     'harga'       => $detail['harga'],
                     'jumlah'      => $detail['jumlah'],
-                    'kreditur_id' => $obat->kreditur_id ?? null, // ambil dari obat
+                    'kreditur_id' => $obat->kreditur_id ?? null,
+                    'pabrik_id'   => $obat->pabrik_id ?? null,
+                    'satuan_id'   => $obat->satuan_id ?? null,
+                    'sediaan_id'  => $obat->sediaan_id ?? null,
                 ]);
             }
 

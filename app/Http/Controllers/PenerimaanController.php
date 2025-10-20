@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Penerimaan;
-use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PenerimaanController extends Controller
 {

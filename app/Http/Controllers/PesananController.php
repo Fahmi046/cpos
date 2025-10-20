@@ -11,10 +11,7 @@ class PesananController extends Controller
     {
         $pesanan = Pesanan::findOrFail($id);
 
-        // Hilangkan / dan \ dari no_sp
-        $safeName = str_replace(['/', '\\'], '-', $pesanan->no_sp);
-
-        $pdf = \PDF::loadView('pages.print-pesanan', compact('pesanan'));
-        return $pdf->download($safeName . '.pdf');
+        // arahkan ke folder 'pages'
+        return view('pages.print-pesanan', compact('pesanan'));
     }
 }
