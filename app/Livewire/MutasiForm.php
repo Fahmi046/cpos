@@ -70,7 +70,7 @@ class MutasiForm extends Component
         $this->tanggal      = $this->permintaan->tanggal;
         $this->outlet_id    = $this->permintaan->outlet_id;
         $this->keterangan   = $this->permintaan->keterangan;
-        $this->searchOutlet = $this->permintaan->outlet->nama_outlet ?? '';
+        $this->searchoutlet = $this->permintaan->outlet->nama_outlet ?? '';
 
         // Reset
         $this->details = [];
