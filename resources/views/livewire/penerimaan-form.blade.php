@@ -6,11 +6,11 @@
     }
 ">
 
-    <div class="max-w-7xl mx-auto p-4 bg-white rounded-lg shadow-md">
+    <div class="p-4 mx-auto bg-white rounded-lg shadow-md max-w-7xl">
 
         @if ($errors->any())
             <div class="p-3 mb-2 text-sm text-red-700 bg-red-100 rounded-lg">
-                <ul class="list-disc pl-5">
+                <ul class="pl-5 list-disc">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -37,7 +37,7 @@
                 </div>
 
                 {{-- Pesanan --}}
-                <div class="col-span-5 relative">
+                <div class="relative col-span-5">
                     <label class="block mb-2 text-sm font-medium text-gray-900">Pesanan (No SP)</label>
                     <input type="text"
                         class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500"
@@ -96,7 +96,7 @@
                         class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500">
                 </div>
 
-                <div class="col-span-3 relative">
+                <div class="relative col-span-3">
                     <label class="block mb-2 text-sm font-medium text-gray-900">Kreditur</label>
                     <input type="text"
                         class="w-full p-2.5 border rounded-lg focus:ring-primary-500 focus:border-primary-500"
@@ -161,9 +161,9 @@
 
                 <div class="space-y-3">
                     @forelse ($details as $i => $detail)
-                        <div class="grid grid-cols-11 gap-3 items-end border rounded-lg p-3 bg-gray-50">
+                        <div class="grid items-end grid-cols-11 gap-3 p-3 border rounded-lg bg-gray-50">
                             {{-- Obat --}}
-                            <div class="col-span-3 relative">
+                            <div class="relative col-span-3">
                                 <label class="block mb-1 text-xs font-medium text-gray-700">Obat</label>
 
                                 <input type="text" placeholder="Cari obat..."
@@ -177,7 +177,7 @@
 
                                 @if (!empty($obatResults[$i]))
                                     <ul
-                                        class="absolute z-10 w-full bg-white border rounded shadow-md max-h-40 overflow-y-auto">
+                                        class="absolute z-10 w-full overflow-y-auto bg-white border rounded shadow-md max-h-40">
                                         @foreach ($obatResults[$i] as $index => $obat)
                                             <li wire:click="selectObat({{ $i }}, {{ $obat->id }})"
                                                 class="px-2 py-1 cursor-pointer hover:bg-gray-200
@@ -193,10 +193,10 @@
                             <div class="col-span-2">
                                 <label class="block mb-1 text-xs font-medium text-gray-700">Pabrik</label>
                                 <input type="text" wire:model="details.{{ $i }}.pabrik"
-                                    class="w-full p-2 b order rounded-lg text-center">
+                                    class="w-full p-2 text-center rounded-lg b order">
                             </div>
 
-                            <div class="col-span-1 flex flex-col items-center justify-center h-full">
+                            <div class="flex flex-col items-center justify-center h-full col-span-1">
                                 <label class="flex flex-col items-center cursor-pointer">
                                     <!-- Label di atas -->
                                     <span class="mb-1 text-sm font-medium text-gray-500">Utuhan</span>
@@ -209,7 +209,7 @@
                                             @keydown.enter.prevent="$refs.harga_{{ $i }}?.focus()">
 
                                         <div
-                                            class="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors duration-300">
+                                            class="h-6 transition-colors duration-300 bg-gray-300 rounded-full w-11 peer-checked:bg-green-500">
                                         </div>
                                         <div
                                             class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-md
@@ -227,7 +227,7 @@
                             <div class="col-span-1">
                                 <label class="block mb-1 text-xs font-medium text-gray-700">Satuan</label>
                                 <input type="text" wire:model="details.{{ $i }}.satuan"
-                                    class="w-full p-2 border rounded-lg text-center">
+                                    class="w-full p-2 text-center border rounded-lg">
                             </div>
 
                             {{-- isi_obat --}}
@@ -235,19 +235,19 @@
                                 <label class="block mb-1 text-xs font-medium text-gray-700">Isi Obat</label>
                                 <input type="number" min="0"
                                     wire:model="details.{{ $i }}.isi_obat"
-                                    class="w-full p-2 border rounded-lg text-center">
+                                    class="w-full p-2 text-center border rounded-lg">
                             </div>
 
                             {{-- harga --}}
                             <div class="col-span-2">
                                 <label class="block mb-1 text-xs font-medium text-gray-700">Harga</label>
-                                <input type="text" x-ref="harga_{{ $i }}"
+                                <input type="number" step="0.01" min="0"
+                                    x-ref="harga_{{ $i }}"
                                     @keydown.enter.prevent="$refs['ed_{{ $i }}']?.focus()"
-                                    wire:input.debounce.500ms="updateHarga({{ $i }}, $event.target.value)"
-                                    value="{{ number_format($detail['harga'] ?? 0, 0, ',', '.') }}"
-                                    wire:change="updateHarga({{ $i }}, $event.target.value)"
-                                    class="w-full p-2 border rounded-lg text-right" placeholder="0">
+                                    wire:model.lazy="details.{{ $i }}.harga"
+                                    class="w-full p-2 text-right border rounded-lg" placeholder="0.00">
                             </div>
+
 
                             {{-- ED --}}
                             <div class="col-span-2">
@@ -274,7 +274,7 @@
                                     wire:model.lazy="details.{{ $i }}.qty"
                                     x-ref="qty_{{ $i }}"
                                     @keydown.enter.prevent="$refs['disc1_{{ $i }}']?.focus()"
-                                    class="w-full p-2 border rounded-lg text-center">
+                                    class="w-full p-2 text-center border rounded-lg">
                             </div>
 
                             {{-- Disc 1 --}}
@@ -284,7 +284,7 @@
                                     wire:model.lazy="details.{{ $i }}.disc1"
                                     x-ref="disc1_{{ $i }}"
                                     @keydown.enter.prevent="$refs['disc2_{{ $i }}']?.focus()"
-                                    class="w-full p-2 border rounded-lg text-right">
+                                    class="w-full p-2 text-right border rounded-lg">
                             </div>
 
                             {{-- Disc 2 --}}
@@ -294,7 +294,7 @@
                                     wire:model.lazy="details.{{ $i }}.disc2"
                                     x-ref="disc2_{{ $i }}"
                                     @keydown.enter.prevent="$refs['disc3_{{ $i }}']?.focus()"
-                                    class="w-full p-2 border rounded-lg text-right">
+                                    class="w-full p-2 text-right border rounded-lg">
                             </div>
 
                             {{-- Disc 3 --}}
@@ -308,7 +308,7 @@
     @else
          $refs['addDetail']?.focus(); @endif
 "
-                                    class="w-full p-2 border rounded-lg text-right">
+                                    class="w-full p-2 text-right border rounded-lg">
                             </div>
 
 
@@ -317,11 +317,11 @@
                                 <label class="block mb-1 text-xs font-medium text-gray-700">Jumlah</label>
                                 <input type="text"
                                     value="{{ number_format($detail['jumlah'] ?? 0, 0, ',', '.') }}" readonly
-                                    class="w-full p-2 border rounded-lg text-center">
+                                    class="w-full p-2 text-center border rounded-lg">
 
                             </div>
                             {{-- Hapus --}}
-                            <div class="col-span-1 flex items-center justify-center mt-5">
+                            <div class="flex items-center justify-center col-span-1 mt-5">
                                 <button type="button" wire:click="removeDetail({{ $i }})"
                                     class="px-2 py-1 text-xs text-white bg-red-500 rounded-lg hover:bg-red-600">
                                     ✕
@@ -335,7 +335,7 @@
 
                 <div class="mt-3">
                     <button type="button" wire:click="addDetail" x-ref="addDetail"
-                        class="bg-blue-500 text-white px-4 py-1 rounded mb-4">
+                        class="px-4 py-1 mb-4 text-white bg-blue-500 rounded">
                         + Tambah Baris
                     </button>
                 </div>
@@ -343,33 +343,33 @@
 
 
             {{-- 🔹 SIMPAN --}}
-            <div class="grid grid-cols-4 gap-4 items-end mt-6">
+            <div class="grid items-end grid-cols-4 gap-4 mt-6">
 
                 {{-- DPP --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700">DPP</label>
                     <input type="text" value="{{ number_format($dpp, 0, ',', '.') }}" readonly
-                        class="w-full p-2 border rounded-lg text-right bg-gray-100 font-semibold" />
+                        class="w-full p-2 font-semibold text-right bg-gray-100 border rounded-lg" />
                 </div>
 
                 {{-- PPN --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700">PPN (11%)</label>
                     <input type="text" value="{{ number_format($ppn, 0, ',', '.') }}" readonly
-                        class="w-full p-2 border rounded-lg text-right bg-gray-100 font-semibold" />
+                        class="w-full p-2 font-semibold text-right bg-gray-100 border rounded-lg" />
                 </div>
 
                 {{-- TOTAL --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700">TOTAL</label>
                     <input type="text" value="{{ number_format($total, 0, ',', '.') }}" readonly
-                        class="w-full p-2 border rounded-lg text-right font-bold text-green-600 bg-gray-100" />
+                        class="w-full p-2 font-bold text-right text-green-600 bg-gray-100 border rounded-lg" />
                 </div>
 
                 {{-- Tombol Simpan --}}
                 <div class="flex justify-end">
                     <button type="submit"
-                        class="px-6 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700">
+                        class="px-6 py-2 text-white bg-green-600 rounded-lg shadow hover:bg-green-700">
                         Simpan (F10)
                     </button>
                 </div>
