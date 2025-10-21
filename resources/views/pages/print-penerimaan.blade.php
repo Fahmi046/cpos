@@ -96,12 +96,12 @@
             <tr>
                 <th>NO</th>
                 <th>NAMA OBAT</th>
+                <th>BATCH</th>
+                <th>ED</th>
                 <th>BELI</th>
                 <th>SAT</th>
                 <th>HARGA</th>
                 <th>DISKON 1</th>
-                <th>DISKON 2</th>
-                <th>DISKON 3</th>
                 <th>JUMLAH</th>
             </tr>
         </thead>
@@ -110,6 +110,8 @@
                 <tr>
                     <td class="center">{{ $i + 1 }}</td>
                     <td>{{ $detail->obat->nama_obat ?? '-' }}</td>
+                    <td>{{ $detail->batch ?? '-' }}</td>
+                    <td> {{ $detail->ed ? \Carbon\Carbon::parse($detail->ed)->format('d/m/Y') : '-' }}</td>
                     <td class="center">{{ $detail->qty }}</td>
                     <td class="center">
                         {{ $detail->utuhan == 1 ? $detail->sediaan->nama_sediaan ?? '-' : $detail->satuan->nama_satuan ?? '-' }}
@@ -119,8 +121,6 @@
                     </td>
 
                     <td class="center">{{ $detail->disc1 ?? 0 }}%</td>
-                    <td class="center">{{ $detail->disc2 ?? 0 }}%</td>
-                    <td class="center">{{ $detail->disc3 ?? 0 }}%</td>
                     <td class="right">{{ number_format($detail->subtotal ?? 0, 0, ',', '.') }}</td>
                 </tr>
             @endforeach

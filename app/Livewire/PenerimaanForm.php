@@ -617,7 +617,9 @@ class PenerimaanForm extends Component
 
         // Header penerimaan
         $this->penerimaan_id = $penerimaan->id;
-        $this->search = $penerimaan->pesanan->no_sp . ' - ' . $penerimaan->pesanan->tanggal;
+        $this->search = optional($penerimaan->pesanan)->no_sp
+            ? $penerimaan->pesanan->no_sp . ' - ' . $penerimaan->pesanan->tanggal
+            : '';
         $this->no_penerimaan = $penerimaan->no_penerimaan;
         $this->pesanan_id    = $penerimaan->pesanan_id;
         $this->tanggal = $penerimaan->tanggal
