@@ -8,42 +8,42 @@
     {{-- Filter --}}
     <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
 
-        {{-- Autocomplete Outlet --}}
+        {{-- Autocomplete Obat --}}
         <div class="relative">
-            <label class="block mb-2 text-sm font-medium text-gray-700">Outlet</label>
+            <label class="block mb-2 text-sm font-medium text-gray-700">Obat</label>
             <div class="relative">
-                <input type="text" x-ref="outlet" wire:model.live="searchOutlet"
-                    wire:keydown.arrow-down.prevent="incrementHighlight"
-                    wire:keydown.arrow-up.prevent="decrementHighlight"
-                    wire:keydown.enter.prevent="selectHighlighted(); $dispatch('focus-start')"
-                    placeholder="Ketik nama outlet..."
+                <input type="text" wire:model.live="searchObat"
+                    wire:keydown.arrow-down.prevent="incrementObatHighlight"
+                    wire:keydown.arrow-up.prevent="decrementObatHighlight"
+                    wire:keydown.enter.prevent="selectObatHighlighted" placeholder="Ketik nama obat..."
                     class="w-full p-2.5 ps-10 text-sm border border-gray-300 rounded-lg bg-gray-50
-                              focus:ring-blue-500 focus:border-blue-500">
+                   focus:ring-blue-500 focus:border-blue-500">
+
                 <div class="absolute inset-y-0 flex items-center pointer-events-none start-0 ps-3">
                     <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l4.387
-                                 4.387a1 1 0 01-1.414 1.414l-4.387-4.387zM14
-                                 8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd"></path>
+                         4.387a1 1 0 01-1.414 1.414l-4.387-4.387zM14
+                         8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd"></path>
                     </svg>
                 </div>
             </div>
 
-            {{-- Dropdown hasil pencarian --}}
-            @if (!empty($outletResults))
+            @if (!empty($obatResults))
                 <div
                     class="absolute z-20 w-full mt-1 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg max-h-56">
                     <ul class="text-sm text-gray-700 divide-y divide-gray-100">
-                        @foreach ($outletResults as $i => $item)
-                            <li wire:click="selectOutlet({{ $item['id'] }})"
+                        @foreach ($obatResults as $i => $item)
+                            <li wire:click="selectObat({{ $item['id'] }})"
                                 class="px-4 py-2 cursor-pointer
-                                       {{ $highlightIndex === $i ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100' }}">
-                                {{ $item['nama_outlet'] }}
+    {{ $highlightObatIndex === $i ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100' }}">
+                                <div class="font-medium">{{ $item['nama_obat'] }}</div>
                             </li>
                         @endforeach
                     </ul>
                 </div>
             @endif
         </div>
+
 
         {{-- Start Date --}}
         <div>

@@ -506,4 +506,14 @@ class ObatForm extends Component
         $this->searchkreditur = $nama;
         $this->krediturList = [];
     }
+
+    // --- AUTO HITUNG HARGA JUAL ---
+    public function updatedHargaBeli($value)
+    {
+        $angkaBersih = preg_replace('/[^0-9]/', '', $value);
+        $this->harga_beli = (int) $angkaBersih;
+
+        // Hitung harga jual + 11%
+        $this->harga_jual = (int) round($this->harga_beli * 1.11);
+    }
 }

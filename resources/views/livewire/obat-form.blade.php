@@ -1,7 +1,20 @@
 <div class="p-4 mb-4 bg-white rounded-md shadow">
     <h2 class="mb-3 text-base font-semibold text-gray-700">Master Obat</h2>
 
-    <form wire:submit.prevent="store" x-data x-init="$nextTick(() => $refs.nama_obat.focus())" x-on:focus-nama-obat.window="$refs.nama_obat.focus()"
+    <form wire:submit.prevent="store" x-data x-init="// Auto-focus nama_obat saat load
+    $nextTick(() => $refs.nama_obat.focus());
+    
+    // Watch harga_beli agar selalu terformat titik ribuan
+    $watch('$wire.harga_beli', value => {
+        if ($refs.harga_beli === document.activeElement) return;
+        $refs.harga_beli.value = (parseInt(value || 0)).toLocaleString('id-ID');
+    });
+    
+    // Watch harga_jual agar selalu terformat titik ribuan
+    $watch('$wire.harga_jual', value => {
+        if ($refs.harga_jual === document.activeElement) return;
+        $refs.harga_jual.value = (parseInt(value || 0)).toLocaleString('id-ID');
+    });" x-on:focus-nama-obat.window="$refs.nama_obat.focus()"
         class="space-y-3 text-sm">
 
         <!-- Baris 1: Kode & Nama -->
@@ -134,17 +147,30 @@
 
             <div>
                 <label class="block mb-1">Harga Beli</label>
-                <input type="text" wire:model="harga_beli" x-ref="harga_beli"
-                    @keydown.enter.prevent="$refs.harga_jual.focus()"
-                    class="w-full px-2 py-1 border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 format-rupiah" />
-            </div>
-
-            <div>
-                <label class="block mb-1">Harga Jual + PPN 11%</label>
-                <input type="text" wire:model="harga_jual" x-ref="harga_jual"
+                <input type="text" x-ref="harga_beli"
+                    x-on:input.debounce.500ms="
+            let cleaned = $el.value.replace(/[^\d]/g, '');
+            $wire.set('harga_beli', cleaned || 0);
+        "
+                    x-on:blur="$el.value = (parseInt($el.value || 0)).toLocaleString('id-ID')" wire:model="harga_beli"
                     @keydown.enter.prevent="$refs.het.focus()"
                     class="w-full px-2 py-1 border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 format-rupiah" />
             </div>
+
+
+            <div x-data x-init="$watch('$wire.harga_jual', value => {
+                // Format tampilan setiap kali Livewire update harga_jual
+                if ($refs.harga_jual === document.activeElement) return; // Jangan ubah saat sedang mengetik
+                $refs.harga_jual.value = (parseInt(value || 0)).toLocaleString('id-ID');
+            });">
+                <label class="block mb-1">Harga Jual + PPN 11%</label>
+                <input type="text" x-ref="harga_jual"
+                    x-on:input="$wire.set('harga_jual', $el.value.replace(/\D/g, ''))"
+                    x-on:blur="$el.value = (parseInt($el.value || 0)).toLocaleString('id-ID')" wire:model="harga_jual"
+                    @keydown.enter.prevent="$refs.het.focus()"
+                    class="w-full px-2 py-1 border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 format-rupiah" />
+            </div>
+
 
             <!-- Kolom baru: HET -->
             <div>
