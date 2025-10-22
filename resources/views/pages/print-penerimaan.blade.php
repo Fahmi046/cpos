@@ -241,7 +241,8 @@
             style="margin-top:25px; display:flex; justify-content:space-between; font-size:13px;">
             <div class="signature-box" style="text-align:center; width:45%;">
                 <p style="margin-bottom:60px;">Penerima Barang,</p>
-                <p style="text-decoration:underline;">Nama Terang</p>
+                <p>.............................</p>
+                <p>Nama Terang</p>
             </div>
 
             <div class="signature-box" style="text-align:center; width:45%;">
