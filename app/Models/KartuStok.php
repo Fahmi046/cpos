@@ -56,6 +56,7 @@ class KartuStok extends Model
         return $this->belongsTo(PenerimaanDetail::class, 'penerimaan_detail_id');
     }
 
+
     // Relasi mutasi
     public function mutasi()
     {

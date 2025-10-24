@@ -64,26 +64,21 @@ class KartuStokExport implements FromCollection, WithHeadings, WithMapping
 
     public function map($row): array
     {
-        // key unik: obat + batch + ed
         $key = $row->obat_id . '-' . $row->batch . '-' . $row->ed;
 
-        // jika belum ada saldo untuk kombinasi ini, set 0
         if (!isset($this->saldoPerObat[$key])) {
-            $this->saldoPerObat[$key] = 0;
+            $this->saldoPerObat[$key] = $row->stok_awal ?? 0;
         }
 
-        // hitung saldo sesuai jenis transaksi
-        if ($row->jenis === 'masuk') {
-            $this->saldoPerObat[$key] += $row->qty;
-        } else {
-            $this->saldoPerObat[$key] -= $row->qty;
-        }
+        // update saldo berdasarkan kolom masuk dan keluar
+        $this->saldoPerObat[$key] += ($row->masuk ?? 0);
+        $this->saldoPerObat[$key] -= ($row->keluar ?? 0);
 
         return [
-            Carbon::parse($row->tanggal)->format('d-m-Y'),
+            \Carbon\Carbon::parse($row->tanggal)->format('d-m-Y'),
             $row->obat?->nama_obat ?? '-',
             $row->batch ?? '-',
-            Carbon::parse($row->ed)->format('d-m-Y'),
+            $row->ed ? \Carbon\Carbon::parse($row->ed)->format('d-m-Y') : '-',
             $row->utuhan
                 ? ($row->satuan->nama_satuan ?? '-')
                 : ($row->sediaan->nama_sediaan ?? '-'),
@@ -92,9 +87,9 @@ class KartuStokExport implements FromCollection, WithHeadings, WithMapping
             $row->penerimaanDetail?->harga
                 ? 'Rp ' . number_format($row->penerimaanDetail->harga, 0, ',', '.')
                 : '-',
-            $row->qty > 0 ? $row->qty : '-',
-            $row->qty < 0 ? abs($row->qty) : '-',
-            $this->saldoPerObat[$key], // saldo per obat+batch+ed
+            $row->masuk ?? '-',
+            $row->keluar ?? '-',
+            $this->saldoPerObat[$key],
         ];
     }
 }
