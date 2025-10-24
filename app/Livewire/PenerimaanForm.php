@@ -92,7 +92,8 @@ class PenerimaanForm extends Component
 
         $lastIndex = count($this->details) - 1;
 
-        $this->dispatch('focus-row', index: $lastIndex);
+        // Kirim event Livewire ke Alpine untuk fokus langsung ke kolom nama obat
+        $this->dispatch('focus-nama-obat', index: $lastIndex);
     }
 
     public function removeDetail($index)
@@ -179,29 +180,45 @@ class PenerimaanForm extends Component
         ]);
 
         try {
-            // 🔍 Debug awal
+            // Hitung subtotal dan total diskon
+            $subtotal_all = 0;
+            $total_diskon = 0;
+
+            foreach ($this->details as $row) {
+                $harga     = $row['harga'] ?? 0;
+                $qty       = $row['qty'] ?? 0;
+                $isi_obat  = $row['isi_obat'] ?? 0;
+                $disc1     = $row['disc1'] ?? 0;
+                $disc2     = $row['disc2'] ?? 0;
+                $disc3     = $row['disc3'] ?? 0;
+
+                $qty_all     = $qty * $isi_obat;
+                $subtotal    = $harga * $qty_all;
+                $diskon      = $subtotal * ($disc1 + $disc2 + $disc3) / 100;
+
+                $subtotal_all += $subtotal;
+                $total_diskon += $diskon;
+            }
+
+            // 🔍 Debug log
             Log::info('Data sebelum simpan:', [
                 'header' => [
-                    'pesanan_id'   => $this->pesanan_id,
-                    'tanggal'      => $this->tanggal,
-                    'jenis_bayar'  => $this->jenis_bayar,
-                    'kreditur_id'  => $this->kreditur_id,
-                    'no_faktur'    => $this->no_faktur,
-                    'tenor'        => $this->tenor,
-                    'jatuh_tempo'  => $this->jatuh_tempo,
-                    'jenis_ppn'    => $this->jenis_ppn,
-                    'dpp'          => $this->dpp,
-                    'ppn'          => $this->ppn,
-                    'total'        => $this->total,
+                    'pesanan_id'  => $this->pesanan_id,
+                    'tanggal'     => $this->tanggal,
+                    'jenis_bayar' => $this->jenis_bayar,
+                    'subtotal'    => $subtotal_all,
+                    'diskon'      => $total_diskon,
+                    'dpp'         => $this->dpp,
+                    'ppn'         => $this->ppn,
+                    'total'       => $this->total,
                 ],
-                'details' => $this->details,
             ]);
 
-            DB::transaction(function () {
+            DB::transaction(function () use ($subtotal_all, $total_diskon) {
                 $penerimaan = Penerimaan::updateOrCreate(
                     ['id' => $this->penerimaan_id],
                     [
-                        'pesanan_id' => $this->pesanan_id ?: null,
+                        'pesanan_id'    => $this->pesanan_id ?: null,
                         'tanggal'       => $this->tanggal,
                         'no_penerimaan' => $this->no_penerimaan,
                         'jenis_bayar'   => $this->jenis_bayar,
@@ -210,6 +227,8 @@ class PenerimaanForm extends Component
                         'tenor'         => $this->tenor ?? null,
                         'jatuh_tempo'   => $this->jatuh_tempo ?? null,
                         'jenis_ppn'     => $this->jenis_ppn,
+                        'subtotal'      => $subtotal_all,
+                        'diskon'        => $total_diskon,
                         'dpp'           => $this->dpp,
                         'ppn'           => $this->ppn,
                         'total'         => $this->total,
@@ -217,8 +236,6 @@ class PenerimaanForm extends Component
                 );
 
                 foreach ($this->details as $row) {
-                    $subtotal = $row['subtotal'] ?? ($row['jumlah'] ?? 0);
-
                     $penerimaan->details()->updateOrCreate(
                         ['id' => $row['id'] ?? null],
                         [
@@ -233,13 +250,12 @@ class PenerimaanForm extends Component
                             'disc2'      => $row['disc2'] ?? 0,
                             'disc3'      => $row['disc3'] ?? 0,
                             'harga'      => $row['harga'] ?? 0,
-                            'subtotal'   => $subtotal,
+                            'jumlah'     => $row['jumlah'] ?? 0,
+                            'subtotal'     => $row['subtotal'] ?? 0,
                             'utuh'       => (bool) ($row['utuh'] ?? false),
                         ]
                     );
                 }
-
-
 
                 // ✅ Update status pesanan menjadi 'diterima'
                 if ($this->pesanan_id) {
@@ -260,8 +276,6 @@ class PenerimaanForm extends Component
             session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
         }
     }
-
-
 
 
     public function render()
@@ -480,7 +494,11 @@ class PenerimaanForm extends Component
         }
     }
 
-    public $dpp = 0, $ppn = 0, $total = 0;
+    public $subtotal = 0;
+    public $diskon = 0;
+    public $dpp = 0;
+    public $ppn = 0;
+    public $total = 0;
 
     // Dipanggil kalau jenis_ppn berubah
     public function updatedJenisPpn()
@@ -508,29 +526,45 @@ class PenerimaanForm extends Component
 
     private function hitungRingkasan()
     {
-        $dpp_raw = 0;
+        $subtotal_all = 0;
+        $diskon_all   = 0;
+        $dpp_raw      = 0;
 
-        // Hitung jumlah per row dulu
+        // Hitung per row
         foreach ($this->details as $i => $row) {
-            $harga = $row['harga'] ?? 0;
-            $qty   = $row['qty'] ?? 0;
-            $isi_obat   = $row['isi_obat'] ?? 0;
-            $disc1 = $row['disc1'] ?? 0;
-            $disc2 = $row['disc2'] ?? 0;
-            $disc3 = $row['disc3'] ?? 0;
+            $harga     = $row['harga'] ?? 0;
+            $qty       = $row['qty'] ?? 0;
+            $isi_obat  = $row['isi_obat'] ?? 0;
+            $disc1     = $row['disc1'] ?? 0;
+            $disc2     = $row['disc2'] ?? 0;
+            $disc3     = $row['disc3'] ?? 0;
 
-            // Hitung subtotal dengan diskon
-            $qty_all   = $qty * $isi_obat;
+            // Total qty dalam satuan terkecil
+            $qty_all = $qty * $isi_obat;
+
+            // Subtotal sebelum diskon
             $subtotal = $harga * $qty_all;
+
+            // Total diskon per baris
             $totalDisc = $subtotal * ($disc1 + $disc2 + $disc3) / 100;
-            $subtotal -= $totalDisc;
 
-            // Simpan kembali ke row
-            $this->details[$i]['jumlah'] = $subtotal;
+            // Jumlah akhir setelah diskon
+            $jumlah = $subtotal - $totalDisc;
 
-            // Tambahkan ke DPP raw
-            $dpp_raw += $subtotal;
+            // Simpan ke row
+            $this->details[$i]['subtotal'] = round($subtotal);
+            $this->details[$i]['diskon']   = round($totalDisc);
+            $this->details[$i]['jumlah']   = round($jumlah);
+
+            // Akumulasi total keseluruhan
+            $subtotal_all += $subtotal;
+            $diskon_all   += $totalDisc;
+            $dpp_raw      += $jumlah;
         }
+
+        // Simpan subtotal dan diskon total ke properti Livewire
+        $this->subtotal = round($subtotal_all);
+        $this->diskon   = round($diskon_all);
 
         // Hitung DPP, PPN, dan Total berdasarkan jenis_ppn
         switch (strtolower($this->jenis_ppn)) {
@@ -564,6 +598,8 @@ class PenerimaanForm extends Component
         $this->ppn   = $ppn;
         $this->total = $total;
     }
+
+
 
 
 

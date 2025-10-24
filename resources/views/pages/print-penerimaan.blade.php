@@ -195,6 +195,8 @@
         @php
             $dpp = $penerimaan->dpp ?? 0;
             $ppn = $penerimaan->ppn ?? 0;
+            $diskon = $penerimaan->diskon ?? 0;
+            $subtotal = $penerimaan->subtotal ?? 0;
             $total = $penerimaan->total ?? 0;
         @endphp
 
@@ -202,7 +204,7 @@
         <table class="summary-table" style="width:100%; border-collapse:collapse; font-size:13px;">
             <tr>
                 <!-- Kolom Terbilang -->
-                <td style="width:60%; vertical-align:top; padding:8px;">
+                <td style="width:70%; vertical-align:top; padding:8px;">
                     <strong>Terbilang:</strong><br>
                     <span style="font-style:italic;">
                         {{ ucwords(\App\Helpers\Terbilang::angkaTerbilang($total)) }} Rupiah
@@ -210,12 +212,18 @@
                 </td>
 
                 <!-- Kolom Ringkasan Nominal -->
-                <td style="width:40%; vertical-align:top; padding:0;">
+                <td style="width:30%; vertical-align:top; padding:0;">
                     <table style="width:100%; border-collapse:collapse; font-size:13px;">
                         <tr>
                             <td style="padding:6px; border-bottom:1px solid #000;">SUBTOTAL Rp.</td>
                             <td style="padding:6px; border-bottom:1px solid #000; text-align:right;">
-                                {{ number_format($dpp, 0, ',', '.') }}
+                                {{ number_format($subtotal, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:6px; border-bottom:1px solid #000;">DISKON Rp.</td>
+                            <td style="padding:6px; border-bottom:1px solid #000; text-align:right;">
+                                {{ number_format($diskon, 0, ',', '.') }}
                             </td>
                         </tr>
                         <tr>

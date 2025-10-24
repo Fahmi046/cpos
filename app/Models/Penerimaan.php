@@ -20,6 +20,8 @@ class Penerimaan extends Model
         'jenis_ppn',
         'dpp',
         'ppn',
+        'subtotal', // 👈 baru (ganti dari jumlah_sebelum_diskon)
+        'diskon',   // 👈 baru
         'total',
     ];
 
@@ -37,13 +39,14 @@ class Penerimaan extends Model
     {
         return $this->hasMany(PenerimaanDetail::class, 'penerimaan_id');
     }
+
     public function pabrik()
     {
-        return $this->belongsTo(pabrik::class, 'pabrik_id');
+        return $this->belongsTo(Pabrik::class, 'pabrik_id');
     }
 
     public function obat()
     {
-        return $this->belongsTo(obat::class, 'obat_id');
+        return $this->belongsTo(Obat::class, 'obat_id');
     }
 }

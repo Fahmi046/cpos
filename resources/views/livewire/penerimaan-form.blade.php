@@ -1,10 +1,22 @@
 <div x-data
     @keydown.window="
-    if ($event.key === 'F10') {
-        $event.preventDefault();
-        $el.querySelector('form').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
-    }
-">
+        if ($event.key === 'F10') {
+            $event.preventDefault();
+            $el.querySelector('form').dispatchEvent(
+                new Event('submit', { cancelable: true, bubbles: true })
+            );
+        }
+    "
+    x-on:focus-nama-obat.window="(e) => {
+        // Tunggu Livewire render baris baru dulu
+        setTimeout(() => {
+            const nextInput = $refs[`nama_obat_${e.detail.index}`];
+            if (nextInput) {
+                nextInput.focus();
+            }
+        }, 300);
+    }">
+
 
     <div class="p-4 mx-auto bg-white rounded-lg shadow-md max-w-7xl">
 
@@ -280,36 +292,46 @@
                             {{-- Disc 1 --}}
                             <div class="col-span-1">
                                 <label class="block mb-1 text-xs font-medium text-gray-700">Disc 1</label>
-                                <input type="number" min="0"
-                                    wire:model.lazy="details.{{ $i }}.disc1"
+                                <input type="text"
+                                    x-on:input="
+            $el.value = $el.value.replace(',', '.');
+            $wire.set('details.{{ $i }}.disc1', parseFloat($el.value) || 0);
+        "
                                     x-ref="disc1_{{ $i }}"
                                     @keydown.enter.prevent="$refs['disc2_{{ $i }}']?.focus()"
-                                    class="w-full p-2 text-right border rounded-lg">
+                                    class="w-full p-2 text-right border rounded-lg" placeholder="0,0">
                             </div>
 
                             {{-- Disc 2 --}}
                             <div class="col-span-1">
                                 <label class="block mb-1 text-xs font-medium text-gray-700">Disc 2</label>
-                                <input type="number" min="0"
-                                    wire:model.lazy="details.{{ $i }}.disc2"
+                                <input type="text"
+                                    x-on:input="
+            $el.value = $el.value.replace(',', '.');
+            $wire.set('details.{{ $i }}.disc2', parseFloat($el.value) || 0);
+        "
                                     x-ref="disc2_{{ $i }}"
                                     @keydown.enter.prevent="$refs['disc3_{{ $i }}']?.focus()"
-                                    class="w-full p-2 text-right border rounded-lg">
+                                    class="w-full p-2 text-right border rounded-lg" placeholder="0,0">
                             </div>
 
                             {{-- Disc 3 --}}
                             <div class="col-span-1">
                                 <label class="block mb-1 text-xs font-medium text-gray-700">Disc 3</label>
-                                <input type="number" min="0"
-                                    wire:model.lazy="details.{{ $i }}.disc3"
+                                <input type="text"
+                                    x-on:input="
+            $el.value = $el.value.replace(',', '.');
+            $wire.set('details.{{ $i }}.disc3', parseFloat($el.value) || 0);
+        "
                                     x-ref="disc3_{{ $i }}"
                                     @keydown.enter.prevent="
-    @if ($i + 1 < count($details)) $refs['nama_obat_{{ $i + 1 }}']?.focus();
-    @else
-         $refs['addDetail']?.focus(); @endif
-"
-                                    class="w-full p-2 text-right border rounded-lg">
+            @if ($i + 1 < count($details)) $refs['nama_obat_{{ $i + 1 }}']?.focus();
+            @else
+                $refs['addDetail']?.focus(); @endif
+        "
+                                    class="w-full p-2 text-right border rounded-lg" placeholder="0,0">
                             </div>
+
 
 
                             {{-- jumlah --}}
@@ -343,7 +365,21 @@
 
 
             {{-- 🔹 SIMPAN --}}
-            <div class="grid items-end grid-cols-4 gap-4 mt-6">
+            <div class="grid items-end grid-cols-6 gap-4 mt-6">
+
+                {{-- SUBTOTAL --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Subtotal</label>
+                    <input type="text" value="{{ number_format($subtotal, 0, ',', '.') }}" readonly
+                        class="w-full p-2 font-semibold text-right bg-gray-100 border rounded-lg" />
+                </div>
+
+                {{-- DISKON --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">diskon</label>
+                    <input type="text" value="{{ number_format($diskon, 0, ',', '.') }}" readonly
+                        class="w-full p-2 font-semibold text-right bg-gray-100 border rounded-lg" />
+                </div>
 
                 {{-- DPP --}}
                 <div>
@@ -374,6 +410,7 @@
                     </button>
                 </div>
             </div>
+
 
         </form>
     </div>
