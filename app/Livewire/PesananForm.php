@@ -15,7 +15,7 @@ class PesananForm extends Component
     public $tanggal;
     public $kategori = '';
     public $kategoriList = [
-        'UMUM' => 'UMUM',
+        'REGULER' => 'REGULER',
         'RS' => 'RS',
         'GROSIR' => 'GROSIR'
     ];
@@ -25,7 +25,7 @@ class PesananForm extends Component
     public function mount()
     {
         $this->tanggal = date('Y-m-d');
-        $this->kategori = 'UMUM'; // Default kategori
+        $this->kategori = 'REGULER'; // Default kategori
         $this->details = [
             ['obat_id' => '', 'qty' => 1, 'harga' => 0, 'jumlah' => 0]
         ];
@@ -126,8 +126,8 @@ class PesananForm extends Component
             }
 
             // Selalu hitung ulang jumlah saat qty/harga berubah
-            $qty = $detail['qty'] ?? 0;
-            $harga = $detail['harga'] ?? 0;
+            $qty = (float) ($detail['qty'] ?? 0);
+            $harga = (float) ($detail['harga'] ?? 0);
             $this->details[$i]['jumlah'] = $qty * $harga;
         }
     }
@@ -206,7 +206,7 @@ class PesananForm extends Component
     {
         $this->selectedId = null; // Reset ID
         $this->tanggal = date('Y-m-d');
-        $this->kategori = 'UMUM';
+        $this->kategori = 'REGULER';
         $this->details = [
             ['obat_id' => '', 'qty' => 1, 'harga' => 0, 'jumlah' => 0]
         ];
@@ -361,8 +361,8 @@ class PesananForm extends Component
                 }
 
                 // Hitung jumlah total (qty × harga)
-                $qty = $this->details[$index]['qty'] ?? 1;
-                $this->details[$index]['jumlah'] = $qty * ($this->details[$index]['harga'] ?? 0);
+                $qty = (float) ($this->details[$index]['qty'] ?? 1);
+                $this->details[$index]['jumlah'] = $qty * (float) ($this->details[$index]['harga'] ?? 0);
 
                 // Tutup dropdown
                 $this->showObatDropdown[$index] = false;
