@@ -7,6 +7,7 @@ use App\Models\Obat;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Exports\KartuStokExport;
+use App\Exports\KartuStokExportAll;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\KartuStok as KartuStokModel;
 
@@ -106,51 +107,12 @@ class KartuStok extends Component
         );
     }
 
-    // public function render()
-    // {
-    //     $obatList = Obat::orderBy('nama_obat')->get();
 
-    //     $query = KartuStokModel::with([
-    //         'obat',
-    //         'penerimaan',
-    //         'mutasi',
-    //         'penerimaanDetail.satuan',
-    //         'penerimaanDetail.penerimaan.kreditur',
-    //         'pabrik',
-    //         'sediaan',
-    //         'satuan',
-    //         'obat.kategori',
-    //     ]);
+    public function exportAllExcel()
+    {
+        return Excel::download(new KartuStokExportAll, 'stok_all_item.xlsx');
+    }
 
-    //     if ($this->obat_id) {
-    //         $query->where('obat_id', $this->obat_id);
-    //     }
-
-    //     if ($this->start_date && $this->end_date) {
-    //         $query->whereBetween('tanggal', [$this->start_date, $this->end_date]);
-    //     }
-
-    //     // Pagination 15 baris per halaman
-    //     $riwayat = $query->orderBy('tanggal')
-    //         ->orderBy('id')
-    //         ->paginate(10);
-
-    //     // Hitung stok akhir berjalan per obat+batch+ed
-    //     $saldoPerObat = [];
-    //     foreach ($riwayat as $row) {
-    //         $key = $row->obat_id . '-' . $row->batch . '-' . $row->ed;
-    //         if (!isset($saldoPerObat[$key])) {
-    //             $saldoPerObat[$key] = 0;
-    //         }
-    //         $saldoPerObat[$key] += ($row->jenis === 'masuk' ? $row->qty : -$row->qty);
-    //         $row->stok_akhir = $saldoPerObat[$key];
-    //     }
-
-    //     return view('livewire.kartu-stok', [
-    //         'obatList' => $obatList,
-    //         'riwayat'  => $riwayat,
-    //     ]);
-    // }
 
     public function render()
     {

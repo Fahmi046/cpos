@@ -14,9 +14,6 @@ class KartuStokExport implements FromCollection, WithHeadings, WithMapping
     protected $end_date;
     protected $obat_id;
 
-    // Penampung saldo per obat
-    protected $saldoPerObat = [];
-
     public function __construct($start_date = null, $end_date = null, $obat_id = null)
     {
         $this->start_date = $start_date;
@@ -42,54 +39,56 @@ class KartuStokExport implements FromCollection, WithHeadings, WithMapping
             $query->whereBetween('tanggal', [$this->start_date, $this->end_date]);
         }
 
-        return $query->orderBy('tanggal', 'asc')->get();
+        // Ambil semua data sesuai filter
+        $data = $query->orderBy('tanggal', 'desc')->get();
+
+        // Ambil hanya baris terakhir per obat
+        $latestPerObat = $data
+            ->groupBy('obat_id')
+            ->map(function ($items) {
+                // Ambil transaksi terbaru
+                $latest = $items->sortByDesc('updated_at')->first();
+
+                return [
+                    'tanggal'  => $latest->tanggal,
+                    'obat'     => $latest->obat?->nama_obat ?? '-',
+                    'satuan'   => $latest->utuhan
+                        ? ($latest->satuan->nama_satuan ?? '-')
+                        : ($latest->sediaan->nama_sediaan ?? '-'),
+                    'pabrik'   => $latest->pabrik?->nama_pabrik ?? '-',
+                    'kategori' => $latest->obat?->kategori?->nama_kategori ?? '-',
+                    'harga'    => $latest->obat?->harga_beli ?? 0,
+                    'stok'     => $latest->saldo_akhir ?? 0,
+                ];
+            })
+            ->values();
+
+        return collect($latestPerObat);
     }
 
     public function headings(): array
     {
         return [
-            'Tanggal',
+            'Tanggal Terakhir',
             'Obat',
-            'Batch',
-            'ED',
             'Satuan',
             'Pabrik',
             'Kategori',
-            'Harga',
-            'Masuk',
-            'Keluar',
+            'Harga Terakhir',
             'Stok Akhir',
         ];
     }
 
     public function map($row): array
     {
-        $key = $row->obat_id . '-' . $row->batch . '-' . $row->ed;
-
-        if (!isset($this->saldoPerObat[$key])) {
-            $this->saldoPerObat[$key] = $row->stok_awal ?? 0;
-        }
-
-        // update saldo berdasarkan kolom masuk dan keluar
-        $this->saldoPerObat[$key] += ($row->masuk ?? 0);
-        $this->saldoPerObat[$key] -= ($row->keluar ?? 0);
-
         return [
-            \Carbon\Carbon::parse($row->tanggal)->format('d-m-Y'),
-            $row->obat?->nama_obat ?? '-',
-            $row->batch ?? '-',
-            $row->ed ? \Carbon\Carbon::parse($row->ed)->format('d-m-Y') : '-',
-            $row->utuhan
-                ? ($row->satuan->nama_satuan ?? '-')
-                : ($row->sediaan->nama_sediaan ?? '-'),
-            $row->pabrik?->nama_pabrik ?? '-',
-            $row->obat?->kategori?->nama_kategori ?? '-',
-            $row->penerimaanDetail?->harga
-                ? 'Rp ' . number_format($row->penerimaanDetail->harga, 0, ',', '.')
-                : '-',
-            $row->masuk ?? '-',
-            $row->keluar ?? '-',
-            $this->saldoPerObat[$key],
+            Carbon::parse($row['tanggal'])->format('d-m-Y'),
+            $row['obat'],
+            $row['satuan'],
+            $row['pabrik'],
+            $row['kategori'],
+            $row['harga'] ? 'Rp ' . number_format($row['harga'], 0, ',', '.') : '-',
+            $row['stok'],
         ];
     }
 }

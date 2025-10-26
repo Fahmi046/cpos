@@ -1,12 +1,12 @@
-<div class="p-6 bg-white shadow rounded-lg w-full" x-data x-init="$nextTick(() => $refs.obat.focus())"
+<div class="w-full p-6 bg-white rounded-lg shadow" x-data x-init="$nextTick(() => $refs.obat.focus())"
     x-on:focus-start.window="$refs.start.focus()" x-on:focus-end.window="$refs.end.focus()">
 
-    <h2 class="text-2xl font-bold mb-6 text-gray-700 flex items-center gap-2">
+    <h2 class="flex items-center gap-2 mb-6 text-2xl font-bold text-gray-700">
         📊 Kartu Stok
     </h2>
 
     {{-- Filter --}}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-4">
 
         {{-- Autocomplete Obat --}}
         <div class="relative">
@@ -19,7 +19,7 @@
                     placeholder="Ketik nama obat..."
                     class="w-full p-2.5 ps-10 text-sm border border-gray-300 rounded-lg bg-gray-50
                               focus:ring-blue-500 focus:border-blue-500">
-                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                <div class="absolute inset-y-0 flex items-center pointer-events-none start-0 ps-3">
                     <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l4.387
                                  4.387a1 1 0 01-1.414 1.414l-4.387-4.387zM14
@@ -31,8 +31,7 @@
             {{-- Dropdown hasil pencarian --}}
             @if (!empty($obatResults))
                 <div
-                    class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg
-                            max-h-56 overflow-y-auto">
+                    class="absolute z-20 w-full mt-1 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg max-h-56">
                     <ul class="text-sm text-gray-700 divide-y divide-gray-100">
                         @foreach ($obatResults as $i => $item)
                             <li wire:click="selectObat({{ $item['id'] }})"
@@ -63,25 +62,39 @@
         </div>
 
         {{-- Tombol Export --}}
-        <div class="flex items-end">
+        <div class="flex items-end space-x-2">
+            <!-- Export berdasarkan filter -->
             <button wire:click="exportExcel"
                 class="w-full inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white
-                           bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300">
+               bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M3 3a1 1 0 000 2h14a1 1 0 100-2H3zM3
-                             7a1 1 0 000 2h14a1 1 0 100-2H3zM3
-                             11a1 1 0 000 2h14a1 1 0 100-2H3zM3
-                             15a1 1 0 000 2h14a1 1 0 100-2H3z" />
+                     7a1 1 0 000 2h14a1 1 0 100-2H3zM3
+                     11a1 1 0 000 2h14a1 1 0 100-2H3zM3
+                     15a1 1 0 000 2h14a1 1 0 100-2H3z" />
                 </svg>
-                Export Excel
+                Export
+            </button>
+
+            <!-- Export semua item -->
+            <button wire:click="exportAllExcel"
+                class="w-full inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white
+               bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 3a1 1 0 000 2h14a1 1 0 100-2H3zM3
+                     7a1 1 0 000 2h14a1 1 0 100-2H3zM3
+                     11a1 1 0 000 2h14a1 1 0 100-2H3zM3
+                     15a1 1 0 000 2h14a1 1 0 100-2H3z" />
+                </svg>
+                Detail
             </button>
         </div>
     </div>
 
     {{-- Tabel Ringkas --}}
     <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <table class="min-w-full table-auto text-sm text-left text-gray-700">
-            <thead class="text-xs uppercase bg-gray-100 text-gray-700">
+        <table class="min-w-full text-sm text-left text-gray-700 table-auto">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
                 <tr>
                     <th class="px-4 py-3">Tanggal</th>
                     <th class="px-4 py-3">Obat</th>
@@ -111,19 +124,19 @@
                             {{ number_format($row->stok_awal ?? 0, 0, ',', '.') }}
                         </td>
 
-                        <td class="px-4 py-3 text-center text-green-600 font-semibold">
+                        <td class="px-4 py-3 font-semibold text-center text-green-600">
                             {{ number_format($row->masuk ?? 0, 0, ',', '.') }}
                         </td>
 
-                        <td class="px-4 py-3 text-center text-red-600 font-semibold">
+                        <td class="px-4 py-3 font-semibold text-center text-red-600">
                             {{ number_format($row->keluar ?? 0, 0, ',', '.') }}
                         </td>
 
-                        <td class="px-4 py-3 text-center font-bold text-gray-900">
+                        <td class="px-4 py-3 font-bold text-center text-gray-900">
                             {{ number_format($row->saldo_akhir ?? 0, 0, ',', '.') }}
                         </td>
 
-                        <td class="px-4 py-3 text-gray-600 text-sm">
+                        <td class="px-4 py-3 text-sm text-gray-600">
                             {{ $row->keterangan ?? '-' }}
                         </td>
                     </tr>
@@ -137,7 +150,7 @@
             </tbody>
         </table>
 
-        <div class="mt-6 mb-4 flex justify-center">
+        <div class="flex justify-center mt-6 mb-4">
             {{ $riwayat->links('vendor.pagination.custom') }}
         </div>
     </div>
