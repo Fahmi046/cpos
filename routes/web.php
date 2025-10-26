@@ -56,5 +56,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/keranjang', fn() => view('pages.keranjang'))->name('keranjang.index');
         Route::get('/po', fn() => view('pages.po'))->name('po.index');
         Route::get('/stok-outlet', fn() => view('pages.stok-outlet'))->name('stok-outlet.index');
+        Route::get('/kategori-harga', fn() => view('pages.kategori-harga'))->name('kategori-harga.index');
     });
 });

@@ -145,6 +145,10 @@
                                         class="{{ request()->is('keranjang') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
                                         Kasir
                                     </a>
+                                    <a href="/kategori-harga"
+                                        class="{{ request()->is('kategori-harga') ? 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-bold' : 'block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' }}">
+                                        Kategori Harga
+                                    </a>
                                 </div>
                             </div>
                         @endif
