@@ -1,14 +1,44 @@
 <div class="min-h-screen p-6 bg-gray-50">
     <!-- Header -->
     <div class="flex flex-col gap-3 mb-6 md:flex-row md:items-center md:gap-4">
-        <!-- Pilihan Obat -->
-        <select wire:model="obat_id"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg md:w-1/3 focus:ring-2 focus:ring-indigo-400 focus:outline-none">
-            <option value="">Pilih Obat</option>
-            @foreach ($obats as $obat)
-                <option value="{{ $obat->id }}">{{ $obat->nama }}</option>
-            @endforeach
-        </select>
+        <!-- Pilihan Obat (Autocomplete) -->
+        <div class="relative w-full md:w-1/3">
+            <input type="text"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+                placeholder="Cari obat..." wire:model.debounce.300ms="nama_obat"
+                wire:input="searchObat($event.target.value); resetHighlight()" @focus="$wire.showObatDropdown = true"
+                @keydown.arrow-down.prevent="$wire.incrementHighlight()"
+                @keydown.arrow-up.prevent="$wire.decrementHighlight()"
+                @keydown.enter.prevent="$wire.selectHighlightedObat(); $wire.showObatDropdown = false" x-ref="obat_id">
+
+            @if (!empty($obatSearch) && $showObatDropdown)
+                <div class="absolute z-10 w-full mt-1 overflow-y-auto bg-white border rounded shadow max-h-48">
+                    @foreach ($obatSearch as $i => $obat)
+                        @php
+                            $isActive = $highlightedIndex === $i;
+                        @endphp
+
+                        <div class="px-3 py-2 text-sm cursor-pointer transition-colors duration-100
+                {{ $isActive ? 'bg-indigo-500 text-white' : 'hover:bg-indigo-100 text-gray-900' }}"
+                            wire:click="selectObat({{ $obat->id }})">
+                            <!-- Nama Obat -->
+                            <div class="font-medium">
+                                {{ $obat->nama }}
+                            </div>
+
+                            <!-- Info Batch, ED, dan Stok -->
+                            <div class="text-xs {{ $isActive ? 'text-indigo-100' : 'text-gray-500' }}">
+                                Batch: {{ $obat->batch ?? '-' }} |
+                                ED: {{ $obat->ed == '-' ? '-' : \Carbon\Carbon::parse($obat->ed)->format('d/m/Y') }} |
+                                Stok: {{ $obat->stok_akhir }}
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+            @endif
+        </div>
+
 
         <!-- Kategori Harga -->
         <select wire:model="kategori_harga_id"
